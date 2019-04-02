@@ -1,0 +1,536 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.options — Command-line parsing &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.testing — Unit testing support for asynchronous code" href="testing.html" />
+    <link rel="prev" title="tornado.log — Logging support" href="log.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="utilities.html">Utilities</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="autoreload.html"><code class="docutils literal notranslate"><span class="pre">tornado.autoreload</span></code> — Automatically detect code changes in development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concurrent.html"><code class="docutils literal notranslate"><span class="pre">tornado.concurrent</span></code> — Work with <code class="docutils literal notranslate"><span class="pre">Future</span></code> objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html"><code class="docutils literal notranslate"><span class="pre">tornado.log</span></code> — Logging support</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.options</span></code> — Command-line parsing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html"><code class="docutils literal notranslate"><span class="pre">tornado.testing</span></code> — Unit testing support for asynchronous code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html"><code class="docutils literal notranslate"><span class="pre">tornado.util</span></code> — General-purpose utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="utilities.html">Utilities</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.options</span></code> — Command-line parsing</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/options.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-tornado.options">
+<span id="tornado-options-command-line-parsing"></span><h1><code class="docutils literal notranslate"><span class="pre">tornado.options</span></code> — Command-line parsing<a class="headerlink" href="#module-tornado.options" title="Permalink to this headline">¶</a></h1>
+<p>A command line parsing module that lets modules define their own options.</p>
+<p>This module is inspired by Google’s <a class="reference external" href="https://github.com/google/python-gflags">gflags</a>. The primary difference
+with libraries such as <a class="reference external" href="https://docs.python.org/3.6/library/argparse.html#module-argparse" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">argparse</span></code></a> is that a global registry is used so
+that options may be defined in any module (it also enables
+<a class="reference internal" href="log.html#module-tornado.log" title="tornado.log"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.log</span></code></a> by default). The rest of Tornado does not depend on this
+module, so feel free to use <a class="reference external" href="https://docs.python.org/3.6/library/argparse.html#module-argparse" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">argparse</span></code></a> or other configuration
+libraries if you prefer them.</p>
+<p>Options must be defined with <a class="reference internal" href="#tornado.options.define" title="tornado.options.define"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.options.define</span></code></a> before use,
+generally at the top level of a module. The options are then
+accessible as attributes of <a class="reference internal" href="#tornado.options.options" title="tornado.options.options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.options.options</span></code></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># myapp/db.py</span>
+<span class="kn">from</span> <span class="nn">tornado.options</span> <span class="k">import</span> <span class="n">define</span><span class="p">,</span> <span class="n">options</span>
+
+<span class="n">define</span><span class="p">(</span><span class="s2">&quot;mysql_host&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;127.0.0.1:3306&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Main user DB&quot;</span><span class="p">)</span>
+<span class="n">define</span><span class="p">(</span><span class="s2">&quot;memcache_hosts&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;127.0.0.1:11011&quot;</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Main user memcache servers&quot;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">connect</span><span class="p">():</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">database</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">mysql_host</span><span class="p">)</span>
+    <span class="o">...</span>
+
+<span class="c1"># myapp/server.py</span>
+<span class="kn">from</span> <span class="nn">tornado.options</span> <span class="k">import</span> <span class="n">define</span><span class="p">,</span> <span class="n">options</span>
+
+<span class="n">define</span><span class="p">(</span><span class="s2">&quot;port&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">8080</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;port to listen on&quot;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">start_server</span><span class="p">():</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">make_app</span><span class="p">()</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">main()</span></code> method of your application does not need to be aware of all of
+the options used throughout your program; they are all automatically loaded
+when the modules are loaded.  However, all modules that define options
+must have been imported before the command line is parsed.</p>
+<p>Your <code class="docutils literal notranslate"><span class="pre">main()</span></code> method can parse the command line or parse a config file with
+either <a class="reference internal" href="#tornado.options.parse_command_line" title="tornado.options.parse_command_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_command_line</span></code></a> or <a class="reference internal" href="#tornado.options.parse_config_file" title="tornado.options.parse_config_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_config_file</span></code></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">myapp.db</span><span class="o">,</span> <span class="nn">myapp.server</span>
+<span class="kn">import</span> <span class="nn">tornado.options</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">tornado</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parse_command_line</span><span class="p">()</span>
+    <span class="c1"># or</span>
+    <span class="n">tornado</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parse_config_file</span><span class="p">(</span><span class="s2">&quot;/etc/server.conf&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When using multiple <code class="docutils literal notranslate"><span class="pre">parse_*</span></code> functions, pass <code class="docutils literal notranslate"><span class="pre">final=False</span></code> to all
+but the last one, or side effects may occur twice (in particular,
+this can result in log messages being doubled).</p>
+</div>
+<p><a class="reference internal" href="#tornado.options.options" title="tornado.options.options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.options.options</span></code></a> is a singleton instance of <a class="reference internal" href="#tornado.options.OptionParser" title="tornado.options.OptionParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OptionParser</span></code></a>, and
+the top-level functions in this module (<a class="reference internal" href="#tornado.options.define" title="tornado.options.define"><code class="xref py py-obj docutils literal notranslate"><span class="pre">define</span></code></a>, <a class="reference internal" href="#tornado.options.parse_command_line" title="tornado.options.parse_command_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_command_line</span></code></a>, etc)
+simply call methods on it.  You may create additional <a class="reference internal" href="#tornado.options.OptionParser" title="tornado.options.OptionParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OptionParser</span></code></a>
+instances to define isolated sets of options, such as for subcommands.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>By default, several options are defined that will configure the
+standard <a class="reference external" href="https://docs.python.org/3.6/library/logging.html#module-logging" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging</span></code></a> module when <a class="reference internal" href="#tornado.options.parse_command_line" title="tornado.options.parse_command_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_command_line</span></code></a> or <a class="reference internal" href="#tornado.options.parse_config_file" title="tornado.options.parse_config_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_config_file</span></code></a>
+are called.  If you want Tornado to leave the logging configuration
+alone so you can manage it yourself, either pass <code class="docutils literal notranslate"><span class="pre">--logging=none</span></code>
+on the command line or do the following to disable it in code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tornado.options</span> <span class="k">import</span> <span class="n">options</span><span class="p">,</span> <span class="n">parse_command_line</span>
+<span class="n">options</span><span class="o">.</span><span class="n">logging</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">parse_command_line</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.3: </span>Dashes and underscores are fully interchangeable in option names;
+options can be defined, set, and read with any mix of the two.
+Dashes are typical for command-line usage while config files require
+underscores.</p>
+</div>
+<div class="section" id="global-functions">
+<h2>Global functions<a class="headerlink" href="#global-functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="tornado.options.define">
+<code class="descclassname">tornado.options.</code><code class="descname">define</code><span class="sig-paren">(</span><em>name: str, default: Any = None, type: type = None, help: str = None, metavar: str = None, multiple: bool = False, group: str = None, callback: Callable[[Any], None] = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/options.html#define"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.define" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines an option in the global namespace.</p>
+<p>See <a class="reference internal" href="#tornado.options.OptionParser.define" title="tornado.options.OptionParser.define"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OptionParser.define</span></code></a>.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="tornado.options.options">
+<code class="descclassname">tornado.options.</code><code class="descname">options</code><a class="headerlink" href="#tornado.options.options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Global options object.  All defined options are available as attributes
+on this object.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.options.parse_command_line">
+<code class="descclassname">tornado.options.</code><code class="descname">parse_command_line</code><span class="sig-paren">(</span><em>args: List[str] = None</em>, <em>final: bool = True</em><span class="sig-paren">)</span> &#x2192; List[str]<a class="reference internal" href="_modules/tornado/options.html#parse_command_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.parse_command_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses global options from the command line.</p>
+<p>See <a class="reference internal" href="#tornado.options.OptionParser.parse_command_line" title="tornado.options.OptionParser.parse_command_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OptionParser.parse_command_line</span></code></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.options.parse_config_file">
+<code class="descclassname">tornado.options.</code><code class="descname">parse_config_file</code><span class="sig-paren">(</span><em>path: str</em>, <em>final: bool = True</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/options.html#parse_config_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.parse_config_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses global options from a config file.</p>
+<p>See <a class="reference internal" href="#tornado.options.OptionParser.parse_config_file" title="tornado.options.OptionParser.parse_config_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OptionParser.parse_config_file</span></code></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.options.print_help">
+<code class="descclassname">tornado.options.</code><code class="descname">print_help</code><span class="sig-paren">(</span><em>file=sys.stderr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/options.html#print_help"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.print_help" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints all the command line options to stderr (or another file).</p>
+<p>See <a class="reference internal" href="#tornado.options.OptionParser.print_help" title="tornado.options.OptionParser.print_help"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OptionParser.print_help</span></code></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.options.add_parse_callback">
+<code class="descclassname">tornado.options.</code><code class="descname">add_parse_callback</code><span class="sig-paren">(</span><em>callback: Callable[[], None]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/options.html#add_parse_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.add_parse_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a parse callback, to be invoked when option parsing is done.</p>
+<p>See <a class="reference internal" href="#tornado.options.OptionParser.add_parse_callback" title="tornado.options.OptionParser.add_parse_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OptionParser.add_parse_callback</span></code></a></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="tornado.options.Error">
+<em class="property">exception </em><code class="descclassname">tornado.options.</code><code class="descname">Error</code><a class="reference internal" href="_modules/tornado/options.html#Error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.Error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception raised by errors in the options module.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="optionparser-class">
+<h2>OptionParser class<a class="headerlink" href="#optionparser-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.options.OptionParser">
+<em class="property">class </em><code class="descclassname">tornado.options.</code><code class="descname">OptionParser</code><a class="reference internal" href="_modules/tornado/options.html#OptionParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.OptionParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>A collection of options, a dictionary with object-like access.</p>
+<p>Normally accessed via static functions in the <a class="reference internal" href="#module-tornado.options" title="tornado.options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.options</span></code></a> module,
+which reference a global instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.options.OptionParser.define">
+<code class="descclassname">OptionParser.</code><code class="descname">define</code><span class="sig-paren">(</span><em>name: str, default: Any = None, type: type = None, help: str = None, metavar: str = None, multiple: bool = False, group: str = None, callback: Callable[[Any], None] = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/options.html#OptionParser.define"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.OptionParser.define" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines a new command line option.</p>
+<p><code class="docutils literal notranslate"><span class="pre">type</span></code> can be any of <a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3.6/library/functions.html#float" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3.6/library/functions.html#bool" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>,
+<a class="reference external" href="https://docs.python.org/3.6/library/datetime.html#datetime.datetime" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime</span></code></a>, or <a class="reference external" href="https://docs.python.org/3.6/library/datetime.html#datetime.timedelta" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timedelta</span></code></a>. If no <code class="docutils literal notranslate"><span class="pre">type</span></code>
+is given but a <code class="docutils literal notranslate"><span class="pre">default</span></code> is, <code class="docutils literal notranslate"><span class="pre">type</span></code> is the type of
+<code class="docutils literal notranslate"><span class="pre">default</span></code>. Otherwise, <code class="docutils literal notranslate"><span class="pre">type</span></code> defaults to <a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">multiple</span></code> is True, the option value is a list of <code class="docutils literal notranslate"><span class="pre">type</span></code>
+instead of an instance of <code class="docutils literal notranslate"><span class="pre">type</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">help</span></code> and <code class="docutils literal notranslate"><span class="pre">metavar</span></code> are used to construct the
+automatically generated command line help string. The help
+message is formatted like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">--</span><span class="n">name</span><span class="o">=</span><span class="n">METAVAR</span>      <span class="n">help</span> <span class="n">string</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">group</span></code> is used to group the defined options in logical
+groups. By default, command line options are grouped by the
+file in which they are defined.</p>
+<p>Command line option names must be unique globally.</p>
+<p>If a <code class="docutils literal notranslate"><span class="pre">callback</span></code> is given, it will be run with the new value whenever
+the option is changed.  This can be used to combine command-line
+and file-based options:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">define</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;path to config file&quot;</span><span class="p">,</span>
+       <span class="n">callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">path</span><span class="p">:</span> <span class="n">parse_config_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>With this definition, options in the file specified by <code class="docutils literal notranslate"><span class="pre">--config</span></code> will
+override options set earlier on the command line, but can be overridden
+by later flags.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.options.OptionParser.parse_command_line">
+<code class="descclassname">OptionParser.</code><code class="descname">parse_command_line</code><span class="sig-paren">(</span><em>args: List[str] = None</em>, <em>final: bool = True</em><span class="sig-paren">)</span> &#x2192; List[str]<a class="reference internal" href="_modules/tornado/options.html#OptionParser.parse_command_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.OptionParser.parse_command_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses all options given on the command line (defaults to
+<a class="reference external" href="https://docs.python.org/3.6/library/sys.html#sys.argv" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sys.argv</span></code></a>).</p>
+<p>Options look like <code class="docutils literal notranslate"><span class="pre">--option=value</span></code> and are parsed according
+to their <code class="docutils literal notranslate"><span class="pre">type</span></code>. For boolean options, <code class="docutils literal notranslate"><span class="pre">--option</span></code> is
+equivalent to <code class="docutils literal notranslate"><span class="pre">--option=true</span></code></p>
+<p>If the option has <code class="docutils literal notranslate"><span class="pre">multiple=True</span></code>, comma-separated values
+are accepted. For multi-value integer options, the syntax
+<code class="docutils literal notranslate"><span class="pre">x:y</span></code> is also accepted and equivalent to <code class="docutils literal notranslate"><span class="pre">range(x,</span> <span class="pre">y)</span></code>.</p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">args[0]</span></code> is ignored since it is the program name
+in <a class="reference external" href="https://docs.python.org/3.6/library/sys.html#sys.argv" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sys.argv</span></code></a>.</p>
+<p>We return a list of all arguments that are not parsed as options.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">final</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>, parse callbacks will not be run.
+This is useful for applications that wish to combine configurations
+from multiple sources.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.options.OptionParser.parse_config_file">
+<code class="descclassname">OptionParser.</code><code class="descname">parse_config_file</code><span class="sig-paren">(</span><em>path: str</em>, <em>final: bool = True</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/options.html#OptionParser.parse_config_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.OptionParser.parse_config_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses and loads the config file at the given path.</p>
+<p>The config file contains Python code that will be executed (so
+it is <strong>not safe</strong> to use untrusted config files). Anything in
+the global namespace that matches a defined option will be
+used to set that option’s value.</p>
+<p>Options may either be the specified type for the option or
+strings (in which case they will be parsed the same way as in
+<a class="reference internal" href="#tornado.options.OptionParser.parse_command_line" title="tornado.options.OptionParser.parse_command_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_command_line</span></code></a>)</p>
+<p>Example (using the options defined in the top-level docs of
+this module):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">port</span> <span class="o">=</span> <span class="mi">80</span>
+<span class="n">mysql_host</span> <span class="o">=</span> <span class="s1">&#39;mydb.example.com:3306&#39;</span>
+<span class="c1"># Both lists and comma-separated strings are allowed for</span>
+<span class="c1"># multiple=True.</span>
+<span class="n">memcache_hosts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;cache1.example.com:11011&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;cache2.example.com:11011&#39;</span><span class="p">]</span>
+<span class="n">memcache_hosts</span> <span class="o">=</span> <span class="s1">&#39;cache1.example.com:11011,cache2.example.com:11011&#39;</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">final</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>, parse callbacks will not be run.
+This is useful for applications that wish to combine configurations
+from multiple sources.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#module-tornado.options" title="tornado.options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.options</span></code></a> is primarily a command-line library.
+Config file support is provided for applications that wish
+to use it, but applications that prefer config files may
+wish to look at other libraries instead.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.1: </span>Config files are now always interpreted as utf-8 instead of
+the system default encoding.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.4: </span>The special variable <code class="docutils literal notranslate"><span class="pre">__file__</span></code> is available inside config
+files, specifying the absolute path to the config file itself.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span>Added the ability to set options via strings in config files.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.options.OptionParser.print_help">
+<code class="descclassname">OptionParser.</code><code class="descname">print_help</code><span class="sig-paren">(</span><em>file: TextIO = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/options.html#OptionParser.print_help"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.OptionParser.print_help" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints all the command line options to stderr (or another file).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.options.OptionParser.add_parse_callback">
+<code class="descclassname">OptionParser.</code><code class="descname">add_parse_callback</code><span class="sig-paren">(</span><em>callback: Callable[[], None]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/options.html#OptionParser.add_parse_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.OptionParser.add_parse_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a parse callback, to be invoked when option parsing is done.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.options.OptionParser.mockable">
+<code class="descclassname">OptionParser.</code><code class="descname">mockable</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; tornado.options._Mockable<a class="reference internal" href="_modules/tornado/options.html#OptionParser.mockable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.OptionParser.mockable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a wrapper around self that is compatible with
+<a class="reference external" href="https://docs.python.org/3.6/library/unittest.mock.html#unittest.mock.patch" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mock.patch</span></code></a>.</p>
+<p>The <a class="reference external" href="https://docs.python.org/3.6/library/unittest.mock.html#unittest.mock.patch" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mock.patch</span></code></a> function (included in
+the standard library <a class="reference external" href="https://docs.python.org/3.6/library/unittest.mock.html#module-unittest.mock" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unittest.mock</span></code></a> package since Python 3.3,
+or in the third-party <code class="docutils literal notranslate"><span class="pre">mock</span></code> package for older versions of
+Python) is incompatible with objects like <code class="docutils literal notranslate"><span class="pre">options</span></code> that
+override <code class="docutils literal notranslate"><span class="pre">__getattr__</span></code> and <code class="docutils literal notranslate"><span class="pre">__setattr__</span></code>.  This function
+returns an object that can be used with <a class="reference external" href="https://docs.python.org/3.6/library/unittest.mock.html#unittest.mock.patch.object" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mock.patch.object</span></code></a> to modify option values:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">object</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">mockable</span><span class="p">(),</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">options</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">value</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.options.OptionParser.items">
+<code class="descclassname">OptionParser.</code><code class="descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Iterable[Tuple[str, Any]]<a class="reference internal" href="_modules/tornado/options.html#OptionParser.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.OptionParser.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>An iterable of (name, value) pairs.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.1.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.options.OptionParser.as_dict">
+<code class="descclassname">OptionParser.</code><code class="descname">as_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict[str, Any]<a class="reference internal" href="_modules/tornado/options.html#OptionParser.as_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.OptionParser.as_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>The names and values of all options.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.1.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.options.OptionParser.groups">
+<code class="descclassname">OptionParser.</code><code class="descname">groups</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Set[str]<a class="reference internal" href="_modules/tornado/options.html#OptionParser.groups"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.OptionParser.groups" title="Permalink to this definition">¶</a></dt>
+<dd><p>The set of option-groups created by <code class="docutils literal notranslate"><span class="pre">define</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.1.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.options.OptionParser.group_dict">
+<code class="descclassname">OptionParser.</code><code class="descname">group_dict</code><span class="sig-paren">(</span><em>group: str</em><span class="sig-paren">)</span> &#x2192; Dict[str, Any]<a class="reference internal" href="_modules/tornado/options.html#OptionParser.group_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.options.OptionParser.group_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>The names and values of options in a group.</p>
+<p>Useful for copying options into Application settings:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tornado.options</span> <span class="k">import</span> <span class="n">define</span><span class="p">,</span> <span class="n">parse_command_line</span><span class="p">,</span> <span class="n">options</span>
+
+<span class="n">define</span><span class="p">(</span><span class="s1">&#39;template_path&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;application&#39;</span><span class="p">)</span>
+<span class="n">define</span><span class="p">(</span><span class="s1">&#39;static_path&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;application&#39;</span><span class="p">)</span>
+
+<span class="n">parse_command_line</span><span class="p">()</span>
+
+<span class="n">application</span> <span class="o">=</span> <span class="n">Application</span><span class="p">(</span>
+    <span class="n">handlers</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="o">.</span><span class="n">group_dict</span><span class="p">(</span><span class="s1">&#39;application&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.1.</span></p>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="testing.html" class="btn btn-neutral float-right" title="tornado.testing — Unit testing support for asynchronous code" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="log.html" class="btn btn-neutral float-left" title="tornado.log — Logging support" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,250 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.platform.twisted — Bridges between Twisted and Tornado &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.platform.asyncio — Bridge between asyncio and Tornado" href="asyncio.html" />
+    <link rel="prev" title="tornado.platform.caresresolver — Asynchronous DNS Resolver using C-Ares" href="caresresolver.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="integration.html">Integration with other services</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="auth.html"><code class="docutils literal notranslate"><span class="pre">tornado.auth</span></code> — Third-party login with OpenID and OAuth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wsgi.html"><code class="docutils literal notranslate"><span class="pre">tornado.wsgi</span></code> — Interoperability with other Python frameworks and servers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="caresresolver.html"><code class="docutils literal notranslate"><span class="pre">tornado.platform.caresresolver</span></code> — Asynchronous DNS Resolver using C-Ares</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.platform.twisted</span></code> — Bridges between Twisted and Tornado</a></li>
+<li class="toctree-l2"><a class="reference internal" href="asyncio.html"><code class="docutils literal notranslate"><span class="pre">tornado.platform.asyncio</span></code> — Bridge between <code class="docutils literal notranslate"><span class="pre">asyncio</span></code> and Tornado</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="integration.html">Integration with other services</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.platform.twisted</span></code> — Bridges between Twisted and Tornado</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/twisted.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-tornado.platform.twisted">
+<span id="tornado-platform-twisted-bridges-between-twisted-and-tornado"></span><h1><code class="docutils literal notranslate"><span class="pre">tornado.platform.twisted</span></code> — Bridges between Twisted and Tornado<a class="headerlink" href="#module-tornado.platform.twisted" title="Permalink to this headline">¶</a></h1>
+<p>Bridges between the Twisted reactor and Tornado IOLoop.</p>
+<p>This module lets you run applications and libraries written for
+Twisted in a Tornado application.  It can be used in two modes,
+depending on which library’s underlying event loop you want to use.</p>
+<div class="section" id="twisted-dns-resolver">
+<h2>Twisted DNS resolver<a class="headerlink" href="#twisted-dns-resolver" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.platform.twisted.TwistedResolver">
+<em class="property">class </em><code class="descclassname">tornado.platform.twisted.</code><code class="descname">TwistedResolver</code><a class="reference internal" href="_modules/tornado/platform/twisted.html#TwistedResolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.platform.twisted.TwistedResolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Twisted-based asynchronous resolver.</p>
+<p>This is a non-blocking and non-threaded resolver.  It is
+recommended only when threads cannot be used, since it has
+limitations compared to the standard <code class="docutils literal notranslate"><span class="pre">getaddrinfo</span></code>-based
+<a class="reference internal" href="netutil.html#tornado.netutil.Resolver" title="tornado.netutil.Resolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Resolver</span></code></a> and
+<a class="reference internal" href="netutil.html#tornado.netutil.DefaultExecutorResolver" title="tornado.netutil.DefaultExecutorResolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DefaultExecutorResolver</span></code></a>.  Specifically, it returns at
+most one result, and arguments other than <code class="docutils literal notranslate"><span class="pre">host</span></code> and <code class="docutils literal notranslate"><span class="pre">family</span></code>
+are ignored.  It may fail to resolve when <code class="docutils literal notranslate"><span class="pre">family</span></code> is not
+<code class="docutils literal notranslate"><span class="pre">socket.AF_UNSPEC</span></code>.</p>
+<p>Requires Twisted 12.1 or newer.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>The <code class="docutils literal notranslate"><span class="pre">io_loop</span></code> argument (deprecated since version 4.1) has been removed.</p>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="asyncio.html" class="btn btn-neutral float-right" title="tornado.platform.asyncio — Bridge between asyncio and Tornado" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="caresresolver.html" class="btn btn-neutral float-left" title="tornado.platform.caresresolver — Asynchronous DNS Resolver using C-Ares" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

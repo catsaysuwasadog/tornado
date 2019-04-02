@@ -1,0 +1,1037 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.http1connection &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tornado.http1connection</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tornado.http1connection</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2014 Facebook</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c1"># not use this file except in compliance with the License. You may obtain</span>
+<span class="c1"># a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c1"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c1"># License for the specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
+
+<span class="sd">&quot;&quot;&quot;Client and server implementations of HTTP/1.x.</span>
+
+<span class="sd">.. versionadded:: 4.0</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">types</span>
+
+<span class="kn">from</span> <span class="nn">tornado.concurrent</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">Future</span><span class="p">,</span>
+    <span class="n">future_add_done_callback</span><span class="p">,</span>
+    <span class="n">future_set_result_unless_cancelled</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="k">import</span> <span class="n">native_str</span><span class="p">,</span> <span class="n">utf8</span>
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">gen</span>
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">httputil</span>
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">iostream</span>
+<span class="kn">from</span> <span class="nn">tornado.log</span> <span class="k">import</span> <span class="n">gen_log</span><span class="p">,</span> <span class="n">app_log</span>
+<span class="kn">from</span> <span class="nn">tornado.util</span> <span class="k">import</span> <span class="n">GzipDecompressor</span>
+
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span>
+
+
+<span class="k">class</span> <span class="nc">_QuietException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">_ExceptionLoggingContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Used with the ``with`` statement when calling delegate methods to</span>
+<span class="sd">    log any exceptions with the given logger.  Any exceptions caught are</span>
+<span class="sd">    converted to _QuietException</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>
+
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">typ</span><span class="p">:</span> <span class="s2">&quot;Optional[Type[BaseException]]&quot;</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">],</span>
+        <span class="n">tb</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">TracebackType</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">typ</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Uncaught exception&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tb</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">_QuietException</span>
+
+
+<div class="viewcode-block" id="HTTP1ConnectionParameters"><a class="viewcode-back" href="../../http1connection.html#tornado.http1connection.HTTP1ConnectionParameters">[docs]</a><span class="k">class</span> <span class="nc">HTTP1ConnectionParameters</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parameters for `.HTTP1Connection` and `.HTTP1ServerConnection`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">no_keep_alive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_header_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">header_timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_body_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">body_timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">decompress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :arg bool no_keep_alive: If true, always close the connection after</span>
+<span class="sd">            one request.</span>
+<span class="sd">        :arg int chunk_size: how much data to read into memory at once</span>
+<span class="sd">        :arg int max_header_size:  maximum amount of data for HTTP headers</span>
+<span class="sd">        :arg float header_timeout: how long to wait for all headers (seconds)</span>
+<span class="sd">        :arg int max_body_size: maximum amount of data for body</span>
+<span class="sd">        :arg float body_timeout: how long to wait while reading body (seconds)</span>
+<span class="sd">        :arg bool decompress: if true, decode incoming</span>
+<span class="sd">            ``Content-Encoding: gzip``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">no_keep_alive</span> <span class="o">=</span> <span class="n">no_keep_alive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span> <span class="o">=</span> <span class="n">chunk_size</span> <span class="ow">or</span> <span class="mi">65536</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_header_size</span> <span class="o">=</span> <span class="n">max_header_size</span> <span class="ow">or</span> <span class="mi">65536</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">header_timeout</span> <span class="o">=</span> <span class="n">header_timeout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_body_size</span> <span class="o">=</span> <span class="n">max_body_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">body_timeout</span> <span class="o">=</span> <span class="n">body_timeout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decompress</span> <span class="o">=</span> <span class="n">decompress</span></div>
+
+
+<div class="viewcode-block" id="HTTP1Connection"><a class="viewcode-back" href="../../http1connection.html#tornado.http1connection.HTTP1Connection">[docs]</a><span class="k">class</span> <span class="nc">HTTP1Connection</span><span class="p">(</span><span class="n">httputil</span><span class="o">.</span><span class="n">HTTPConnection</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implements the HTTP/1.x protocol.</span>
+
+<span class="sd">    This class can be on its own for clients, or via `HTTP1ServerConnection`</span>
+<span class="sd">    for servers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">stream</span><span class="p">:</span> <span class="n">iostream</span><span class="o">.</span><span class="n">IOStream</span><span class="p">,</span>
+        <span class="n">is_client</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">:</span> <span class="n">HTTP1ConnectionParameters</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">context</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :arg stream: an `.IOStream`</span>
+<span class="sd">        :arg bool is_client: client or server</span>
+<span class="sd">        :arg params: a `.HTTP1ConnectionParameters` instance or ``None``</span>
+<span class="sd">        :arg context: an opaque application-defined object that can be accessed</span>
+<span class="sd">            as ``connection.context``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_client</span> <span class="o">=</span> <span class="n">is_client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="n">stream</span>
+        <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">HTTP1ConnectionParameters</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">context</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">no_keep_alive</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">no_keep_alive</span>
+        <span class="c1"># The body limits can be altered by the delegate, so save them</span>
+        <span class="c1"># here instead of just referencing self.params later.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_body_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_body_size</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">max_buffer_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_body_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">body_timeout</span>
+        <span class="c1"># _write_finished is set to True when finish() has been called,</span>
+        <span class="c1"># i.e. there will be no more data sent.  Data may still be in the</span>
+        <span class="c1"># stream&#39;s write buffer.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_finished</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># True when we have read the entire incoming body.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_read_finished</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># _finish_future resolves when all data has been written and flushed</span>
+        <span class="c1"># to the IOStream.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finish_future</span> <span class="o">=</span> <span class="n">Future</span><span class="p">()</span>  <span class="c1"># type: Future[None]</span>
+        <span class="c1"># If true, the connection should be closed after this request</span>
+        <span class="c1"># (after the response has been written in the server side,</span>
+        <span class="c1"># and after it has been read in the client)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_disconnect_on_finish</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_callbacks</span><span class="p">()</span>
+        <span class="c1"># Save the start lines after we read or write them; they</span>
+        <span class="c1"># affect later processing (e.g. 304 responses and HEAD methods</span>
+        <span class="c1"># have content-length but no bodies)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_request_start_line</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[httputil.RequestStartLine]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_response_start_line</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[httputil.ResponseStartLine]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_request_headers</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[httputil.HTTPHeaders]</span>
+        <span class="c1"># True if we are writing output with chunked encoding.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chunking_output</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># While reading a body with a content-length, this is the</span>
+        <span class="c1"># amount left to read.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expected_content_remaining</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[int]</span>
+        <span class="c1"># A Future for our outgoing writes, returned by IOStream.write.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pending_write</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[Future[None]]</span>
+
+<div class="viewcode-block" id="HTTP1Connection.read_response"><a class="viewcode-back" href="../../http1connection.html#tornado.http1connection.HTTP1Connection.read_response">[docs]</a>    <span class="k">def</span> <span class="nf">read_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delegate</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Awaitable</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Read a single HTTP response.</span>
+
+<span class="sd">        Typical client-mode usage is to write a request using `write_headers`,</span>
+<span class="sd">        `write`, and `finish`, and then call ``read_response``.</span>
+
+<span class="sd">        :arg delegate: a `.HTTPMessageDelegate`</span>
+
+<span class="sd">        Returns a `.Future` that resolves to a bool after the full response has</span>
+<span class="sd">        been read. The result is true if the stream is still open.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">decompress</span><span class="p">:</span>
+            <span class="n">delegate</span> <span class="o">=</span> <span class="n">_GzipMessageDelegate</span><span class="p">(</span><span class="n">delegate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">chunk_size</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_message</span><span class="p">(</span><span class="n">delegate</span><span class="p">)</span></div>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_read_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delegate</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">need_delegate_close</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">header_future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">read_until_regex</span><span class="p">(</span>
+                <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">?</span><span class="se">\n\r</span><span class="s2">?</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">max_bytes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">max_header_size</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">header_timeout</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">header_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">header_future</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">header_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">gen</span><span class="o">.</span><span class="n">with_timeout</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">header_timeout</span><span class="p">,</span>
+                        <span class="n">header_future</span><span class="p">,</span>
+                        <span class="n">quiet_exceptions</span><span class="o">=</span><span class="n">iostream</span><span class="o">.</span><span class="n">StreamClosedError</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="n">gen</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+            <span class="n">start_line_str</span><span class="p">,</span> <span class="n">headers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_headers</span><span class="p">(</span><span class="n">header_data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_client</span><span class="p">:</span>
+                <span class="n">resp_start_line</span> <span class="o">=</span> <span class="n">httputil</span><span class="o">.</span><span class="n">parse_response_start_line</span><span class="p">(</span><span class="n">start_line_str</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_response_start_line</span> <span class="o">=</span> <span class="n">resp_start_line</span>
+                <span class="n">start_line</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">resp_start_line</span>
+                <span class="p">)</span>  <span class="c1"># type: Union[httputil.RequestStartLine, httputil.ResponseStartLine]</span>
+                <span class="c1"># TODO: this will need to change to support client-side keepalive</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_disconnect_on_finish</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">req_start_line</span> <span class="o">=</span> <span class="n">httputil</span><span class="o">.</span><span class="n">parse_request_start_line</span><span class="p">(</span><span class="n">start_line_str</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_request_start_line</span> <span class="o">=</span> <span class="n">req_start_line</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_request_headers</span> <span class="o">=</span> <span class="n">headers</span>
+                <span class="n">start_line</span> <span class="o">=</span> <span class="n">req_start_line</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_disconnect_on_finish</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_keep_alive</span><span class="p">(</span>
+                    <span class="n">req_start_line</span><span class="p">,</span> <span class="n">headers</span>
+                <span class="p">)</span>
+            <span class="n">need_delegate_close</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">with</span> <span class="n">_ExceptionLoggingContext</span><span class="p">(</span><span class="n">app_log</span><span class="p">):</span>
+                <span class="n">header_recv_future</span> <span class="o">=</span> <span class="n">delegate</span><span class="o">.</span><span class="n">headers_received</span><span class="p">(</span><span class="n">start_line</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">header_recv_future</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">await</span> <span class="n">header_recv_future</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># We&#39;ve been detached.</span>
+                <span class="n">need_delegate_close</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="n">skip_body</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_client</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start_line</span><span class="p">,</span> <span class="n">httputil</span><span class="o">.</span><span class="n">ResponseStartLine</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_request_start_line</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request_start_line</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;HEAD&quot;</span>
+                <span class="p">):</span>
+                    <span class="n">skip_body</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">code</span> <span class="o">=</span> <span class="n">start_line</span><span class="o">.</span><span class="n">code</span>
+                <span class="k">if</span> <span class="n">code</span> <span class="o">==</span> <span class="mi">304</span><span class="p">:</span>
+                    <span class="c1"># 304 responses may include the content-length header</span>
+                    <span class="c1"># but do not actually have a body.</span>
+                    <span class="c1"># http://tools.ietf.org/html/rfc7230#section-3.3</span>
+                    <span class="n">skip_body</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">code</span> <span class="o">&gt;=</span> <span class="mi">100</span> <span class="ow">and</span> <span class="n">code</span> <span class="o">&lt;</span> <span class="mi">200</span><span class="p">:</span>
+                    <span class="c1"># 1xx responses should never indicate the presence of</span>
+                    <span class="c1"># a body.</span>
+                    <span class="k">if</span> <span class="s2">&quot;Content-Length&quot;</span> <span class="ow">in</span> <span class="n">headers</span> <span class="ow">or</span> <span class="s2">&quot;Transfer-Encoding&quot;</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPInputError</span><span class="p">(</span>
+                            <span class="s2">&quot;Response code </span><span class="si">%d</span><span class="s2"> cannot have body&quot;</span> <span class="o">%</span> <span class="n">code</span>
+                        <span class="p">)</span>
+                    <span class="c1"># TODO: client delegates will get headers_received twice</span>
+                    <span class="c1"># in the case of a 100-continue.  Document or change?</span>
+                    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_message</span><span class="p">(</span><span class="n">delegate</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Expect&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;100-continue&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_finished</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;HTTP/1.1 100 (Continue)</span><span class="se">\r\n\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">skip_body</span><span class="p">:</span>
+                <span class="n">body_future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_body</span><span class="p">(</span>
+                    <span class="n">resp_start_line</span><span class="o">.</span><span class="n">code</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_client</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">delegate</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">body_future</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_body_timeout</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">await</span> <span class="n">body_future</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="k">await</span> <span class="n">gen</span><span class="o">.</span><span class="n">with_timeout</span><span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_body_timeout</span><span class="p">,</span>
+                                <span class="n">body_future</span><span class="p">,</span>
+                                <span class="n">quiet_exceptions</span><span class="o">=</span><span class="n">iostream</span><span class="o">.</span><span class="n">StreamClosedError</span><span class="p">,</span>
+                            <span class="p">)</span>
+                        <span class="k">except</span> <span class="n">gen</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+                            <span class="n">gen_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Timeout reading body from </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                            <span class="k">return</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_read_finished</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_finished</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_client</span><span class="p">:</span>
+                <span class="n">need_delegate_close</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">with</span> <span class="n">_ExceptionLoggingContext</span><span class="p">(</span><span class="n">app_log</span><span class="p">):</span>
+                    <span class="n">delegate</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+            <span class="c1"># If we&#39;re waiting for the application to produce an asynchronous</span>
+            <span class="c1"># response, and we&#39;re not detached, register a close callback</span>
+            <span class="c1"># on the stream (we didn&#39;t need one while we were reading)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finish_future</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">closed</span><span class="p">()</span>
+            <span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">set_close_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_connection_close</span><span class="p">)</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finish_future</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_client</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disconnect_on_finish</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPInputError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">gen_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Malformed HTTP message from </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_client</span><span class="p">:</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;HTTP/1.1 400 Bad Request</span><span class="se">\r\n\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">need_delegate_close</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">_ExceptionLoggingContext</span><span class="p">(</span><span class="n">app_log</span><span class="p">):</span>
+                    <span class="n">delegate</span><span class="o">.</span><span class="n">on_connection_close</span><span class="p">()</span>
+            <span class="n">header_future</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_clear_callbacks</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">_clear_callbacks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Clears the callback attributes.</span>
+
+<span class="sd">        This allows the request handler to be garbage collected more</span>
+<span class="sd">        quickly in CPython by breaking up reference cycles.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_callback</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_future</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[Future[None]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_close_callback</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[Callable[[], None]]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">set_close_callback</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="HTTP1Connection.set_close_callback"><a class="viewcode-back" href="../../http1connection.html#tornado.http1connection.HTTP1Connection.set_close_callback">[docs]</a>    <span class="k">def</span> <span class="nf">set_close_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[],</span> <span class="kc">None</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Sets a callback that will be run when the connection is closed.</span>
+
+<span class="sd">        Note that this callback is slightly different from</span>
+<span class="sd">        `.HTTPMessageDelegate.on_connection_close`: The</span>
+<span class="sd">        `.HTTPMessageDelegate` method is called when the connection is</span>
+<span class="sd">        closed while recieving a message. This callback is used when</span>
+<span class="sd">        there is not an active delegate (for example, on the server</span>
+<span class="sd">        side this callback is used if the client closes the connection</span>
+<span class="sd">        after sending its request but before receiving all the</span>
+<span class="sd">        response.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_close_callback</span> <span class="o">=</span> <span class="n">callback</span></div>
+
+    <span class="k">def</span> <span class="nf">_on_connection_close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Note that this callback is only registered on the IOStream</span>
+        <span class="c1"># when we have finished reading the request and are waiting for</span>
+        <span class="c1"># the application to produce its response.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_close_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_close_callback</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_close_callback</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">callback</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finish_future</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+            <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_finish_future</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_callbacks</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_callbacks</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finish_future</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+            <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_finish_future</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="HTTP1Connection.detach"><a class="viewcode-back" href="../../http1connection.html#tornado.http1connection.HTTP1Connection.detach">[docs]</a>    <span class="k">def</span> <span class="nf">detach</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">iostream</span><span class="o">.</span><span class="n">IOStream</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Take control of the underlying stream.</span>
+
+<span class="sd">        Returns the underlying `.IOStream` object and stops all further</span>
+<span class="sd">        HTTP processing.  May only be called during</span>
+<span class="sd">        `.HTTPMessageDelegate.headers_received`.  Intended for implementing</span>
+<span class="sd">        protocols like websockets that tunnel over an HTTP handshake.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_callbacks</span><span class="p">()</span>
+        <span class="n">stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finish_future</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+            <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_finish_future</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stream</span></div>
+
+<div class="viewcode-block" id="HTTP1Connection.set_body_timeout"><a class="viewcode-back" href="../../http1connection.html#tornado.http1connection.HTTP1Connection.set_body_timeout">[docs]</a>    <span class="k">def</span> <span class="nf">set_body_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Sets the body timeout for a single request.</span>
+
+<span class="sd">        Overrides the value from `.HTTP1ConnectionParameters`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_body_timeout</span> <span class="o">=</span> <span class="n">timeout</span></div>
+
+<div class="viewcode-block" id="HTTP1Connection.set_max_body_size"><a class="viewcode-back" href="../../http1connection.html#tornado.http1connection.HTTP1Connection.set_max_body_size">[docs]</a>    <span class="k">def</span> <span class="nf">set_max_body_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_body_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Sets the body size limit for a single request.</span>
+
+<span class="sd">        Overrides the value from `.HTTP1ConnectionParameters`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_body_size</span> <span class="o">=</span> <span class="n">max_body_size</span></div>
+
+<div class="viewcode-block" id="HTTP1Connection.write_headers"><a class="viewcode-back" href="../../http1connection.html#tornado.http1connection.HTTP1Connection.write_headers">[docs]</a>    <span class="k">def</span> <span class="nf">write_headers</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">start_line</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">httputil</span><span class="o">.</span><span class="n">RequestStartLine</span><span class="p">,</span> <span class="n">httputil</span><span class="o">.</span><span class="n">ResponseStartLine</span><span class="p">],</span>
+        <span class="n">headers</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">,</span>
+        <span class="n">chunk</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Future[None]&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Implements `.HTTPConnection.write_headers`.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_client</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start_line</span><span class="p">,</span> <span class="n">httputil</span><span class="o">.</span><span class="n">RequestStartLine</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_request_start_line</span> <span class="o">=</span> <span class="n">start_line</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">utf8</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> HTTP/1.1&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">start_line</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">start_line</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+            <span class="c1"># Client requests with a non-empty body must have either a</span>
+            <span class="c1"># Content-Length or a Transfer-Encoding.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_chunking_output</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">start_line</span><span class="o">.</span><span class="n">method</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="s2">&quot;PUT&quot;</span><span class="p">,</span> <span class="s2">&quot;PATCH&quot;</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="s2">&quot;Content-Length&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">headers</span>
+                <span class="ow">and</span> <span class="p">(</span>
+                    <span class="s2">&quot;Transfer-Encoding&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">headers</span>
+                    <span class="ow">or</span> <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Transfer-Encoding&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;chunked&quot;</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start_line</span><span class="p">,</span> <span class="n">httputil</span><span class="o">.</span><span class="n">ResponseStartLine</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request_start_line</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request_headers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_response_start_line</span> <span class="o">=</span> <span class="n">start_line</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">utf8</span><span class="p">(</span><span class="s2">&quot;HTTP/1.1 </span><span class="si">%d</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">start_line</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">start_line</span><span class="p">[</span><span class="mi">2</span><span class="p">])))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_chunking_output</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="c1"># TODO: should this use</span>
+                <span class="c1"># self._request_start_line.version or</span>
+                <span class="c1"># start_line.version?</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_request_start_line</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="s2">&quot;HTTP/1.1&quot;</span>
+                <span class="c1"># 1xx, 204 and 304 responses have no body (not even a zero-length</span>
+                <span class="c1"># body), and so should not have either Content-Length or</span>
+                <span class="c1"># Transfer-Encoding headers.</span>
+                <span class="ow">and</span> <span class="n">start_line</span><span class="o">.</span><span class="n">code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">204</span><span class="p">,</span> <span class="mi">304</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="p">(</span><span class="n">start_line</span><span class="o">.</span><span class="n">code</span> <span class="o">&lt;</span> <span class="mi">100</span> <span class="ow">or</span> <span class="n">start_line</span><span class="o">.</span><span class="n">code</span> <span class="o">&gt;=</span> <span class="mi">200</span><span class="p">)</span>
+                <span class="c1"># No need to chunk the output if a Content-Length is specified.</span>
+                <span class="ow">and</span> <span class="s2">&quot;Content-Length&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">headers</span>
+                <span class="c1"># Applications are discouraged from touching Transfer-Encoding,</span>
+                <span class="c1"># but if they do, leave it alone.</span>
+                <span class="ow">and</span> <span class="s2">&quot;Transfer-Encoding&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">headers</span>
+            <span class="p">)</span>
+            <span class="c1"># If connection to a 1.1 client will be closed, inform client</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_request_start_line</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="s2">&quot;HTTP/1.1&quot;</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disconnect_on_finish</span>
+            <span class="p">):</span>
+                <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Connection&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;close&quot;</span>
+            <span class="c1"># If a 1.0 client asked for keep-alive, add the header.</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_request_start_line</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="s2">&quot;HTTP/1.0&quot;</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request_headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Connection&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;keep-alive&quot;</span>
+            <span class="p">):</span>
+                <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Connection&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Keep-Alive&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chunking_output</span><span class="p">:</span>
+            <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Transfer-Encoding&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;chunked&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_client</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_request_start_line</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;HEAD&quot;</span>
+            <span class="ow">or</span> <span class="n">cast</span><span class="p">(</span><span class="n">httputil</span><span class="o">.</span><span class="n">ResponseStartLine</span><span class="p">,</span> <span class="n">start_line</span><span class="p">)</span><span class="o">.</span><span class="n">code</span> <span class="o">==</span> <span class="mi">304</span>
+        <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_expected_content_remaining</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="s2">&quot;Content-Length&quot;</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_expected_content_remaining</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_expected_content_remaining</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># TODO: headers are supposed to be of type str, but we still have some</span>
+        <span class="c1"># cases that let bytes slip through. Remove these native_str calls when those</span>
+        <span class="c1"># are fixed.</span>
+        <span class="n">header_lines</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">native_str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;: &quot;</span> <span class="o">+</span> <span class="n">native_str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">headers</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;latin1&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">header_lines</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Newline in header: &quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+        <span class="n">future</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">closed</span><span class="p">():</span>
+            <span class="n">future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_future</span> <span class="o">=</span> <span class="n">Future</span><span class="p">()</span>
+            <span class="n">future</span><span class="o">.</span><span class="n">set_exception</span><span class="p">(</span><span class="n">iostream</span><span class="o">.</span><span class="n">StreamClosedError</span><span class="p">())</span>
+            <span class="n">future</span><span class="o">.</span><span class="n">exception</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_future</span> <span class="o">=</span> <span class="n">Future</span><span class="p">()</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n\r\n</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="n">chunk</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_chunk</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pending_write</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">future_add_done_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pending_write</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_write_complete</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">future</span></div>
+
+    <span class="k">def</span> <span class="nf">_format_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_content_remaining</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_expected_content_remaining</span> <span class="o">-=</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_content_remaining</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Close the stream now to stop further framing errors.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">raise</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPOutputError</span><span class="p">(</span>
+                    <span class="s2">&quot;Tried to write more data than Content-Length&quot;</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chunking_output</span> <span class="ow">and</span> <span class="n">chunk</span><span class="p">:</span>
+            <span class="c1"># Don&#39;t write out empty chunks because that means END-OF-STREAM</span>
+            <span class="c1"># with chunked encoding</span>
+            <span class="k">return</span> <span class="n">utf8</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%x</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">))</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">chunk</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">chunk</span>
+
+<div class="viewcode-block" id="HTTP1Connection.write"><a class="viewcode-back" href="../../http1connection.html#tornado.http1connection.HTTP1Connection.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Future[None]&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Implements `.HTTPConnection.write`.</span>
+
+<span class="sd">        For backwards compatibility it is allowed but deprecated to</span>
+<span class="sd">        skip `write_headers` and instead call `write()` with a</span>
+<span class="sd">        pre-encoded header block.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">future</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">closed</span><span class="p">():</span>
+            <span class="n">future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_future</span> <span class="o">=</span> <span class="n">Future</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_future</span><span class="o">.</span><span class="n">set_exception</span><span class="p">(</span><span class="n">iostream</span><span class="o">.</span><span class="n">StreamClosedError</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_future</span><span class="o">.</span><span class="n">exception</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_future</span> <span class="o">=</span> <span class="n">Future</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pending_write</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_format_chunk</span><span class="p">(</span><span class="n">chunk</span><span class="p">))</span>
+            <span class="n">future_add_done_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pending_write</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_write_complete</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">future</span></div>
+
+<div class="viewcode-block" id="HTTP1Connection.finish"><a class="viewcode-back" href="../../http1connection.html#tornado.http1connection.HTTP1Connection.finish">[docs]</a>    <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Implements `.HTTPConnection.finish`.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_expected_content_remaining</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_content_remaining</span> <span class="o">!=</span> <span class="mi">0</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">closed</span><span class="p">()</span>
+        <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPOutputError</span><span class="p">(</span>
+                <span class="s2">&quot;Tried to write </span><span class="si">%d</span><span class="s2"> bytes less than Content-Length&quot;</span>
+                <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expected_content_remaining</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chunking_output</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">closed</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pending_write</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;0</span><span class="se">\r\n\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pending_write</span><span class="o">.</span><span class="n">add_done_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_write_complete</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># If the app finished the request while we&#39;re still reading,</span>
+        <span class="c1"># divert any remaining data away from the delegate and</span>
+        <span class="c1"># close the connection when we&#39;re done sending our response.</span>
+        <span class="c1"># Closing the connection is the only way to avoid reading the</span>
+        <span class="c1"># whole input body.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_finished</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_disconnect_on_finish</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># No more data is coming, so instruct TCP to send any remaining</span>
+        <span class="c1"># data immediately instead of waiting for a full packet or ack.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">set_nodelay</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_write</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_finish_request</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">future_add_done_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pending_write</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finish_request</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_on_write_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">future</span><span class="p">:</span> <span class="s2">&quot;Future[None]&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">exc</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">exception</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">exc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="n">iostream</span><span class="o">.</span><span class="n">StreamClosedError</span><span class="p">):</span>
+            <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_callback</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_callback</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_future</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_future</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_future</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_can_keep_alive</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">start_line</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">RequestStartLine</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">no_keep_alive</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">connection_header</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Connection&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">connection_header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">connection_header</span> <span class="o">=</span> <span class="n">connection_header</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">start_line</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="s2">&quot;HTTP/1.1&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">connection_header</span> <span class="o">!=</span> <span class="s2">&quot;close&quot;</span>
+        <span class="k">elif</span> <span class="p">(</span>
+            <span class="s2">&quot;Content-Length&quot;</span> <span class="ow">in</span> <span class="n">headers</span>
+            <span class="ow">or</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Transfer-Encoding&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;chunked&quot;</span>
+            <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">start_line</span><span class="p">,</span> <span class="s2">&quot;method&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;HEAD&quot;</span><span class="p">,</span> <span class="s2">&quot;GET&quot;</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="c1"># start_line may be a request or response start line; only</span>
+            <span class="c1"># the former has a method attribute.</span>
+            <span class="k">return</span> <span class="n">connection_header</span> <span class="o">==</span> <span class="s2">&quot;keep-alive&quot;</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_finish_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">future</span><span class="p">:</span> <span class="s2">&quot;Optional[Future[None]]&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_callbacks</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_client</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disconnect_on_finish</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="c1"># Turn Nagle&#39;s algorithm back on, leaving the stream in its</span>
+        <span class="c1"># default state for the next request.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">set_nodelay</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finish_future</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+            <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_finish_future</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_parse_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">]:</span>
+        <span class="c1"># The lstrip removes newlines that some implementations sometimes</span>
+        <span class="c1"># insert between messages of a reused connection.  Per RFC 7230,</span>
+        <span class="c1"># we SHOULD ignore at least one empty line before the request.</span>
+        <span class="c1"># http://tools.ietf.org/html/rfc7230#section-3.5</span>
+        <span class="n">data_str</span> <span class="o">=</span> <span class="n">native_str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;latin1&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># RFC 7230 section allows for both CRLF and bare LF.</span>
+        <span class="n">eol</span> <span class="o">=</span> <span class="n">data_str</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">start_line</span> <span class="o">=</span> <span class="n">data_str</span><span class="p">[:</span><span class="n">eol</span><span class="p">]</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">data_str</span><span class="p">[</span><span class="n">eol</span><span class="p">:])</span>
+        <span class="k">return</span> <span class="n">start_line</span><span class="p">,</span> <span class="n">headers</span>
+
+    <span class="k">def</span> <span class="nf">_read_body</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">headers</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">,</span>
+        <span class="n">delegate</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]:</span>
+        <span class="k">if</span> <span class="s2">&quot;Content-Length&quot;</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;Transfer-Encoding&quot;</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">:</span>
+                <span class="c1"># Response cannot contain both Content-Length and</span>
+                <span class="c1"># Transfer-Encoding headers.</span>
+                <span class="c1"># http://tools.ietf.org/html/rfc7230#section-3.3.3</span>
+                <span class="k">raise</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPInputError</span><span class="p">(</span>
+                    <span class="s2">&quot;Response with both Transfer-Encoding and Content-Length&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;,&quot;</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">]:</span>
+                <span class="c1"># Proxies sometimes cause Content-Length headers to get</span>
+                <span class="c1"># duplicated.  If all the values are identical then we can</span>
+                <span class="c1"># use them but if they differ it&#39;s an error.</span>
+                <span class="n">pieces</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;,\s*&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">i</span> <span class="o">!=</span> <span class="n">pieces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pieces</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPInputError</span><span class="p">(</span>
+                        <span class="s2">&quot;Multiple unequal Content-Lengths: </span><span class="si">%r</span><span class="s2">&quot;</span>
+                        <span class="o">%</span> <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pieces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">content_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">])</span>  <span class="c1"># type: Optional[int]</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="c1"># Handles non-integer Content-Length value.</span>
+                <span class="k">raise</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPInputError</span><span class="p">(</span>
+                    <span class="s2">&quot;Only integer Content-Length is allowed: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                    <span class="o">%</span> <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">content_length</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_body_size</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPInputError</span><span class="p">(</span><span class="s2">&quot;Content-Length too long&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">content_length</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">code</span> <span class="o">==</span> <span class="mi">204</span><span class="p">:</span>
+            <span class="c1"># This response code is not allowed to have a non-empty body,</span>
+            <span class="c1"># and has an implicit length of zero instead of read-until-close.</span>
+            <span class="c1"># http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.3</span>
+            <span class="k">if</span> <span class="s2">&quot;Transfer-Encoding&quot;</span> <span class="ow">in</span> <span class="n">headers</span> <span class="ow">or</span> <span class="n">content_length</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPInputError</span><span class="p">(</span>
+                    <span class="s2">&quot;Response with code </span><span class="si">%d</span><span class="s2"> should not have body&quot;</span> <span class="o">%</span> <span class="n">code</span>
+                <span class="p">)</span>
+            <span class="n">content_length</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">content_length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_fixed_body</span><span class="p">(</span><span class="n">content_length</span><span class="p">,</span> <span class="n">delegate</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Transfer-Encoding&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;chunked&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_chunked_body</span><span class="p">(</span><span class="n">delegate</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_client</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_body_until_close</span><span class="p">(</span><span class="n">delegate</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_read_fixed_body</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">content_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">delegate</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">while</span> <span class="n">content_length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(</span>
+                <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">chunk_size</span><span class="p">,</span> <span class="n">content_length</span><span class="p">),</span> <span class="n">partial</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+            <span class="n">content_length</span> <span class="o">-=</span> <span class="nb">len</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_finished</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_client</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">_ExceptionLoggingContext</span><span class="p">(</span><span class="n">app_log</span><span class="p">):</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="n">delegate</span><span class="o">.</span><span class="n">data_received</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">ret</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">await</span> <span class="n">ret</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_read_chunked_body</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delegate</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># TODO: &quot;chunk extensions&quot; http://tools.ietf.org/html/rfc2616#section-3.6.1</span>
+        <span class="n">total_size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">chunk_len_str</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">max_bytes</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
+            <span class="n">chunk_len</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunk_len_str</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="mi">16</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">chunk_len</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">crlf</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">crlf</span> <span class="o">!=</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPInputError</span><span class="p">(</span>
+                        <span class="s2">&quot;improperly terminated chunked request&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">return</span>
+            <span class="n">total_size</span> <span class="o">+=</span> <span class="n">chunk_len</span>
+            <span class="k">if</span> <span class="n">total_size</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_body_size</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPInputError</span><span class="p">(</span><span class="s2">&quot;chunked body too large&quot;</span><span class="p">)</span>
+            <span class="n">bytes_to_read</span> <span class="o">=</span> <span class="n">chunk_len</span>
+            <span class="k">while</span> <span class="n">bytes_to_read</span><span class="p">:</span>
+                <span class="n">chunk</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(</span>
+                    <span class="nb">min</span><span class="p">(</span><span class="n">bytes_to_read</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">chunk_size</span><span class="p">),</span> <span class="n">partial</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+                <span class="n">bytes_to_read</span> <span class="o">-=</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_finished</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_client</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">_ExceptionLoggingContext</span><span class="p">(</span><span class="n">app_log</span><span class="p">):</span>
+                        <span class="n">ret</span> <span class="o">=</span> <span class="n">delegate</span><span class="o">.</span><span class="n">data_received</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">ret</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="k">await</span> <span class="n">ret</span>
+            <span class="c1"># chunk ends with \r\n</span>
+            <span class="n">crlf</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">crlf</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_read_body_until_close</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">delegate</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">read_until_close</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_finished</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_client</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">_ExceptionLoggingContext</span><span class="p">(</span><span class="n">app_log</span><span class="p">):</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">delegate</span><span class="o">.</span><span class="n">data_received</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ret</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">await</span> <span class="n">ret</span></div>
+
+
+<span class="k">class</span> <span class="nc">_GzipMessageDelegate</span><span class="p">(</span><span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wraps an `HTTPMessageDelegate` to decode ``Content-Encoding: gzip``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delegate</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_delegate</span> <span class="o">=</span> <span class="n">delegate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chunk_size</span> <span class="o">=</span> <span class="n">chunk_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_decompressor</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[GzipDecompressor]</span>
+
+    <span class="k">def</span> <span class="nf">headers_received</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">start_line</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">httputil</span><span class="o">.</span><span class="n">RequestStartLine</span><span class="p">,</span> <span class="n">httputil</span><span class="o">.</span><span class="n">ResponseStartLine</span><span class="p">],</span>
+        <span class="n">headers</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]:</span>
+        <span class="k">if</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Content-Encoding&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;gzip&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_decompressor</span> <span class="o">=</span> <span class="n">GzipDecompressor</span><span class="p">()</span>
+            <span class="c1"># Downstream delegates will only see uncompressed data,</span>
+            <span class="c1"># so rename the content-encoding header.</span>
+            <span class="c1"># (but note that curl_httpclient doesn&#39;t do this).</span>
+            <span class="n">headers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;X-Consumed-Content-Encoding&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Content-Encoding&quot;</span><span class="p">])</span>
+            <span class="k">del</span> <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Content-Encoding&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delegate</span><span class="o">.</span><span class="n">headers_received</span><span class="p">(</span><span class="n">start_line</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">data_received</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decompressor</span><span class="p">:</span>
+            <span class="n">compressed_data</span> <span class="o">=</span> <span class="n">chunk</span>
+            <span class="k">while</span> <span class="n">compressed_data</span><span class="p">:</span>
+                <span class="n">decompressed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decompressor</span><span class="o">.</span><span class="n">decompress</span><span class="p">(</span>
+                    <span class="n">compressed_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chunk_size</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">decompressed</span><span class="p">:</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delegate</span><span class="o">.</span><span class="n">data_received</span><span class="p">(</span><span class="n">decompressed</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">ret</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">await</span> <span class="n">ret</span>
+                <span class="n">compressed_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decompressor</span><span class="o">.</span><span class="n">unconsumed_tail</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delegate</span><span class="o">.</span><span class="n">data_received</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ret</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">ret</span>
+
+    <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decompressor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tail</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decompressor</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">tail</span><span class="p">:</span>
+                <span class="c1"># The tail should always be empty: decompress returned</span>
+                <span class="c1"># all that it can in data_received and the only</span>
+                <span class="c1"># purpose of the flush call is to detect errors such</span>
+                <span class="c1"># as truncated input. If we did legitimately get a new</span>
+                <span class="c1"># chunk at this point we&#39;d need to change the</span>
+                <span class="c1"># interface to make finish() a coroutine.</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;decompressor.flush returned data; possile truncated input&quot;</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delegate</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">on_connection_close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delegate</span><span class="o">.</span><span class="n">on_connection_close</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="HTTP1ServerConnection"><a class="viewcode-back" href="../../http1connection.html#tornado.http1connection.HTTP1ServerConnection">[docs]</a><span class="k">class</span> <span class="nc">HTTP1ServerConnection</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An HTTP/1.x server.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">stream</span><span class="p">:</span> <span class="n">iostream</span><span class="o">.</span><span class="n">IOStream</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">:</span> <span class="n">HTTP1ConnectionParameters</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">context</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :arg stream: an `.IOStream`</span>
+<span class="sd">        :arg params: a `.HTTP1ConnectionParameters` or None</span>
+<span class="sd">        :arg context: an opaque application-defined object that is accessible</span>
+<span class="sd">            as ``connection.context``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="n">stream</span>
+        <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">HTTP1ConnectionParameters</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">context</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_serving_future</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[Future[None]]</span>
+
+<div class="viewcode-block" id="HTTP1ServerConnection.close"><a class="viewcode-back" href="../../http1connection.html#tornado.http1connection.HTTP1ServerConnection.close">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Closes the connection.</span>
+
+<span class="sd">        Returns a `.Future` that resolves after the serving loop has exited.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="c1"># Block until the serving loop is done, but ignore any exceptions</span>
+        <span class="c1"># (start_serving is already responsible for logging them).</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_serving_future</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_serving_future</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="HTTP1ServerConnection.start_serving"><a class="viewcode-back" href="../../http1connection.html#tornado.http1connection.HTTP1ServerConnection.start_serving">[docs]</a>    <span class="k">def</span> <span class="nf">start_serving</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delegate</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerConnectionDelegate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Starts serving requests on this connection.</span>
+
+<span class="sd">        :arg delegate: a `.HTTPServerConnectionDelegate`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">delegate</span><span class="p">,</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerConnectionDelegate</span><span class="p">)</span>
+        <span class="n">fut</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">convert_yielded</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_server_request_loop</span><span class="p">(</span><span class="n">delegate</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_serving_future</span> <span class="o">=</span> <span class="n">fut</span>
+        <span class="c1"># Register the future on the IOLoop so its errors get logged.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_future</span><span class="p">(</span><span class="n">fut</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">result</span><span class="p">())</span></div>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_server_request_loop</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">delegate</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerConnectionDelegate</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">conn</span> <span class="o">=</span> <span class="n">HTTP1Connection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">)</span>
+                <span class="n">request_delegate</span> <span class="o">=</span> <span class="n">delegate</span><span class="o">.</span><span class="n">start_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="k">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">read_response</span><span class="p">(</span><span class="n">request_delegate</span><span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span>
+                    <span class="n">iostream</span><span class="o">.</span><span class="n">StreamClosedError</span><span class="p">,</span>
+                    <span class="n">iostream</span><span class="o">.</span><span class="n">UnsatisfiableReadError</span><span class="p">,</span>
+                    <span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">,</span>
+                <span class="p">):</span>
+                    <span class="k">return</span>
+                <span class="k">except</span> <span class="n">_QuietException</span><span class="p">:</span>
+                    <span class="c1"># This exception was already logged.</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="k">return</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">gen_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Uncaught exception&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="k">return</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">ret</span><span class="p">:</span>
+                    <span class="k">return</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">delegate</span><span class="o">.</span><span class="n">on_close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

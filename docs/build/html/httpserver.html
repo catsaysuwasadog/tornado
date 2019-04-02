@@ -1,0 +1,347 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.httpserver — Non-blocking HTTP server &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.httpclient — Asynchronous HTTP client" href="httpclient.html" />
+    <link rel="prev" title="HTTP servers and clients" href="http.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="http.html">HTTP servers and clients</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.httpserver</span></code> — Non-blocking HTTP server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="httpclient.html"><code class="docutils literal notranslate"><span class="pre">tornado.httpclient</span></code> — Asynchronous HTTP client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="httputil.html"><code class="docutils literal notranslate"><span class="pre">tornado.httputil</span></code> — Manipulate HTTP headers and URLs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="http1connection.html"><code class="docutils literal notranslate"><span class="pre">tornado.http1connection</span></code> – HTTP/1.x client/server implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="http.html">HTTP servers and clients</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.httpserver</span></code> — Non-blocking HTTP server</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/httpserver.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-tornado.httpserver">
+<span id="tornado-httpserver-non-blocking-http-server"></span><h1><code class="docutils literal notranslate"><span class="pre">tornado.httpserver</span></code> — Non-blocking HTTP server<a class="headerlink" href="#module-tornado.httpserver" title="Permalink to this headline">¶</a></h1>
+<p>A non-blocking, single-threaded HTTP server.</p>
+<p>Typical applications have little direct interaction with the <a class="reference internal" href="#tornado.httpserver.HTTPServer" title="tornado.httpserver.HTTPServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServer</span></code></a>
+class except to start a server at the beginning of the process
+(and even that is often done indirectly via <a class="reference internal" href="web.html#tornado.web.Application.listen" title="tornado.web.Application.listen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.web.Application.listen</span></code></a>).</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>The <code class="docutils literal notranslate"><span class="pre">HTTPRequest</span></code> class that used to live in this module has been moved
+to <a class="reference internal" href="httputil.html#tornado.httputil.HTTPServerRequest" title="tornado.httputil.HTTPServerRequest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.httputil.HTTPServerRequest</span></code></a>.  The old name remains as an alias.</p>
+</div>
+<div class="section" id="http-server">
+<h2>HTTP Server<a class="headerlink" href="#http-server" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.httpserver.HTTPServer">
+<em class="property">class </em><code class="descclassname">tornado.httpserver.</code><code class="descname">HTTPServer</code><span class="sig-paren">(</span><em>request_callback: Union[httputil.HTTPServerConnectionDelegate, Callable[[httputil.HTTPServerRequest], None]], no_keep_alive: bool = False, xheaders: bool = False, ssl_options: Union[Dict[str, Any], ssl.SSLContext] = None, protocol: str = None, decompress_request: bool = False, chunk_size: int = None, max_header_size: int = None, idle_connection_timeout: float = None, body_timeout: float = None, max_body_size: int = None, max_buffer_size: int = None, trusted_downstream: List[str] = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/httpserver.html#HTTPServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httpserver.HTTPServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>A non-blocking, single-threaded HTTP server.</p>
+<p>A server is defined by a subclass of <a class="reference internal" href="httputil.html#tornado.httputil.HTTPServerConnectionDelegate" title="tornado.httputil.HTTPServerConnectionDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServerConnectionDelegate</span></code></a>,
+or, for backwards compatibility, a callback that takes an
+<a class="reference internal" href="httputil.html#tornado.httputil.HTTPServerRequest" title="tornado.httputil.HTTPServerRequest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServerRequest</span></code></a> as an argument. The delegate is usually a
+<a class="reference internal" href="web.html#tornado.web.Application" title="tornado.web.Application"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.web.Application</span></code></a>.</p>
+<p><a class="reference internal" href="#tornado.httpserver.HTTPServer" title="tornado.httpserver.HTTPServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServer</span></code></a> supports keep-alive connections by default
+(automatically for HTTP/1.1, or for HTTP/1.0 when the client
+requests <code class="docutils literal notranslate"><span class="pre">Connection:</span> <span class="pre">keep-alive</span></code>).</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">xheaders</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, we support the
+<code class="docutils literal notranslate"><span class="pre">X-Real-Ip</span></code>/<code class="docutils literal notranslate"><span class="pre">X-Forwarded-For</span></code> and
+<code class="docutils literal notranslate"><span class="pre">X-Scheme</span></code>/<code class="docutils literal notranslate"><span class="pre">X-Forwarded-Proto</span></code> headers, which override the
+remote IP and URI scheme/protocol for all requests.  These headers
+are useful when running Tornado behind a reverse proxy or load
+balancer.  The <code class="docutils literal notranslate"><span class="pre">protocol</span></code> argument can also be set to <code class="docutils literal notranslate"><span class="pre">https</span></code>
+if Tornado is run behind an SSL-decoding proxy that does not set one of
+the supported <code class="docutils literal notranslate"><span class="pre">xheaders</span></code>.</p>
+<p>By default, when parsing the <code class="docutils literal notranslate"><span class="pre">X-Forwarded-For</span></code> header, Tornado will
+select the last (i.e., the closest) address on the list of hosts as the
+remote host IP address.  To select the next server in the chain, a list of
+trusted downstream hosts may be passed as the <code class="docutils literal notranslate"><span class="pre">trusted_downstream</span></code>
+argument.  These hosts will be skipped when parsing the <code class="docutils literal notranslate"><span class="pre">X-Forwarded-For</span></code>
+header.</p>
+<p>To make this server serve SSL traffic, send the <code class="docutils literal notranslate"><span class="pre">ssl_options</span></code> keyword
+argument with an <a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.SSLContext" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl.SSLContext</span></code></a> object. For compatibility with older
+versions of Python <code class="docutils literal notranslate"><span class="pre">ssl_options</span></code> may also be a dictionary of keyword
+arguments for the <a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.wrap_socket" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl.wrap_socket</span></code></a> method.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ssl_ctx</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">create_default_context</span><span class="p">(</span><span class="n">ssl</span><span class="o">.</span><span class="n">Purpose</span><span class="o">.</span><span class="n">CLIENT_AUTH</span><span class="p">)</span>
+<span class="n">ssl_ctx</span><span class="o">.</span><span class="n">load_cert_chain</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s2">&quot;mydomain.crt&quot;</span><span class="p">),</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s2">&quot;mydomain.key&quot;</span><span class="p">))</span>
+<span class="n">HTTPServer</span><span class="p">(</span><span class="n">application</span><span class="p">,</span> <span class="n">ssl_options</span><span class="o">=</span><span class="n">ssl_ctx</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#tornado.httpserver.HTTPServer" title="tornado.httpserver.HTTPServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServer</span></code></a> initialization follows one of three patterns (the
+initialization methods are defined on <a class="reference internal" href="tcpserver.html#tornado.tcpserver.TCPServer" title="tornado.tcpserver.TCPServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.tcpserver.TCPServer</span></code></a>):</p>
+<ol class="arabic">
+<li><p><a class="reference internal" href="tcpserver.html#tornado.tcpserver.TCPServer.listen" title="tornado.tcpserver.TCPServer.listen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">listen</span></code></a>: simple single-process:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">server</span> <span class="o">=</span> <span class="n">HTTPServer</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+<span class="n">server</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="mi">8888</span><span class="p">)</span>
+<span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>In many cases, <a class="reference internal" href="web.html#tornado.web.Application.listen" title="tornado.web.Application.listen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.web.Application.listen</span></code></a> can be used to avoid
+the need to explicitly create the <a class="reference internal" href="#tornado.httpserver.HTTPServer" title="tornado.httpserver.HTTPServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServer</span></code></a>.</p>
+</li>
+<li><p><a class="reference internal" href="tcpserver.html#tornado.tcpserver.TCPServer.bind" title="tornado.tcpserver.TCPServer.bind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bind</span></code></a>/<a class="reference internal" href="tcpserver.html#tornado.tcpserver.TCPServer.start" title="tornado.tcpserver.TCPServer.start"><code class="xref py py-obj docutils literal notranslate"><span class="pre">start</span></code></a>:
+simple multi-process:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">server</span> <span class="o">=</span> <span class="n">HTTPServer</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+<span class="n">server</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="mi">8888</span><span class="p">)</span>
+<span class="n">server</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Forks multiple sub-processes</span>
+<span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>When using this interface, an <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> must <em>not</em> be passed
+to the <a class="reference internal" href="#tornado.httpserver.HTTPServer" title="tornado.httpserver.HTTPServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServer</span></code></a> constructor.  <a class="reference internal" href="tcpserver.html#tornado.tcpserver.TCPServer.start" title="tornado.tcpserver.TCPServer.start"><code class="xref py py-obj docutils literal notranslate"><span class="pre">start</span></code></a> will always start
+the server on the default singleton <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>.</p>
+</li>
+<li><p><a class="reference internal" href="tcpserver.html#tornado.tcpserver.TCPServer.add_sockets" title="tornado.tcpserver.TCPServer.add_sockets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_sockets</span></code></a>: advanced multi-process:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sockets</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">netutil</span><span class="o">.</span><span class="n">bind_sockets</span><span class="p">(</span><span class="mi">8888</span><span class="p">)</span>
+<span class="n">tornado</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">fork_processes</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">server</span> <span class="o">=</span> <span class="n">HTTPServer</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+<span class="n">server</span><span class="o">.</span><span class="n">add_sockets</span><span class="p">(</span><span class="n">sockets</span><span class="p">)</span>
+<span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="tcpserver.html#tornado.tcpserver.TCPServer.add_sockets" title="tornado.tcpserver.TCPServer.add_sockets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_sockets</span></code></a> interface is more complicated,
+but it can be used with <a class="reference internal" href="process.html#tornado.process.fork_processes" title="tornado.process.fork_processes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.process.fork_processes</span></code></a> to
+give you more flexibility in when the fork happens.
+<a class="reference internal" href="tcpserver.html#tornado.tcpserver.TCPServer.add_sockets" title="tornado.tcpserver.TCPServer.add_sockets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_sockets</span></code></a> can also be used in single-process
+servers if you want to create your listening sockets in some
+way other than <a class="reference internal" href="netutil.html#tornado.netutil.bind_sockets" title="tornado.netutil.bind_sockets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.netutil.bind_sockets</span></code></a>.</p>
+</li>
+</ol>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Added <code class="docutils literal notranslate"><span class="pre">decompress_request</span></code>, <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code>, <code class="docutils literal notranslate"><span class="pre">max_header_size</span></code>,
+<code class="docutils literal notranslate"><span class="pre">idle_connection_timeout</span></code>, <code class="docutils literal notranslate"><span class="pre">body_timeout</span></code>, <code class="docutils literal notranslate"><span class="pre">max_body_size</span></code>
+arguments.  Added support for <a class="reference internal" href="httputil.html#tornado.httputil.HTTPServerConnectionDelegate" title="tornado.httputil.HTTPServerConnectionDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServerConnectionDelegate</span></code></a>
+instances as <code class="docutils literal notranslate"><span class="pre">request_callback</span></code>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.1: </span><a class="reference internal" href="httputil.html#tornado.httputil.HTTPServerConnectionDelegate.start_request" title="tornado.httputil.HTTPServerConnectionDelegate.start_request"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServerConnectionDelegate.start_request</span></code></a> is now called with
+two arguments <code class="docutils literal notranslate"><span class="pre">(server_conn,</span> <span class="pre">request_conn)</span></code> (in accordance with the
+documentation) instead of one <code class="docutils literal notranslate"><span class="pre">(request_conn)</span></code>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.2: </span><a class="reference internal" href="#tornado.httpserver.HTTPServer" title="tornado.httpserver.HTTPServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServer</span></code></a> is now a subclass of <a class="reference internal" href="util.html#tornado.util.Configurable" title="tornado.util.Configurable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.util.Configurable</span></code></a>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.5: </span>Added the <code class="docutils literal notranslate"><span class="pre">trusted_downstream</span></code> argument.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>The <code class="docutils literal notranslate"><span class="pre">io_loop</span></code> argument has been removed.</p>
+</div>
+<p>The public interface of this class is mostly inherited from
+<a class="reference internal" href="tcpserver.html#tornado.tcpserver.TCPServer" title="tornado.tcpserver.TCPServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TCPServer</span></code></a> and is documented under that class.</p>
+<dl class="method">
+<dt id="tornado.httpserver.HTTPServer.close_all_connections">
+<em class="property">coroutine </em><code class="descname">close_all_connections</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/httpserver.html#HTTPServer.close_all_connections"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httpserver.HTTPServer.close_all_connections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close all open connections and asynchronously wait for them to finish.</p>
+<p>This method is used in combination with <a class="reference internal" href="tcpserver.html#tornado.tcpserver.TCPServer.stop" title="tornado.tcpserver.TCPServer.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stop</span></code></a> to
+support clean shutdowns (especially for unittests). Typical
+usage would call <code class="docutils literal notranslate"><span class="pre">stop()</span></code> first to stop accepting new
+connections, then <code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">close_all_connections()</span></code> to wait for
+existing connections to finish.</p>
+<p>This method does not currently close open websocket connections.</p>
+<p>Note that this method is a coroutine and must be caled with <code class="docutils literal notranslate"><span class="pre">await</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="httpclient.html" class="btn btn-neutral float-right" title="tornado.httpclient — Asynchronous HTTP client" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="http.html" class="btn btn-neutral float-left" title="HTTP servers and clients" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.concurrent — Work with Future objects &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.log — Logging support" href="log.html" />
+    <link rel="prev" title="tornado.autoreload — Automatically detect code changes in development" href="autoreload.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="utilities.html">Utilities</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="autoreload.html"><code class="docutils literal notranslate"><span class="pre">tornado.autoreload</span></code> — Automatically detect code changes in development</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.concurrent</span></code> — Work with <code class="docutils literal notranslate"><span class="pre">Future</span></code> objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html"><code class="docutils literal notranslate"><span class="pre">tornado.log</span></code> — Logging support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options.html"><code class="docutils literal notranslate"><span class="pre">tornado.options</span></code> — Command-line parsing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html"><code class="docutils literal notranslate"><span class="pre">tornado.testing</span></code> — Unit testing support for asynchronous code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html"><code class="docutils literal notranslate"><span class="pre">tornado.util</span></code> — General-purpose utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="utilities.html">Utilities</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.concurrent</span></code> — Work with <code class="docutils literal notranslate"><span class="pre">Future</span></code> objects</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/concurrent.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tornado-concurrent-work-with-future-objects">
+<h1><code class="docutils literal notranslate"><span class="pre">tornado.concurrent</span></code> — Work with <code class="docutils literal notranslate"><span class="pre">Future</span></code> objects<a class="headerlink" href="#tornado-concurrent-work-with-future-objects" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-tornado.concurrent"></span><p>Utilities for working with <code class="docutils literal notranslate"><span class="pre">Future</span></code> objects.</p>
+<p>Tornado previously provided its own <code class="docutils literal notranslate"><span class="pre">Future</span></code> class, but now uses
+<a class="reference external" href="https://docs.python.org/3.6/library/asyncio-task.html#asyncio.Future" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a>. This module contains utility functions for working
+with <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-task.html#asyncio.Future" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a> in a way that is backwards-compatible with
+Tornado’s old <code class="docutils literal notranslate"><span class="pre">Future</span></code> implementation.</p>
+<p>While this module is an important part of Tornado’s internal
+implementation, applications rarely need to interact with it
+directly.</p>
+<blockquote>
+<div><dl class="class">
+<dt id="tornado.concurrent.Future">
+<em class="property">class </em><code class="descclassname">tornado.concurrent.</code><code class="descname">Future</code><a class="headerlink" href="#tornado.concurrent.Future" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">tornado.concurrent.Future</span></code> is an alias for <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-task.html#asyncio.Future" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a>.</p>
+<p>In Tornado, the main way in which applications interact with
+<code class="docutils literal notranslate"><span class="pre">Future</span></code> objects is by <code class="docutils literal notranslate"><span class="pre">awaiting</span></code> or <code class="docutils literal notranslate"><span class="pre">yielding</span></code> them in
+coroutines, instead of calling methods on the <code class="docutils literal notranslate"><span class="pre">Future</span></code> objects
+themselves. For more information on the available methods, see
+the <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-task.html#asyncio.Future" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a> docs.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Tornado’s implementation of <code class="docutils literal notranslate"><span class="pre">Future</span></code> has been replaced by
+the version from <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> when available.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Future</span></code> objects can only be created while there is a
+current <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a></p></li>
+<li><p>The timing of callbacks scheduled with
+<code class="docutils literal notranslate"><span class="pre">Future.add_done_callback</span></code> has changed.</p></li>
+<li><p>Cancellation is now partially supported (only on Python 3)</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">exc_info</span></code> and <code class="docutils literal notranslate"><span class="pre">set_exc_info</span></code> methods are no longer
+available on Python 3.</p></li>
+</ul>
+</div>
+</dd></dl>
+
+</div></blockquote>
+<dl class="function">
+<dt id="tornado.concurrent.run_on_executor">
+<code class="descclassname">tornado.concurrent.</code><code class="descname">run_on_executor</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; Callable<a class="reference internal" href="_modules/tornado/concurrent.html#run_on_executor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.concurrent.run_on_executor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to run a synchronous method asynchronously on an executor.</p>
+<p>The decorated method may be called with a <code class="docutils literal notranslate"><span class="pre">callback</span></code> keyword
+argument and returns a future.</p>
+<p>The executor to be used is determined by the <code class="docutils literal notranslate"><span class="pre">executor</span></code>
+attributes of <code class="docutils literal notranslate"><span class="pre">self</span></code>. To use a different attribute name, pass a
+keyword argument to the decorator:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@run_on_executor</span><span class="p">(</span><span class="n">executor</span><span class="o">=</span><span class="s1">&#39;_thread_pool&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>This decorator should not be confused with the similarly-named
+<a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.run_in_executor" title="tornado.ioloop.IOLoop.run_in_executor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.run_in_executor</span></code></a>. In general, using <code class="docutils literal notranslate"><span class="pre">run_in_executor</span></code>
+when <em>calling</em> a blocking method is recommended instead of using
+this decorator when <em>defining</em> a method. If compatibility with older
+versions of Tornado is required, consider defining an executor
+and using <code class="docutils literal notranslate"><span class="pre">executor.submit()</span></code> at the call site.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.2: </span>Added keyword arguments to use alternative attributes.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Always uses the current IOLoop instead of <code class="docutils literal notranslate"><span class="pre">self.io_loop</span></code>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span>Returns a <a class="reference internal" href="#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> compatible with <code class="docutils literal notranslate"><span class="pre">await</span></code> instead of a
+<a class="reference external" href="https://docs.python.org/3.6/library/concurrent.futures.html#concurrent.futures.Future" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concurrent.futures.Future</span></code></a>.</p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.1: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument is deprecated and will be removed in
+6.0. The decorator itself is discouraged in new code but will
+not be removed in 6.0.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument was removed.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.concurrent.chain_future">
+<code class="descclassname">tornado.concurrent.</code><code class="descname">chain_future</code><span class="sig-paren">(</span><em>a: Future[_T], b: Future[_T]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/concurrent.html#chain_future"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.concurrent.chain_future" title="Permalink to this definition">¶</a></dt>
+<dd><p>Chain two futures together so that when one completes, so does the other.</p>
+<p>The result (success or failure) of <code class="docutils literal notranslate"><span class="pre">a</span></code> will be copied to <code class="docutils literal notranslate"><span class="pre">b</span></code>, unless
+<code class="docutils literal notranslate"><span class="pre">b</span></code> has already been completed or cancelled by the time <code class="docutils literal notranslate"><span class="pre">a</span></code> finishes.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Now accepts both Tornado/asyncio <a class="reference internal" href="#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> objects and
+<a class="reference external" href="https://docs.python.org/3.6/library/concurrent.futures.html#concurrent.futures.Future" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concurrent.futures.Future</span></code></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.concurrent.future_set_result_unless_cancelled">
+<code class="descclassname">tornado.concurrent.</code><code class="descname">future_set_result_unless_cancelled</code><span class="sig-paren">(</span><em>future: Union[futures.Future[_T], Future[_T]], value: _T</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/concurrent.html#future_set_result_unless_cancelled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.concurrent.future_set_result_unless_cancelled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the given <code class="docutils literal notranslate"><span class="pre">value</span></code> as the <a class="reference internal" href="#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>’s result, if not cancelled.</p>
+<p>Avoids <code class="docutils literal notranslate"><span class="pre">asyncio.InvalidStateError</span></code> when calling <code class="docutils literal notranslate"><span class="pre">set_result()</span></code> on
+a cancelled <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-task.html#asyncio.Future" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 5.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.concurrent.future_set_exception_unless_cancelled">
+<code class="descclassname">tornado.concurrent.</code><code class="descname">future_set_exception_unless_cancelled</code><span class="sig-paren">(</span><em>future: Union[futures.Future[_T], Future[_T]], exc: BaseException</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/concurrent.html#future_set_exception_unless_cancelled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.concurrent.future_set_exception_unless_cancelled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the given <code class="docutils literal notranslate"><span class="pre">exc</span></code> as the <a class="reference internal" href="#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>’s exception.</p>
+<p>If the Future is already canceled, logs the exception instead. If
+this logging is not desired, the caller should explicitly check
+the state of the Future and call <code class="docutils literal notranslate"><span class="pre">Future.set_exception</span></code> instead of
+this wrapper.</p>
+<p>Avoids <code class="docutils literal notranslate"><span class="pre">asyncio.InvalidStateError</span></code> when calling <code class="docutils literal notranslate"><span class="pre">set_exception()</span></code> on
+a cancelled <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-task.html#asyncio.Future" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 6.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.concurrent.future_set_exc_info">
+<code class="descclassname">tornado.concurrent.</code><code class="descname">future_set_exc_info</code><span class="sig-paren">(</span><em>future: Union[futures.Future[_T], Future[_T]], exc_info: Tuple[Optional[type], Optional[BaseException], Optional[traceback]]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/concurrent.html#future_set_exc_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.concurrent.future_set_exc_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the given <code class="docutils literal notranslate"><span class="pre">exc_info</span></code> as the <a class="reference internal" href="#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>’s exception.</p>
+<p>Understands both <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-task.html#asyncio.Future" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a> and the extensions in older
+versions of Tornado to enable better tracebacks on Python 2.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 5.0.</span></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>If the future is already cancelled, this function is a no-op.
+(previously <code class="docutils literal notranslate"><span class="pre">asyncio.InvalidStateError</span></code> would be raised)</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.concurrent.future_add_done_callback">
+<code class="descclassname">tornado.concurrent.</code><code class="descname">future_add_done_callback</code><span class="sig-paren">(</span><em>future: Union[futures.Future[_T], Future[_T]], callback: Callable[[...], None]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/concurrent.html#future_add_done_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.concurrent.future_add_done_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Arrange to call <code class="docutils literal notranslate"><span class="pre">callback</span></code> when <code class="docutils literal notranslate"><span class="pre">future</span></code> is complete.</p>
+<p><code class="docutils literal notranslate"><span class="pre">callback</span></code> is invoked with one argument, the <code class="docutils literal notranslate"><span class="pre">future</span></code>.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">future</span></code> is already done, <code class="docutils literal notranslate"><span class="pre">callback</span></code> is invoked immediately.
+This may differ from the behavior of <code class="docutils literal notranslate"><span class="pre">Future.add_done_callback</span></code>,
+which makes no such guarantee.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 5.0.</span></p>
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="log.html" class="btn btn-neutral float-right" title="tornado.log — Logging support" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="autoreload.html" class="btn btn-neutral float-left" title="tornado.autoreload — Automatically detect code changes in development" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

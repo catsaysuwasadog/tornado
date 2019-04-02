@@ -1,0 +1,299 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.log — Logging support &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.options — Command-line parsing" href="options.html" />
+    <link rel="prev" title="tornado.concurrent — Work with Future objects" href="concurrent.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="utilities.html">Utilities</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="autoreload.html"><code class="docutils literal notranslate"><span class="pre">tornado.autoreload</span></code> — Automatically detect code changes in development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concurrent.html"><code class="docutils literal notranslate"><span class="pre">tornado.concurrent</span></code> — Work with <code class="docutils literal notranslate"><span class="pre">Future</span></code> objects</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.log</span></code> — Logging support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options.html"><code class="docutils literal notranslate"><span class="pre">tornado.options</span></code> — Command-line parsing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html"><code class="docutils literal notranslate"><span class="pre">tornado.testing</span></code> — Unit testing support for asynchronous code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html"><code class="docutils literal notranslate"><span class="pre">tornado.util</span></code> — General-purpose utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="utilities.html">Utilities</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.log</span></code> — Logging support</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/log.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-tornado.log">
+<span id="tornado-log-logging-support"></span><h1><code class="docutils literal notranslate"><span class="pre">tornado.log</span></code> — Logging support<a class="headerlink" href="#module-tornado.log" title="Permalink to this headline">¶</a></h1>
+<p>Logging support for Tornado.</p>
+<p>Tornado uses three logger streams:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tornado.access</span></code>: Per-request logging for Tornado’s HTTP servers (and
+potentially other servers in the future)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tornado.application</span></code>: Logging of errors from application code (i.e.
+uncaught exceptions from callbacks)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tornado.general</span></code>: General-purpose logging, including any errors
+or warnings from Tornado itself.</p></li>
+</ul>
+<p>These streams may be configured independently using the standard library’s
+<a class="reference external" href="https://docs.python.org/3.6/library/logging.html#module-logging" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging</span></code></a> module.  For example, you may wish to send <code class="docutils literal notranslate"><span class="pre">tornado.access</span></code> logs
+to a separate file for analysis.</p>
+<dl class="class">
+<dt id="tornado.log.LogFormatter">
+<em class="property">class </em><code class="descclassname">tornado.log.</code><code class="descname">LogFormatter</code><span class="sig-paren">(</span><em>fmt: str = '%(color)s[%(levelname)1.1s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'</em>, <em>datefmt: str = '%y%m%d %H:%M:%S'</em>, <em>style: str = '%'</em>, <em>color: bool = True</em>, <em>colors: Dict[int</em>, <em>int] = {10: 4</em>, <em>20: 2</em>, <em>30: 3</em>, <em>40: 1}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/log.html#LogFormatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.log.LogFormatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log formatter used in Tornado.</p>
+<p>Key features of this formatter are:</p>
+<ul class="simple">
+<li><p>Color support when logging to a terminal that supports it.</p></li>
+<li><p>Timestamps on every log line.</p></li>
+<li><p>Robust against str/bytes encoding problems.</p></li>
+</ul>
+<p>This formatter is enabled automatically by
+<a class="reference internal" href="options.html#tornado.options.parse_command_line" title="tornado.options.parse_command_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.options.parse_command_line</span></code></a> or <a class="reference internal" href="options.html#tornado.options.parse_config_file" title="tornado.options.parse_config_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.options.parse_config_file</span></code></a>
+(unless <code class="docutils literal notranslate"><span class="pre">--logging=none</span></code> is used).</p>
+<p>Color support on Windows versions that do not support ANSI color codes is
+enabled by use of the <a class="reference external" href="https://pypi.python.org/pypi/colorama">colorama</a> library. Applications that wish to use
+this must first initialize colorama with a call to <code class="docutils literal notranslate"><span class="pre">colorama.init</span></code>.
+See the colorama documentation for details.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.5: </span>Added support for <code class="docutils literal notranslate"><span class="pre">colorama</span></code>. Changed the constructor
+signature to be compatible with <a class="reference external" href="https://docs.python.org/3.6/library/logging.config.html#logging.config.dictConfig" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.config.dictConfig</span></code></a>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>color</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – Enables color support.</p></li>
+<li><p><strong>fmt</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Log message format.
+It will be applied to the attributes dict of log records. The
+text between <code class="docutils literal notranslate"><span class="pre">%(color)s</span></code> and <code class="docutils literal notranslate"><span class="pre">%(end_color)s</span></code> will be colored
+depending on the level if color support is on.</p></li>
+<li><p><strong>colors</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a>) – color mappings from logging level to terminal color
+code</p></li>
+<li><p><strong>datefmt</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Datetime format.
+Used for formatting <code class="docutils literal notranslate"><span class="pre">(asctime)</span></code> placeholder in <code class="docutils literal notranslate"><span class="pre">prefix_fmt</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 3.2: </span>Added <code class="docutils literal notranslate"><span class="pre">fmt</span></code> and <code class="docutils literal notranslate"><span class="pre">datefmt</span></code> arguments.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.log.enable_pretty_logging">
+<code class="descclassname">tornado.log.</code><code class="descname">enable_pretty_logging</code><span class="sig-paren">(</span><em>options: Any = None</em>, <em>logger: logging.Logger = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/log.html#enable_pretty_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.log.enable_pretty_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turns on formatted logging output as configured.</p>
+<p>This is called automatically by <a class="reference internal" href="options.html#tornado.options.parse_command_line" title="tornado.options.parse_command_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.options.parse_command_line</span></code></a>
+and <a class="reference internal" href="options.html#tornado.options.parse_config_file" title="tornado.options.parse_config_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.options.parse_config_file</span></code></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.log.define_logging_options">
+<code class="descclassname">tornado.log.</code><code class="descname">define_logging_options</code><span class="sig-paren">(</span><em>options: Any = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/log.html#define_logging_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.log.define_logging_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add logging-related flags to <code class="docutils literal notranslate"><span class="pre">options</span></code>.</p>
+<p>These options are present automatically on the default options instance;
+this method is only necessary if you have created your own <a class="reference internal" href="options.html#tornado.options.OptionParser" title="tornado.options.OptionParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OptionParser</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.2: </span>This function existed in prior versions but was broken and undocumented until 4.2.</p>
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="options.html" class="btn btn-neutral float-right" title="tornado.options — Command-line parsing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="concurrent.html" class="btn btn-neutral float-left" title="tornado.concurrent — Work with Future objects" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

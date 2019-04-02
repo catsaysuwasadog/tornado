@@ -1,0 +1,484 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>What’s new in Tornado 4.3 &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="What’s new in Tornado 4.2.1" href="v4.2.1.html" />
+    <link rel="prev" title="What’s new in Tornado 4.4" href="v4.4.0.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../releases.html">Release notes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="v6.0.0.html">What’s new in Tornado 6.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v5.1.1.html">What’s new in Tornado 5.1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v5.1.0.html">What’s new in Tornado 5.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v5.0.2.html">What’s new in Tornado 5.0.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v5.0.1.html">What’s new in Tornado 5.0.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v5.0.0.html">What’s new in Tornado 5.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v4.5.3.html">What’s new in Tornado 4.5.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v4.5.2.html">What’s new in Tornado 4.5.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v4.5.1.html">What’s new in Tornado 4.5.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v4.5.0.html">What’s new in Tornado 4.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v4.4.3.html">What’s new in Tornado 4.4.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v4.4.2.html">What’s new in Tornado 4.4.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v4.4.1.html">What’s new in Tornado 4.4.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v4.4.0.html">What’s new in Tornado 4.4</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">What’s new in Tornado 4.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v4.2.1.html">What’s new in Tornado 4.2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v4.2.0.html">What’s new in Tornado 4.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v4.1.0.html">What’s new in Tornado 4.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v4.0.2.html">What’s new in Tornado 4.0.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v4.0.1.html">What’s new in Tornado 4.0.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v4.0.0.html">What’s new in Tornado 4.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v3.2.2.html">What’s new in Tornado 3.2.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v3.2.1.html">What’s new in Tornado 3.2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v3.2.0.html">What’s new in Tornado 3.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v3.1.1.html">What’s new in Tornado 3.1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v3.1.0.html">What’s new in Tornado 3.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v3.0.2.html">What’s new in Tornado 3.0.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v3.0.1.html">What’s new in Tornado 3.0.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v3.0.0.html">What’s new in Tornado 3.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v2.4.1.html">What’s new in Tornado 2.4.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v2.4.0.html">What’s new in Tornado 2.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v2.3.0.html">What’s new in Tornado 2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v2.2.1.html">What’s new in Tornado 2.2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v2.2.0.html">What’s new in Tornado 2.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v2.1.1.html">What’s new in Tornado 2.1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v2.1.0.html">What’s new in Tornado 2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v2.0.0.html">What’s new in Tornado 2.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v1.2.1.html">What’s new in Tornado 1.2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v1.2.0.html">What’s new in Tornado 1.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v1.1.1.html">What’s new in Tornado 1.1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v1.1.0.html">What’s new in Tornado 1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v1.0.1.html">What’s new in Tornado 1.0.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="v1.0.0.html">What’s new in Tornado 1.0</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../releases.html">Release notes</a> &raquo;</li>
+        
+      <li>What’s new in Tornado 4.3</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/releases/v4.3.0.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="what-s-new-in-tornado-4-3">
+<h1>What’s new in Tornado 4.3<a class="headerlink" href="#what-s-new-in-tornado-4-3" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="nov-6-2015">
+<h2>Nov 6, 2015<a class="headerlink" href="#nov-6-2015" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="highlights">
+<h3>Highlights<a class="headerlink" href="#highlights" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The new async/await keywords in Python 3.5 are supported. In most cases,
+<code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">def</span></code> can be used in place of the <code class="docutils literal notranslate"><span class="pre">&#64;gen.coroutine</span></code> decorator.
+Inside a function defined with <code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">def</span></code>, use <code class="docutils literal notranslate"><span class="pre">await</span></code> instead of
+<code class="docutils literal notranslate"><span class="pre">yield</span></code> to wait on an asynchronous operation. Coroutines defined with
+async/await will be faster than those defined with <code class="docutils literal notranslate"><span class="pre">&#64;gen.coroutine</span></code> and
+<code class="docutils literal notranslate"><span class="pre">yield</span></code>, but do not support some features including <code class="docutils literal notranslate"><span class="pre">Callback</span></code>/<code class="docutils literal notranslate"><span class="pre">Wait</span></code> or
+the ability to yield a Twisted <code class="docutils literal notranslate"><span class="pre">Deferred</span></code>. See <a class="reference internal" href="../guide/coroutines.html#native-coroutines"><span class="std std-ref">the users’
+guide</span></a> for more.</p></li>
+<li><p>The async/await keywords are also available when compiling with Cython in
+older versions of Python.</p></li>
+</ul>
+</div>
+<div class="section" id="deprecation-notice">
+<h3>Deprecation notice<a class="headerlink" href="#deprecation-notice" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>This will be the last release of Tornado to support Python 2.6 or 3.2.
+Note that PyPy3 will continue to be supported even though it implements
+a mix of Python 3.2 and 3.3 features.</p></li>
+</ul>
+</div>
+<div class="section" id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Tornado has several new dependencies: <code class="docutils literal notranslate"><span class="pre">ordereddict</span></code> on Python 2.6,
+<code class="docutils literal notranslate"><span class="pre">singledispatch</span></code> on all Python versions prior to 3.4 (This was an
+optional dependency in prior versions of Tornado, and is now
+mandatory), and <code class="docutils literal notranslate"><span class="pre">backports_abc&gt;=0.4</span></code> on all versions prior to
+3.5. These dependencies will be installed automatically when installing
+with <code class="docutils literal notranslate"><span class="pre">pip</span></code> or <code class="docutils literal notranslate"><span class="pre">setup.py</span> <span class="pre">install</span></code>. These dependencies will not
+be required when running on Google App Engine.</p></li>
+<li><p>Binary wheels are provided for Python 3.5 on Windows (32 and 64 bit).</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-auth">
+<h3><a class="reference internal" href="../auth.html#module-tornado.auth" title="tornado.auth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.auth</span></code></a><a class="headerlink" href="#tornado-auth" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>New method <a class="reference internal" href="../auth.html#tornado.auth.OAuth2Mixin.oauth2_request" title="tornado.auth.OAuth2Mixin.oauth2_request"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OAuth2Mixin.oauth2_request</span></code></a> can be used to make authenticated
+requests with an access token.</p></li>
+<li><p>Now compatible with callbacks that have been compiled with Cython.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-autoreload">
+<h3><a class="reference internal" href="../autoreload.html#module-tornado.autoreload" title="tornado.autoreload"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.autoreload</span></code></a><a class="headerlink" href="#tornado-autoreload" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed an issue with the autoreload command-line wrapper in which
+imports would be incorrectly interpreted as relative.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-curl-httpclient">
+<h3><a class="reference internal" href="../httpclient.html#module-tornado.curl_httpclient" title="tornado.curl_httpclient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.curl_httpclient</span></code></a><a class="headerlink" href="#tornado-curl-httpclient" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed parsing of multi-line headers.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">allow_nonstandard_methods=True</span></code> now bypasses body sanity checks,
+in the same way as in <code class="docutils literal notranslate"><span class="pre">simple_httpclient</span></code>.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">PATCH</span></code> method now allows a body without
+<code class="docutils literal notranslate"><span class="pre">allow_nonstandard_methods=True</span></code>.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-gen">
+<h3><a class="reference internal" href="../gen.html#module-tornado.gen" title="tornado.gen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.gen</span></code></a><a class="headerlink" href="#tornado-gen" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="../gen.html#tornado.gen.WaitIterator" title="tornado.gen.WaitIterator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WaitIterator</span></code></a> now supports the <code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">for</span></code> statement on Python 3.5.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;gen.coroutine</span></code> can be applied to functions compiled with Cython.
+On python versions prior to 3.5, the <code class="docutils literal notranslate"><span class="pre">backports_abc</span></code> package must
+be installed for this functionality.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Multi</span></code> and <a class="reference internal" href="../gen.html#tornado.gen.multi_future" title="tornado.gen.multi_future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">multi_future</span></code></a> are deprecated and replaced by
+a unified function <a class="reference internal" href="../gen.html#tornado.gen.multi" title="tornado.gen.multi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">multi</span></code></a>.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-httpclient">
+<h3><a class="reference internal" href="../httpclient.html#module-tornado.httpclient" title="tornado.httpclient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.httpclient</span></code></a><a class="headerlink" href="#tornado-httpclient" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="../httpclient.html#tornado.httpclient.HTTPError" title="tornado.httpclient.HTTPError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.httpclient.HTTPError</span></code></a> is now copyable with the <a class="reference external" href="https://docs.python.org/3.6/library/copy.html#module-copy" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code></a> module.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-httpserver">
+<h3><a class="reference internal" href="../httpserver.html#module-tornado.httpserver" title="tornado.httpserver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.httpserver</span></code></a><a class="headerlink" href="#tornado-httpserver" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Requests containing both <code class="docutils literal notranslate"><span class="pre">Content-Length</span></code> and <code class="docutils literal notranslate"><span class="pre">Transfer-Encoding</span></code>
+will be treated as an error.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-httputil">
+<h3><a class="reference internal" href="../httputil.html#module-tornado.httputil" title="tornado.httputil"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.httputil</span></code></a><a class="headerlink" href="#tornado-httputil" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="../httputil.html#tornado.httputil.HTTPHeaders" title="tornado.httputil.HTTPHeaders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPHeaders</span></code></a> can now be pickled and unpickled.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-ioloop">
+<h3><a class="reference internal" href="../ioloop.html#module-tornado.ioloop" title="tornado.ioloop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.ioloop</span></code></a><a class="headerlink" href="#tornado-ioloop" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">IOLoop(make_current=True)</span></code> now works as intended instead
+of raising an exception.</p></li>
+<li><p>The Twisted and asyncio IOLoop implementations now clear
+<code class="docutils literal notranslate"><span class="pre">current()</span></code> when they exit, like the standard IOLoops.</p></li>
+<li><p><a class="reference internal" href="../ioloop.html#tornado.ioloop.IOLoop.add_callback" title="tornado.ioloop.IOLoop.add_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.add_callback</span></code></a> is faster in the single-threaded case.</p></li>
+<li><p><a class="reference internal" href="../ioloop.html#tornado.ioloop.IOLoop.add_callback" title="tornado.ioloop.IOLoop.add_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.add_callback</span></code></a> no longer raises an error when called on
+a closed IOLoop, but the callback will not be invoked.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-iostream">
+<h3><a class="reference internal" href="../iostream.html#module-tornado.iostream" title="tornado.iostream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.iostream</span></code></a><a class="headerlink" href="#tornado-iostream" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Coroutine-style usage of <a class="reference internal" href="../iostream.html#tornado.iostream.IOStream" title="tornado.iostream.IOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code></a> now converts most errors into
+<a class="reference internal" href="../iostream.html#tornado.iostream.StreamClosedError" title="tornado.iostream.StreamClosedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StreamClosedError</span></code></a>, which has the effect of reducing log noise from
+exceptions that are outside the application’s control (especially
+SSL errors).</p></li>
+<li><p><a class="reference internal" href="../iostream.html#tornado.iostream.StreamClosedError" title="tornado.iostream.StreamClosedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StreamClosedError</span></code></a> now has a <code class="docutils literal notranslate"><span class="pre">real_error</span></code> attribute which indicates
+why the stream was closed. It is the same as the <code class="docutils literal notranslate"><span class="pre">error</span></code> attribute of
+<a class="reference internal" href="../iostream.html#tornado.iostream.IOStream" title="tornado.iostream.IOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code></a> but may be more easily accessible than the <a class="reference internal" href="../iostream.html#tornado.iostream.IOStream" title="tornado.iostream.IOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code></a> itself.</p></li>
+<li><p>Improved error handling in <a class="reference internal" href="../iostream.html#tornado.iostream.BaseIOStream.read_until_close" title="tornado.iostream.BaseIOStream.read_until_close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_until_close</span></code></a>.</p></li>
+<li><p>Logging is less noisy when an SSL server is port scanned.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EINTR</span></code> is now handled on all reads.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-locale">
+<h3><a class="reference internal" href="../locale.html#module-tornado.locale" title="tornado.locale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.locale</span></code></a><a class="headerlink" href="#tornado-locale" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="../locale.html#tornado.locale.load_translations" title="tornado.locale.load_translations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.locale.load_translations</span></code></a> now accepts encodings other than
+UTF-8. UTF-16 and UTF-8 will be detected automatically if a BOM is
+present; for other encodings <a class="reference internal" href="../locale.html#tornado.locale.load_translations" title="tornado.locale.load_translations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_translations</span></code></a> has an <code class="docutils literal notranslate"><span class="pre">encoding</span></code>
+parameter.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-locks">
+<h3><a class="reference internal" href="../locks.html#module-tornado.locks" title="tornado.locks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.locks</span></code></a><a class="headerlink" href="#tornado-locks" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="../locks.html#tornado.locks.Lock" title="tornado.locks.Lock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lock</span></code></a> and <a class="reference internal" href="../locks.html#tornado.locks.Semaphore" title="tornado.locks.Semaphore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Semaphore</span></code></a> now support the <code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">with</span></code> statement on
+Python 3.5.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-log">
+<h3><a class="reference internal" href="../log.html#module-tornado.log" title="tornado.log"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.log</span></code></a><a class="headerlink" href="#tornado-log" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>A new time-based log rotation mode is available with
+<code class="docutils literal notranslate"><span class="pre">--log_rotate_mode=time</span></code>, <code class="docutils literal notranslate"><span class="pre">--log-rotate-when</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">log-rotate-interval</span></code>.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-netutil">
+<h3><a class="reference internal" href="../netutil.html#module-tornado.netutil" title="tornado.netutil"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.netutil</span></code></a><a class="headerlink" href="#tornado-netutil" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="../netutil.html#tornado.netutil.bind_sockets" title="tornado.netutil.bind_sockets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bind_sockets</span></code></a> now supports <code class="docutils literal notranslate"><span class="pre">SO_REUSEPORT</span></code> with the <code class="docutils literal notranslate"><span class="pre">reuse_port=True</span></code>
+argument.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-options">
+<h3><a class="reference internal" href="../options.html#module-tornado.options" title="tornado.options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.options</span></code></a><a class="headerlink" href="#tornado-options" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Dashes and underscores are now fully interchangeable in option names.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-queues">
+<h3><a class="reference internal" href="../queues.html#module-tornado.queues" title="tornado.queues"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.queues</span></code></a><a class="headerlink" href="#tornado-queues" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="../queues.html#tornado.queues.Queue" title="tornado.queues.Queue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Queue</span></code></a> now supports the <code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">for</span></code> statement on Python 3.5.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-simple-httpclient">
+<h3><a class="reference internal" href="../httpclient.html#module-tornado.simple_httpclient" title="tornado.simple_httpclient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.simple_httpclient</span></code></a><a class="headerlink" href="#tornado-simple-httpclient" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>When following redirects, <code class="docutils literal notranslate"><span class="pre">streaming_callback</span></code> and
+<code class="docutils literal notranslate"><span class="pre">header_callback</span></code> will no longer be run on the redirect responses
+(only the final non-redirect).</p></li>
+<li><p>Responses containing both <code class="docutils literal notranslate"><span class="pre">Content-Length</span></code> and <code class="docutils literal notranslate"><span class="pre">Transfer-Encoding</span></code>
+will be treated as an error.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-template">
+<h3><a class="reference internal" href="../template.html#module-tornado.template" title="tornado.template"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.template</span></code></a><a class="headerlink" href="#tornado-template" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="../template.html#tornado.template.ParseError" title="tornado.template.ParseError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.template.ParseError</span></code></a> now includes the filename in addition to
+line number.</p></li>
+<li><p>Whitespace handling has become more configurable. The <a class="reference internal" href="../template.html#tornado.template.Loader" title="tornado.template.Loader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Loader</span></code></a>
+constructor now has a <code class="docutils literal notranslate"><span class="pre">whitespace</span></code> argument, there is a new
+<code class="docutils literal notranslate"><span class="pre">template_whitespace</span></code> <a class="reference internal" href="../web.html#tornado.web.Application" title="tornado.web.Application"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Application</span></code></a> setting, and there is a new
+<code class="docutils literal notranslate"><span class="pre">{%</span> <span class="pre">whitespace</span> <span class="pre">%}</span></code> template directive. All of these options take
+a mode name defined in the <a class="reference internal" href="../template.html#tornado.template.filter_whitespace" title="tornado.template.filter_whitespace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.template.filter_whitespace</span></code></a> function.
+The default mode is <code class="docutils literal notranslate"><span class="pre">single</span></code>, which is the same behavior as prior
+versions of Tornado.</p></li>
+<li><p>Non-ASCII filenames are now supported.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-testing">
+<h3><a class="reference internal" href="../testing.html#module-tornado.testing" title="tornado.testing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.testing</span></code></a><a class="headerlink" href="#tornado-testing" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="../testing.html#tornado.testing.ExpectLog" title="tornado.testing.ExpectLog"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExpectLog</span></code></a> objects now have a boolean <code class="docutils literal notranslate"><span class="pre">logged_stack</span></code> attribute to
+make it easier to test whether an exception stack trace was logged.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-web">
+<h3><a class="reference internal" href="../web.html#module-tornado.web" title="tornado.web"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.web</span></code></a><a class="headerlink" href="#tornado-web" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The hard limit of 4000 bytes per outgoing header has been removed.</p></li>
+<li><p><a class="reference internal" href="../web.html#tornado.web.StaticFileHandler" title="tornado.web.StaticFileHandler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StaticFileHandler</span></code></a> returns the correct <code class="docutils literal notranslate"><span class="pre">Content-Type</span></code> for files
+with <code class="docutils literal notranslate"><span class="pre">.gz</span></code>, <code class="docutils literal notranslate"><span class="pre">.bz2</span></code>, and <code class="docutils literal notranslate"><span class="pre">.xz</span></code> extensions.</p></li>
+<li><p>Responses smaller than 1000 bytes will no longer be compressed.</p></li>
+<li><p>The default gzip compression level is now 6 (was 9).</p></li>
+<li><p>Fixed a regression in Tornado 4.2.1 that broke <a class="reference internal" href="../web.html#tornado.web.StaticFileHandler" title="tornado.web.StaticFileHandler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StaticFileHandler</span></code></a>
+with a <code class="docutils literal notranslate"><span class="pre">path</span></code> of <code class="docutils literal notranslate"><span class="pre">/</span></code>.</p></li>
+<li><p><a class="reference internal" href="../web.html#tornado.web.HTTPError" title="tornado.web.HTTPError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.web.HTTPError</span></code></a> is now copyable with the <a class="reference external" href="https://docs.python.org/3.6/library/copy.html#module-copy" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code></a> module.</p></li>
+<li><p>The exception <a class="reference internal" href="../web.html#tornado.web.Finish" title="tornado.web.Finish"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Finish</span></code></a> now accepts an argument which will be passed to
+the method <a class="reference internal" href="../web.html#tornado.web.RequestHandler.finish" title="tornado.web.RequestHandler.finish"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RequestHandler.finish</span></code></a>.</p></li>
+<li><p>New <a class="reference internal" href="../web.html#tornado.web.Application" title="tornado.web.Application"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Application</span></code></a> setting <code class="docutils literal notranslate"><span class="pre">xsrf_cookie_kwargs</span></code> can be used to set
+additional attributes such as <code class="docutils literal notranslate"><span class="pre">secure</span></code> or <code class="docutils literal notranslate"><span class="pre">httponly</span></code> on the
+XSRF cookie.</p></li>
+<li><p><a class="reference internal" href="../web.html#tornado.web.Application.listen" title="tornado.web.Application.listen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Application.listen</span></code></a> now returns the <a class="reference internal" href="../httpserver.html#tornado.httpserver.HTTPServer" title="tornado.httpserver.HTTPServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServer</span></code></a> it created.</p></li>
+</ul>
+</div>
+<div class="section" id="tornado-websocket">
+<h3><a class="reference internal" href="../websocket.html#module-tornado.websocket" title="tornado.websocket"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.websocket</span></code></a><a class="headerlink" href="#tornado-websocket" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed handling of continuation frames when compression is enabled.</p></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="v4.2.1.html" class="btn btn-neutral float-right" title="What’s new in Tornado 4.2.1" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="v4.4.0.html" class="btn btn-neutral float-left" title="What’s new in Tornado 4.4" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

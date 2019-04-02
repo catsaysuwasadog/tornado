@@ -1,0 +1,345 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.process — Utilities for multiple processes &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Integration with other services" href="integration.html" />
+    <link rel="prev" title="tornado.queues – Queues for coroutines" href="queues.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="gen.html"><code class="docutils literal notranslate"><span class="pre">tornado.gen</span></code> — Generator-based coroutines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="locks.html"><code class="docutils literal notranslate"><span class="pre">tornado.locks</span></code> – Synchronization primitives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="queues.html"><code class="docutils literal notranslate"><span class="pre">tornado.queues</span></code> – Queues for coroutines</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.process</span></code> — Utilities for multiple processes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="coroutine.html">Coroutines and concurrency</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.process</span></code> — Utilities for multiple processes</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/process.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-tornado.process">
+<span id="tornado-process-utilities-for-multiple-processes"></span><h1><code class="docutils literal notranslate"><span class="pre">tornado.process</span></code> — Utilities for multiple processes<a class="headerlink" href="#module-tornado.process" title="Permalink to this headline">¶</a></h1>
+<p>Utilities for working with multiple processes, including both forking
+the server into multiple processes and managing subprocesses.</p>
+<dl class="exception">
+<dt id="tornado.process.CalledProcessError">
+<em class="property">exception </em><code class="descclassname">tornado.process.</code><code class="descname">CalledProcessError</code><a class="reference internal" href="_modules/subprocess.html#CalledProcessError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.process.CalledProcessError" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alias for <a class="reference external" href="https://docs.python.org/3.6/library/subprocess.html#subprocess.CalledProcessError" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">subprocess.CalledProcessError</span></code></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.process.cpu_count">
+<code class="descclassname">tornado.process.</code><code class="descname">cpu_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="_modules/tornado/process.html#cpu_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.process.cpu_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of processors on this machine.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.process.fork_processes">
+<code class="descclassname">tornado.process.</code><code class="descname">fork_processes</code><span class="sig-paren">(</span><em>num_processes: Optional[int], max_restarts: int = None</em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="_modules/tornado/process.html#fork_processes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.process.fork_processes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts multiple worker processes.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">num_processes</span></code> is None or &lt;= 0, we detect the number of cores
+available on this machine and fork that number of child
+processes. If <code class="docutils literal notranslate"><span class="pre">num_processes</span></code> is given and &gt; 0, we fork that
+specific number of sub-processes.</p>
+<p>Since we use processes and not threads, there is no shared memory
+between any server code.</p>
+<p>Note that multiple processes are not compatible with the autoreload
+module (or the <code class="docutils literal notranslate"><span class="pre">autoreload=True</span></code> option to <a class="reference internal" href="web.html#tornado.web.Application" title="tornado.web.Application"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.web.Application</span></code></a>
+which defaults to True when <code class="docutils literal notranslate"><span class="pre">debug=True</span></code>).
+When using multiple processes, no IOLoops can be created or
+referenced until after the call to <code class="docutils literal notranslate"><span class="pre">fork_processes</span></code>.</p>
+<p>In each child process, <code class="docutils literal notranslate"><span class="pre">fork_processes</span></code> returns its <em>task id</em>, a
+number between 0 and <code class="docutils literal notranslate"><span class="pre">num_processes</span></code>.  Processes that exit
+abnormally (due to a signal or non-zero exit status) are restarted
+with the same id (up to <code class="docutils literal notranslate"><span class="pre">max_restarts</span></code> times).  In the parent
+process, <code class="docutils literal notranslate"><span class="pre">fork_processes</span></code> returns None if all child processes
+have exited normally, but will otherwise only exit by throwing an
+exception.</p>
+<p>max_restarts defaults to 100.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.process.task_id">
+<code class="descclassname">tornado.process.</code><code class="descname">task_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Optional[int]<a class="reference internal" href="_modules/tornado/process.html#task_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.process.task_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current task id, if any.</p>
+<p>Returns None if this process was not created by <a class="reference internal" href="#tornado.process.fork_processes" title="tornado.process.fork_processes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fork_processes</span></code></a>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.process.Subprocess">
+<em class="property">class </em><code class="descclassname">tornado.process.</code><code class="descname">Subprocess</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/process.html#Subprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.process.Subprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wraps <code class="docutils literal notranslate"><span class="pre">subprocess.Popen</span></code> with IOStream support.</p>
+<p>The constructor is the same as <code class="docutils literal notranslate"><span class="pre">subprocess.Popen</span></code> with the following
+additions:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">stdin</span></code>, <code class="docutils literal notranslate"><span class="pre">stdout</span></code>, and <code class="docutils literal notranslate"><span class="pre">stderr</span></code> may have the value
+<code class="docutils literal notranslate"><span class="pre">tornado.process.Subprocess.STREAM</span></code>, which will make the corresponding
+attribute of the resulting Subprocess a <a class="reference internal" href="iostream.html#tornado.iostream.PipeIOStream" title="tornado.iostream.PipeIOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PipeIOStream</span></code></a>. If this option
+is used, the caller is responsible for closing the streams when done
+with them.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">Subprocess.STREAM</span></code> option and the <code class="docutils literal notranslate"><span class="pre">set_exit_callback</span></code> and
+<code class="docutils literal notranslate"><span class="pre">wait_for_exit</span></code> methods do not work on Windows. There is
+therefore no reason to use this class instead of
+<code class="docutils literal notranslate"><span class="pre">subprocess.Popen</span></code> on that platform.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>The <code class="docutils literal notranslate"><span class="pre">io_loop</span></code> argument (deprecated since version 4.1) has been removed.</p>
+</div>
+<dl class="method">
+<dt id="tornado.process.Subprocess.set_exit_callback">
+<code class="descname">set_exit_callback</code><span class="sig-paren">(</span><em>callback: Callable[[int], None]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/process.html#Subprocess.set_exit_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.process.Subprocess.set_exit_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs <code class="docutils literal notranslate"><span class="pre">callback</span></code> when this process exits.</p>
+<p>The callback takes one argument, the return code of the process.</p>
+<p>This method uses a <code class="docutils literal notranslate"><span class="pre">SIGCHLD</span></code> handler, which is a global setting
+and may conflict if you have other libraries trying to handle the
+same signal.  If you are using more than one <code class="docutils literal notranslate"><span class="pre">IOLoop</span></code> it may
+be necessary to call <a class="reference internal" href="#tornado.process.Subprocess.initialize" title="tornado.process.Subprocess.initialize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Subprocess.initialize</span></code></a> first to designate
+one <code class="docutils literal notranslate"><span class="pre">IOLoop</span></code> to run the signal handlers.</p>
+<p>In many cases a close callback on the stdout or stderr streams
+can be used as an alternative to an exit callback if the
+signal handler is causing a problem.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.process.Subprocess.wait_for_exit">
+<code class="descname">wait_for_exit</code><span class="sig-paren">(</span><em>raise_error: bool = True</em><span class="sig-paren">)</span> &#x2192; Future[int]<a class="reference internal" href="_modules/tornado/process.html#Subprocess.wait_for_exit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.process.Subprocess.wait_for_exit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> which resolves when the process exits.</p>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ret</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">proc</span><span class="o">.</span><span class="n">wait_for_exit</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This is a coroutine-friendly alternative to <a class="reference internal" href="#tornado.process.Subprocess.set_exit_callback" title="tornado.process.Subprocess.set_exit_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_exit_callback</span></code></a>
+(and a replacement for the blocking <a class="reference external" href="https://docs.python.org/3.6/library/subprocess.html#subprocess.Popen.wait" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">subprocess.Popen.wait</span></code></a>).</p>
+<p>By default, raises <a class="reference external" href="https://docs.python.org/3.6/library/subprocess.html#subprocess.CalledProcessError" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">subprocess.CalledProcessError</span></code></a> if the process
+has a non-zero exit status. Use <code class="docutils literal notranslate"><span class="pre">wait_for_exit(raise_error=False)</span></code>
+to suppress this behavior and return the exit status without raising.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.2.</span></p>
+</div>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="tornado.process.Subprocess.initialize">
+<em class="property">classmethod </em><code class="descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/process.html#Subprocess.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.process.Subprocess.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the <code class="docutils literal notranslate"><span class="pre">SIGCHLD</span></code> handler.</p>
+<p>The signal handler is run on an <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> to avoid locking issues.
+Note that the <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> used for signal handling need not be the
+same one used by individual Subprocess objects (as long as the
+<code class="docutils literal notranslate"><span class="pre">IOLoops</span></code> are each running in separate threads).</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>The <code class="docutils literal notranslate"><span class="pre">io_loop</span></code> argument (deprecated since version 4.1) has been
+removed.</p>
+</div>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="tornado.process.Subprocess.uninitialize">
+<em class="property">classmethod </em><code class="descname">uninitialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/process.html#Subprocess.uninitialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.process.Subprocess.uninitialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the <code class="docutils literal notranslate"><span class="pre">SIGCHLD</span></code> handler.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="integration.html" class="btn btn-neutral float-right" title="Integration with other services" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="queues.html" class="btn btn-neutral float-left" title="tornado.queues – Queues for coroutines" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

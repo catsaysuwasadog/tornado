@@ -1,0 +1,555 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.locks – Synchronization primitives &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.queues – Queues for coroutines" href="queues.html" />
+    <link rel="prev" title="tornado.gen — Generator-based coroutines" href="gen.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="gen.html"><code class="docutils literal notranslate"><span class="pre">tornado.gen</span></code> — Generator-based coroutines</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.locks</span></code> – Synchronization primitives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="queues.html"><code class="docutils literal notranslate"><span class="pre">tornado.queues</span></code> – Queues for coroutines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process.html"><code class="docutils literal notranslate"><span class="pre">tornado.process</span></code> — Utilities for multiple processes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="coroutine.html">Coroutines and concurrency</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.locks</span></code> – Synchronization primitives</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/locks.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tornado-locks-synchronization-primitives">
+<h1><code class="docutils literal notranslate"><span class="pre">tornado.locks</span></code> – Synchronization primitives<a class="headerlink" href="#tornado-locks-synchronization-primitives" title="Permalink to this headline">¶</a></h1>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.2.</span></p>
+</div>
+<p>Coordinate coroutines with synchronization primitives analogous to
+those the standard library provides to threads. These classes are very
+similar to those provided in the standard library’s <a class="reference external" href="https://docs.python.org/3/library/asyncio-sync.html">asyncio package</a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note that these primitives are not actually thread-safe and cannot
+be used in place of those from the standard library’s <a class="reference external" href="https://docs.python.org/3.6/library/threading.html#module-threading" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">threading</span></code></a>
+module–they are meant to coordinate Tornado coroutines in a
+single-threaded app, not to protect shared objects in a
+multithreaded app.</p>
+</div>
+<span class="target" id="module-tornado.locks"></span><div class="section" id="condition">
+<h2>Condition<a class="headerlink" href="#condition" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.locks.Condition">
+<em class="property">class </em><code class="descclassname">tornado.locks.</code><code class="descname">Condition</code><a class="reference internal" href="_modules/tornado/locks.html#Condition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Condition" title="Permalink to this definition">¶</a></dt>
+<dd><p>A condition allows one or more coroutines to wait until notified.</p>
+<p>Like a standard <a class="reference external" href="https://docs.python.org/3.6/library/threading.html#threading.Condition" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">threading.Condition</span></code></a>, but does not need an underlying lock
+that is acquired and released.</p>
+<p>With a <a class="reference internal" href="#tornado.locks.Condition" title="tornado.locks.Condition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Condition</span></code></a>, coroutines can wait to be notified by other coroutines:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">gen</span>
+<span class="kn">from</span> <span class="nn">tornado.ioloop</span> <span class="k">import</span> <span class="n">IOLoop</span>
+<span class="kn">from</span> <span class="nn">tornado.locks</span> <span class="k">import</span> <span class="n">Condition</span>
+
+<span class="n">condition</span> <span class="o">=</span> <span class="n">Condition</span><span class="p">()</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">waiter</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;I&#39;ll wait right here&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">condition</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;I&#39;m done waiting&quot;</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">notifier</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;About to notify&quot;</span><span class="p">)</span>
+    <span class="n">condition</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done notifying&quot;</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">runner</span><span class="p">():</span>
+    <span class="c1"># Wait for waiter() and notifier() in parallel</span>
+    <span class="k">await</span> <span class="n">gen</span><span class="o">.</span><span class="n">multi</span><span class="p">([</span><span class="n">waiter</span><span class="p">(),</span> <span class="n">notifier</span><span class="p">()])</span>
+
+<span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="n">runner</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>I&#39;ll wait right here
+About to notify
+Done notifying
+I&#39;m done waiting
+</pre></div>
+</div>
+<p><a class="reference internal" href="#tornado.locks.Condition.wait" title="tornado.locks.Condition.wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wait</span></code></a> takes an optional <code class="docutils literal notranslate"><span class="pre">timeout</span></code> argument, which is either an absolute
+timestamp:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">io_loop</span> <span class="o">=</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+
+<span class="c1"># Wait up to 1 second for a notification.</span>
+<span class="k">await</span> <span class="n">condition</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">io_loop</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>…or a <a class="reference external" href="https://docs.python.org/3.6/library/datetime.html#datetime.timedelta" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.timedelta</span></code></a> for a timeout relative to the current time:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Wait up to 1 second.</span>
+<span class="k">await</span> <span class="n">condition</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The method returns False if there’s no notification before the deadline.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Previously, waiters could be notified synchronously from within
+<a class="reference internal" href="#tornado.locks.Condition.notify" title="tornado.locks.Condition.notify"><code class="xref py py-obj docutils literal notranslate"><span class="pre">notify</span></code></a>. Now, the notification will always be received on the
+next iteration of the <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>.</p>
+</div>
+<dl class="method">
+<dt id="tornado.locks.Condition.wait">
+<code class="descname">wait</code><span class="sig-paren">(</span><em>timeout: Union[float</em>, <em>datetime.timedelta] = None</em><span class="sig-paren">)</span> &#x2192; Awaitable[bool]<a class="reference internal" href="_modules/tornado/locks.html#Condition.wait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Condition.wait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait for <a class="reference internal" href="#tornado.locks.Condition.notify" title="tornado.locks.Condition.notify"><code class="xref py py-obj docutils literal notranslate"><span class="pre">notify</span></code></a>.</p>
+<p>Returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> that resolves <code class="docutils literal notranslate"><span class="pre">True</span></code> if the condition is notified,
+or <code class="docutils literal notranslate"><span class="pre">False</span></code> after a timeout.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.locks.Condition.notify">
+<code class="descname">notify</code><span class="sig-paren">(</span><em>n: int = 1</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/locks.html#Condition.notify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Condition.notify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wake <code class="docutils literal notranslate"><span class="pre">n</span></code> waiters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.locks.Condition.notify_all">
+<code class="descname">notify_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/locks.html#Condition.notify_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Condition.notify_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wake all waiters.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="event">
+<h2>Event<a class="headerlink" href="#event" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.locks.Event">
+<em class="property">class </em><code class="descclassname">tornado.locks.</code><code class="descname">Event</code><a class="reference internal" href="_modules/tornado/locks.html#Event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Event" title="Permalink to this definition">¶</a></dt>
+<dd><p>An event blocks coroutines until its internal flag is set to True.</p>
+<p>Similar to <a class="reference external" href="https://docs.python.org/3.6/library/threading.html#threading.Event" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">threading.Event</span></code></a>.</p>
+<p>A coroutine can wait for an event to be set. Once it is set, calls to
+<code class="docutils literal notranslate"><span class="pre">yield</span> <span class="pre">event.wait()</span></code> will not block unless the event has been cleared:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">gen</span>
+<span class="kn">from</span> <span class="nn">tornado.ioloop</span> <span class="k">import</span> <span class="n">IOLoop</span>
+<span class="kn">from</span> <span class="nn">tornado.locks</span> <span class="k">import</span> <span class="n">Event</span>
+
+<span class="n">event</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">waiter</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Waiting for event&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">event</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Not waiting this time&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">event</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done&quot;</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">setter</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;About to set the event&quot;</span><span class="p">)</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">runner</span><span class="p">():</span>
+    <span class="k">await</span> <span class="n">gen</span><span class="o">.</span><span class="n">multi</span><span class="p">([</span><span class="n">waiter</span><span class="p">(),</span> <span class="n">setter</span><span class="p">()])</span>
+
+<span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="n">runner</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Waiting for event
+About to set the event
+Not waiting this time
+Done
+</pre></div>
+</div>
+<dl class="method">
+<dt id="tornado.locks.Event.is_set">
+<code class="descname">is_set</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/tornado/locks.html#Event.is_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Event.is_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">True</span></code> if the internal flag is true.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.locks.Event.set">
+<code class="descname">set</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/locks.html#Event.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Event.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the internal flag to <code class="docutils literal notranslate"><span class="pre">True</span></code>. All waiters are awakened.</p>
+<p>Calling <a class="reference internal" href="#tornado.locks.Event.wait" title="tornado.locks.Event.wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wait</span></code></a> once the flag is set will not block.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.locks.Event.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/locks.html#Event.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Event.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the internal flag to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<p>Calls to <a class="reference internal" href="#tornado.locks.Event.wait" title="tornado.locks.Event.wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wait</span></code></a> will block until <a class="reference internal" href="#tornado.locks.Event.set" title="tornado.locks.Event.set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set</span></code></a> is called.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.locks.Event.wait">
+<code class="descname">wait</code><span class="sig-paren">(</span><em>timeout: Union[float</em>, <em>datetime.timedelta] = None</em><span class="sig-paren">)</span> &#x2192; Awaitable[None]<a class="reference internal" href="_modules/tornado/locks.html#Event.wait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Event.wait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Block until the internal flag is true.</p>
+<p>Returns an awaitable, which raises <a class="reference internal" href="util.html#tornado.util.TimeoutError" title="tornado.util.TimeoutError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.util.TimeoutError</span></code></a> after a
+timeout.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="semaphore">
+<h2>Semaphore<a class="headerlink" href="#semaphore" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.locks.Semaphore">
+<em class="property">class </em><code class="descclassname">tornado.locks.</code><code class="descname">Semaphore</code><span class="sig-paren">(</span><em>value: int = 1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/locks.html#Semaphore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Semaphore" title="Permalink to this definition">¶</a></dt>
+<dd><p>A lock that can be acquired a fixed number of times before blocking.</p>
+<p>A Semaphore manages a counter representing the number of <a class="reference internal" href="#tornado.locks.Semaphore.release" title="tornado.locks.Semaphore.release"><code class="xref py py-obj docutils literal notranslate"><span class="pre">release</span></code></a> calls
+minus the number of <a class="reference internal" href="#tornado.locks.Semaphore.acquire" title="tornado.locks.Semaphore.acquire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">acquire</span></code></a> calls, plus an initial value. The <a class="reference internal" href="#tornado.locks.Semaphore.acquire" title="tornado.locks.Semaphore.acquire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">acquire</span></code></a>
+method blocks if necessary until it can return without making the counter
+negative.</p>
+<p>Semaphores limit access to a shared resource. To allow access for two
+workers at a time:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">gen</span>
+<span class="kn">from</span> <span class="nn">tornado.ioloop</span> <span class="k">import</span> <span class="n">IOLoop</span>
+<span class="kn">from</span> <span class="nn">tornado.locks</span> <span class="k">import</span> <span class="n">Semaphore</span>
+
+<span class="n">sem</span> <span class="o">=</span> <span class="n">Semaphore</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">worker</span><span class="p">(</span><span class="n">worker_id</span><span class="p">):</span>
+    <span class="k">await</span> <span class="n">sem</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Worker </span><span class="si">%d</span><span class="s2"> is working&quot;</span> <span class="o">%</span> <span class="n">worker_id</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">use_some_resource</span><span class="p">()</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Worker </span><span class="si">%d</span><span class="s2"> is done&quot;</span> <span class="o">%</span> <span class="n">worker_id</span><span class="p">)</span>
+        <span class="n">sem</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">runner</span><span class="p">():</span>
+    <span class="c1"># Join all workers.</span>
+    <span class="k">await</span> <span class="n">gen</span><span class="o">.</span><span class="n">multi</span><span class="p">([</span><span class="n">worker</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)])</span>
+
+<span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="n">runner</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Worker 0 is working
+Worker 1 is working
+Worker 0 is done
+Worker 2 is working
+Worker 1 is done
+Worker 2 is done
+</pre></div>
+</div>
+<p>Workers 0 and 1 are allowed to run concurrently, but worker 2 waits until
+the semaphore has been released once, by worker 0.</p>
+<p>The semaphore can be used as an async context manager:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span> <span class="nf">worker</span><span class="p">(</span><span class="n">worker_id</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">sem</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Worker </span><span class="si">%d</span><span class="s2"> is working&quot;</span> <span class="o">%</span> <span class="n">worker_id</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">use_some_resource</span><span class="p">()</span>
+
+    <span class="c1"># Now the semaphore has been released.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Worker </span><span class="si">%d</span><span class="s2"> is done&quot;</span> <span class="o">%</span> <span class="n">worker_id</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For compatibility with older versions of Python, <a class="reference internal" href="#tornado.locks.Semaphore.acquire" title="tornado.locks.Semaphore.acquire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">acquire</span></code></a> is a
+context manager, so <code class="docutils literal notranslate"><span class="pre">worker</span></code> could also be written as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@gen</span><span class="o">.</span><span class="n">coroutine</span>
+<span class="k">def</span> <span class="nf">worker</span><span class="p">(</span><span class="n">worker_id</span><span class="p">):</span>
+    <span class="k">with</span> <span class="p">(</span><span class="k">yield</span> <span class="n">sem</span><span class="o">.</span><span class="n">acquire</span><span class="p">()):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Worker </span><span class="si">%d</span><span class="s2"> is working&quot;</span> <span class="o">%</span> <span class="n">worker_id</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">use_some_resource</span><span class="p">()</span>
+
+    <span class="c1"># Now the semaphore has been released.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Worker </span><span class="si">%d</span><span class="s2"> is done&quot;</span> <span class="o">%</span> <span class="n">worker_id</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.3: </span>Added <code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">with</span></code> support in Python 3.5.</p>
+</div>
+<dl class="method">
+<dt id="tornado.locks.Semaphore.release">
+<code class="descname">release</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/locks.html#Semaphore.release"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Semaphore.release" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increment the counter and wake one waiter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.locks.Semaphore.acquire">
+<code class="descname">acquire</code><span class="sig-paren">(</span><em>timeout: Union[float</em>, <em>datetime.timedelta] = None</em><span class="sig-paren">)</span> &#x2192; Awaitable[tornado.locks._ReleasingContextManager]<a class="reference internal" href="_modules/tornado/locks.html#Semaphore.acquire"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Semaphore.acquire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrement the counter. Returns an awaitable.</p>
+<p>Block if the counter is zero and wait for a <a class="reference internal" href="#tornado.locks.Semaphore.release" title="tornado.locks.Semaphore.release"><code class="xref py py-obj docutils literal notranslate"><span class="pre">release</span></code></a>. The awaitable
+raises <a class="reference internal" href="util.html#tornado.util.TimeoutError" title="tornado.util.TimeoutError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeoutError</span></code></a> after the deadline.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="boundedsemaphore">
+<h2>BoundedSemaphore<a class="headerlink" href="#boundedsemaphore" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.locks.BoundedSemaphore">
+<em class="property">class </em><code class="descclassname">tornado.locks.</code><code class="descname">BoundedSemaphore</code><span class="sig-paren">(</span><em>value: int = 1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/locks.html#BoundedSemaphore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.BoundedSemaphore" title="Permalink to this definition">¶</a></dt>
+<dd><p>A semaphore that prevents release() being called too many times.</p>
+<p>If <a class="reference internal" href="#tornado.locks.BoundedSemaphore.release" title="tornado.locks.BoundedSemaphore.release"><code class="xref py py-obj docutils literal notranslate"><span class="pre">release</span></code></a> would increment the semaphore’s value past the initial
+value, it raises <a class="reference external" href="https://docs.python.org/3.6/library/exceptions.html#ValueError" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ValueError</span></code></a>. Semaphores are mostly used to guard
+resources with limited capacity, so a semaphore released too many times
+is a sign of a bug.</p>
+<dl class="method">
+<dt id="tornado.locks.BoundedSemaphore.release">
+<code class="descname">release</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/locks.html#BoundedSemaphore.release"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.BoundedSemaphore.release" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increment the counter and wake one waiter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.locks.BoundedSemaphore.acquire">
+<code class="descname">acquire</code><span class="sig-paren">(</span><em>timeout: Union[float</em>, <em>datetime.timedelta] = None</em><span class="sig-paren">)</span> &#x2192; Awaitable[tornado.locks._ReleasingContextManager]<a class="headerlink" href="#tornado.locks.BoundedSemaphore.acquire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrement the counter. Returns an awaitable.</p>
+<p>Block if the counter is zero and wait for a <a class="reference internal" href="#tornado.locks.BoundedSemaphore.release" title="tornado.locks.BoundedSemaphore.release"><code class="xref py py-obj docutils literal notranslate"><span class="pre">release</span></code></a>. The awaitable
+raises <a class="reference internal" href="util.html#tornado.util.TimeoutError" title="tornado.util.TimeoutError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeoutError</span></code></a> after the deadline.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="lock">
+<h2>Lock<a class="headerlink" href="#lock" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.locks.Lock">
+<em class="property">class </em><code class="descclassname">tornado.locks.</code><code class="descname">Lock</code><a class="reference internal" href="_modules/tornado/locks.html#Lock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Lock" title="Permalink to this definition">¶</a></dt>
+<dd><p>A lock for coroutines.</p>
+<p>A Lock begins unlocked, and <a class="reference internal" href="#tornado.locks.Lock.acquire" title="tornado.locks.Lock.acquire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">acquire</span></code></a> locks it immediately. While it is
+locked, a coroutine that yields <a class="reference internal" href="#tornado.locks.Lock.acquire" title="tornado.locks.Lock.acquire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">acquire</span></code></a> waits until another coroutine
+calls <a class="reference internal" href="#tornado.locks.Lock.release" title="tornado.locks.Lock.release"><code class="xref py py-obj docutils literal notranslate"><span class="pre">release</span></code></a>.</p>
+<p>Releasing an unlocked lock raises <a class="reference external" href="https://docs.python.org/3.6/library/exceptions.html#RuntimeError" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RuntimeError</span></code></a>.</p>
+<p>A Lock can be used as an async context manager with the <code class="docutils literal notranslate"><span class="pre">async</span>
+<span class="pre">with</span></code> statement:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">locks</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lock</span> <span class="o">=</span> <span class="n">locks</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">async</span> <span class="k">def</span> <span class="nf">f</span><span class="p">():</span>
+<span class="gp">... </span>   <span class="k">async</span> <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+<span class="gp">... </span>       <span class="c1"># Do something holding the lock.</span>
+<span class="gp">... </span>       <span class="k">pass</span>
+<span class="gp">...</span>
+<span class="gp">... </span>   <span class="c1"># Now the lock is released.</span>
+</pre></div>
+</div>
+<p>For compatibility with older versions of Python, the <a class="reference internal" href="#tornado.locks.Lock.acquire" title="tornado.locks.Lock.acquire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">acquire</span></code></a>
+method asynchronously returns a regular context manager:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">async</span> <span class="k">def</span> <span class="nf">f2</span><span class="p">():</span>
+<span class="gp">... </span>   <span class="k">with</span> <span class="p">(</span><span class="k">yield</span> <span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()):</span>
+<span class="gp">... </span>       <span class="c1"># Do something holding the lock.</span>
+<span class="gp">... </span>       <span class="k">pass</span>
+<span class="gp">...</span>
+<span class="gp">... </span>   <span class="c1"># Now the lock is released.</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.3: </span>Added <code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">with</span></code> support in Python 3.5.</p>
+</div>
+<dl class="method">
+<dt id="tornado.locks.Lock.acquire">
+<code class="descname">acquire</code><span class="sig-paren">(</span><em>timeout: Union[float</em>, <em>datetime.timedelta] = None</em><span class="sig-paren">)</span> &#x2192; Awaitable[tornado.locks._ReleasingContextManager]<a class="reference internal" href="_modules/tornado/locks.html#Lock.acquire"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Lock.acquire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempt to lock. Returns an awaitable.</p>
+<p>Returns an awaitable, which raises <a class="reference internal" href="util.html#tornado.util.TimeoutError" title="tornado.util.TimeoutError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.util.TimeoutError</span></code></a> after a
+timeout.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.locks.Lock.release">
+<code class="descname">release</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/locks.html#Lock.release"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.locks.Lock.release" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unlock.</p>
+<p>The first coroutine in line waiting for <a class="reference internal" href="#tornado.locks.Lock.acquire" title="tornado.locks.Lock.acquire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">acquire</span></code></a> gets the lock.</p>
+<p>If not locked, raise a <a class="reference external" href="https://docs.python.org/3.6/library/exceptions.html#RuntimeError" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RuntimeError</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="queues.html" class="btn btn-neutral float-right" title="tornado.queues – Queues for coroutines" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="gen.html" class="btn btn-neutral float-left" title="tornado.gen — Generator-based coroutines" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

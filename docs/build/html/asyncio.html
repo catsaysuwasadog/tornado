@@ -1,0 +1,326 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.platform.asyncio — Bridge between asyncio and Tornado &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Utilities" href="utilities.html" />
+    <link rel="prev" title="tornado.platform.twisted — Bridges between Twisted and Tornado" href="twisted.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="integration.html">Integration with other services</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="auth.html"><code class="docutils literal notranslate"><span class="pre">tornado.auth</span></code> — Third-party login with OpenID and OAuth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wsgi.html"><code class="docutils literal notranslate"><span class="pre">tornado.wsgi</span></code> — Interoperability with other Python frameworks and servers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="caresresolver.html"><code class="docutils literal notranslate"><span class="pre">tornado.platform.caresresolver</span></code> — Asynchronous DNS Resolver using C-Ares</a></li>
+<li class="toctree-l2"><a class="reference internal" href="twisted.html"><code class="docutils literal notranslate"><span class="pre">tornado.platform.twisted</span></code> — Bridges between Twisted and Tornado</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.platform.asyncio</span></code> — Bridge between <code class="docutils literal notranslate"><span class="pre">asyncio</span></code> and Tornado</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="integration.html">Integration with other services</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.platform.asyncio</span></code> — Bridge between <code class="docutils literal notranslate"><span class="pre">asyncio</span></code> and Tornado</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/asyncio.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-tornado.platform.asyncio">
+<span id="tornado-platform-asyncio-bridge-between-asyncio-and-tornado"></span><h1><code class="docutils literal notranslate"><span class="pre">tornado.platform.asyncio</span></code> — Bridge between <code class="docutils literal notranslate"><span class="pre">asyncio</span></code> and Tornado<a class="headerlink" href="#module-tornado.platform.asyncio" title="Permalink to this headline">¶</a></h1>
+<p>Bridges between the <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> module and Tornado IOLoop.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.2.</span></p>
+</div>
+<p>This module integrates Tornado with the <code class="docutils literal notranslate"><span class="pre">asyncio</span></code> module introduced
+in Python 3.4. This makes it possible to combine the two libraries on
+the same event loop.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.0: </span>While the code in this module is still used, it is now enabled
+automatically when <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> is available, so applications should
+no longer need to refer to this module directly.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Tornado requires the <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-eventloop.html#asyncio.AbstractEventLoop.add_reader" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reader</span></code></a> family of
+methods, so it is not compatible with the <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-eventloops.html#asyncio.ProactorEventLoop" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProactorEventLoop</span></code></a> on
+Windows. Use the <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-eventloops.html#asyncio.SelectorEventLoop" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SelectorEventLoop</span></code></a> instead.</p>
+</div>
+<dl class="class">
+<dt id="tornado.platform.asyncio.AsyncIOMainLoop">
+<em class="property">class </em><code class="descclassname">tornado.platform.asyncio.</code><code class="descname">AsyncIOMainLoop</code><a class="reference internal" href="_modules/tornado/platform/asyncio.html#AsyncIOMainLoop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.platform.asyncio.AsyncIOMainLoop" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">AsyncIOMainLoop</span></code> creates an <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> that corresponds to the
+current <code class="docutils literal notranslate"><span class="pre">asyncio</span></code> event loop (i.e. the one returned by
+<code class="docutils literal notranslate"><span class="pre">asyncio.get_event_loop()</span></code>).</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.0: </span>Now used automatically when appropriate; it is no longer necessary
+to refer to this class directly.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Closing an <a class="reference internal" href="#tornado.platform.asyncio.AsyncIOMainLoop" title="tornado.platform.asyncio.AsyncIOMainLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncIOMainLoop</span></code></a> now closes the underlying asyncio loop.</p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.platform.asyncio.AsyncIOLoop">
+<em class="property">class </em><code class="descclassname">tornado.platform.asyncio.</code><code class="descname">AsyncIOLoop</code><a class="reference internal" href="_modules/tornado/platform/asyncio.html#AsyncIOLoop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.platform.asyncio.AsyncIOLoop" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">AsyncIOLoop</span></code> is an <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> that runs on an <code class="docutils literal notranslate"><span class="pre">asyncio</span></code> event loop.
+This class follows the usual Tornado semantics for creating new
+<code class="docutils literal notranslate"><span class="pre">IOLoops</span></code>; these loops are not necessarily related to the
+<code class="docutils literal notranslate"><span class="pre">asyncio</span></code> default event loop.</p>
+<p>Each <code class="docutils literal notranslate"><span class="pre">AsyncIOLoop</span></code> creates a new <code class="docutils literal notranslate"><span class="pre">asyncio.EventLoop</span></code>; this object
+can be accessed with the <code class="docutils literal notranslate"><span class="pre">asyncio_loop</span></code> attribute.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>When an <code class="docutils literal notranslate"><span class="pre">AsyncIOLoop</span></code> becomes the current <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>, it also sets
+the current <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> event loop.</p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.0: </span>Now used automatically when appropriate; it is no longer necessary
+to refer to this class directly.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.platform.asyncio.to_tornado_future">
+<code class="descclassname">tornado.platform.asyncio.</code><code class="descname">to_tornado_future</code><span class="sig-paren">(</span><em>asyncio_future: _asyncio.Future</em><span class="sig-paren">)</span> &#x2192; _asyncio.Future<a class="reference internal" href="_modules/tornado/platform/asyncio.html#to_tornado_future"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.platform.asyncio.to_tornado_future" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert an <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-task.html#asyncio.Future" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a> to a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.concurrent.Future</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.1.</span></p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.0: </span>Tornado <code class="docutils literal notranslate"><span class="pre">Futures</span></code> have been merged with <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-task.html#asyncio.Future" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a>,
+so this method is now a no-op.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.platform.asyncio.to_asyncio_future">
+<code class="descclassname">tornado.platform.asyncio.</code><code class="descname">to_asyncio_future</code><span class="sig-paren">(</span><em>tornado_future: _asyncio.Future</em><span class="sig-paren">)</span> &#x2192; _asyncio.Future<a class="reference internal" href="_modules/tornado/platform/asyncio.html#to_asyncio_future"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.platform.asyncio.to_asyncio_future" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a Tornado yieldable object to an <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-task.html#asyncio.Future" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.1.</span></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.3: </span>Now accepts any yieldable object, not just
+<a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.concurrent.Future</span></code></a>.</p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.0: </span>Tornado <code class="docutils literal notranslate"><span class="pre">Futures</span></code> have been merged with <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-task.html#asyncio.Future" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.Future</span></code></a>,
+so this method is now equivalent to <a class="reference internal" href="gen.html#tornado.gen.convert_yielded" title="tornado.gen.convert_yielded"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.gen.convert_yielded</span></code></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.platform.asyncio.AnyThreadEventLoopPolicy">
+<em class="property">class </em><code class="descclassname">tornado.platform.asyncio.</code><code class="descname">AnyThreadEventLoopPolicy</code><a class="reference internal" href="_modules/tornado/platform/asyncio.html#AnyThreadEventLoopPolicy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.platform.asyncio.AnyThreadEventLoopPolicy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Event loop policy that allows loop creation on any thread.</p>
+<p>The default <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> event loop policy only automatically creates
+event loops in the main threads. Other threads must create event
+loops explicitly or <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-eventloops.html#asyncio.get_event_loop" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.get_event_loop</span></code></a> (and therefore
+<a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.current" title="tornado.ioloop.IOLoop.current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.current</span></code></a>) will fail. Installing this policy allows event
+loops to be created automatically on any thread, matching the
+behavior of Tornado versions prior to 5.0 (or 5.0 on Python 2).</p>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop_policy</span><span class="p">(</span><span class="n">AnyThreadEventLoopPolicy</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 5.0.</span></p>
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="utilities.html" class="btn btn-neutral float-right" title="Utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="twisted.html" class="btn btn-neutral float-left" title="tornado.platform.twisted — Bridges between Twisted and Tornado" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

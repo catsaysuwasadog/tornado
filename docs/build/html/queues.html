@@ -1,0 +1,461 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.queues – Queues for coroutines &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.process — Utilities for multiple processes" href="process.html" />
+    <link rel="prev" title="tornado.locks – Synchronization primitives" href="locks.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="gen.html"><code class="docutils literal notranslate"><span class="pre">tornado.gen</span></code> — Generator-based coroutines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="locks.html"><code class="docutils literal notranslate"><span class="pre">tornado.locks</span></code> – Synchronization primitives</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.queues</span></code> – Queues for coroutines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process.html"><code class="docutils literal notranslate"><span class="pre">tornado.process</span></code> — Utilities for multiple processes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="coroutine.html">Coroutines and concurrency</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.queues</span></code> – Queues for coroutines</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/queues.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tornado-queues-queues-for-coroutines">
+<h1><code class="docutils literal notranslate"><span class="pre">tornado.queues</span></code> – Queues for coroutines<a class="headerlink" href="#tornado-queues-queues-for-coroutines" title="Permalink to this headline">¶</a></h1>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.2.</span></p>
+</div>
+<span class="target" id="module-tornado.queues"></span><p>Asynchronous queues for coroutines. These classes are very similar
+to those provided in the standard library’s <a class="reference external" href="https://docs.python.org/3/library/asyncio-queue.html">asyncio package</a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Unlike the standard library’s <a class="reference external" href="https://docs.python.org/3.6/library/queue.html#module-queue" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">queue</span></code></a> module, the classes defined here
+are <em>not</em> thread-safe. To use these queues from another thread,
+use <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.add_callback" title="tornado.ioloop.IOLoop.add_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.add_callback</span></code></a> to transfer control to the <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> thread
+before calling any queue methods.</p>
+</div>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="queue">
+<h3>Queue<a class="headerlink" href="#queue" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="tornado.queues.Queue">
+<em class="property">class </em><code class="descclassname">tornado.queues.</code><code class="descname">Queue</code><span class="sig-paren">(</span><em>maxsize: int = 0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/queues.html#Queue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.queues.Queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coordinate producer and consumer coroutines.</p>
+<p>If maxsize is 0 (the default) the queue size is unbounded.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">gen</span>
+<span class="kn">from</span> <span class="nn">tornado.ioloop</span> <span class="k">import</span> <span class="n">IOLoop</span>
+<span class="kn">from</span> <span class="nn">tornado.queues</span> <span class="k">import</span> <span class="n">Queue</span>
+
+<span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">consumer</span><span class="p">():</span>
+    <span class="k">async</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">q</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Doing work on </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">gen</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">q</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">producer</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+        <span class="k">await</span> <span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Put </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># Start consumer without waiting (since it never finishes).</span>
+    <span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">.</span><span class="n">spawn_callback</span><span class="p">(</span><span class="n">consumer</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">producer</span><span class="p">()</span>     <span class="c1"># Wait for producer to put all tasks.</span>
+    <span class="k">await</span> <span class="n">q</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>       <span class="c1"># Wait for consumer to finish all tasks.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Done&#39;</span><span class="p">)</span>
+
+<span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="n">main</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Put 0
+Put 1
+Doing work on 0
+Put 2
+Doing work on 1
+Put 3
+Doing work on 2
+Put 4
+Doing work on 3
+Doing work on 4
+Done
+</pre></div>
+</div>
+<p>In versions of Python without native coroutines (before 3.5),
+<code class="docutils literal notranslate"><span class="pre">consumer()</span></code> could be written as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@gen</span><span class="o">.</span><span class="n">coroutine</span>
+<span class="k">def</span> <span class="nf">consumer</span><span class="p">():</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Doing work on </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">gen</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">q</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.3: </span>Added <code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">for</span></code> support in Python 3.5.</p>
+</div>
+<dl class="attribute">
+<dt id="tornado.queues.Queue.maxsize">
+<code class="descname">maxsize</code><a class="headerlink" href="#tornado.queues.Queue.maxsize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of items allowed in the queue.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.queues.Queue.qsize">
+<code class="descname">qsize</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="_modules/tornado/queues.html#Queue.qsize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.queues.Queue.qsize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of items in the queue.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.queues.Queue.put">
+<code class="descname">put</code><span class="sig-paren">(</span><em>item: _T</em>, <em>timeout: Union[float</em>, <em>datetime.timedelta] = None</em><span class="sig-paren">)</span> &#x2192; Future[None]<a class="reference internal" href="_modules/tornado/queues.html#Queue.put"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.queues.Queue.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>Put an item into the queue, perhaps waiting until there is room.</p>
+<p>Returns a Future, which raises <a class="reference internal" href="util.html#tornado.util.TimeoutError" title="tornado.util.TimeoutError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.util.TimeoutError</span></code></a> after a
+timeout.</p>
+<p><code class="docutils literal notranslate"><span class="pre">timeout</span></code> may be a number denoting a time (on the same
+scale as <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.time" title="tornado.ioloop.IOLoop.time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.ioloop.IOLoop.time</span></code></a>, normally <a class="reference external" href="https://docs.python.org/3.6/library/time.html#time.time" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time.time</span></code></a>), or a
+<a class="reference external" href="https://docs.python.org/3.6/library/datetime.html#datetime.timedelta" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.timedelta</span></code></a> object for a deadline relative to the
+current time.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.queues.Queue.put_nowait">
+<code class="descname">put_nowait</code><span class="sig-paren">(</span><em>item: _T</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/queues.html#Queue.put_nowait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.queues.Queue.put_nowait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Put an item into the queue without blocking.</p>
+<p>If no free slot is immediately available, raise <a class="reference internal" href="#tornado.queues.QueueFull" title="tornado.queues.QueueFull"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QueueFull</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.queues.Queue.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>timeout: Union[float</em>, <em>datetime.timedelta] = None</em><span class="sig-paren">)</span> &#x2192; Awaitable[_T]<a class="reference internal" href="_modules/tornado/queues.html#Queue.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.queues.Queue.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove and return an item from the queue.</p>
+<p>Returns an awaitable which resolves once an item is available, or raises
+<a class="reference internal" href="util.html#tornado.util.TimeoutError" title="tornado.util.TimeoutError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.util.TimeoutError</span></code></a> after a timeout.</p>
+<p><code class="docutils literal notranslate"><span class="pre">timeout</span></code> may be a number denoting a time (on the same
+scale as <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.time" title="tornado.ioloop.IOLoop.time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.ioloop.IOLoop.time</span></code></a>, normally <a class="reference external" href="https://docs.python.org/3.6/library/time.html#time.time" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time.time</span></code></a>), or a
+<a class="reference external" href="https://docs.python.org/3.6/library/datetime.html#datetime.timedelta" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.timedelta</span></code></a> object for a deadline relative to the
+current time.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">timeout</span></code> argument of this method differs from that
+of the standard library’s <a class="reference external" href="https://docs.python.org/3.6/library/queue.html#queue.Queue.get" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">queue.Queue.get</span></code></a>. That method
+interprets numeric values as relative timeouts; this one
+interprets them as absolute deadlines and requires
+<code class="docutils literal notranslate"><span class="pre">timedelta</span></code> objects for relative timeouts (consistent
+with other timeouts in Tornado).</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.queues.Queue.get_nowait">
+<code class="descname">get_nowait</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; _T<a class="reference internal" href="_modules/tornado/queues.html#Queue.get_nowait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.queues.Queue.get_nowait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove and return an item from the queue without blocking.</p>
+<p>Return an item if one is immediately available, else raise
+<a class="reference internal" href="#tornado.queues.QueueEmpty" title="tornado.queues.QueueEmpty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QueueEmpty</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.queues.Queue.task_done">
+<code class="descname">task_done</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/queues.html#Queue.task_done"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.queues.Queue.task_done" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate that a formerly enqueued task is complete.</p>
+<p>Used by queue consumers. For each <a class="reference internal" href="#tornado.queues.Queue.get" title="tornado.queues.Queue.get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code></a> used to fetch a task, a
+subsequent call to <a class="reference internal" href="#tornado.queues.Queue.task_done" title="tornado.queues.Queue.task_done"><code class="xref py py-obj docutils literal notranslate"><span class="pre">task_done</span></code></a> tells the queue that the processing
+on the task is complete.</p>
+<p>If a <a class="reference internal" href="#tornado.queues.Queue.join" title="tornado.queues.Queue.join"><code class="xref py py-obj docutils literal notranslate"><span class="pre">join</span></code></a> is blocking, it resumes when all items have been
+processed; that is, when every <a class="reference internal" href="#tornado.queues.Queue.put" title="tornado.queues.Queue.put"><code class="xref py py-obj docutils literal notranslate"><span class="pre">put</span></code></a> is matched by a <a class="reference internal" href="#tornado.queues.Queue.task_done" title="tornado.queues.Queue.task_done"><code class="xref py py-obj docutils literal notranslate"><span class="pre">task_done</span></code></a>.</p>
+<p>Raises <a class="reference external" href="https://docs.python.org/3.6/library/exceptions.html#ValueError" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ValueError</span></code></a> if called more times than <a class="reference internal" href="#tornado.queues.Queue.put" title="tornado.queues.Queue.put"><code class="xref py py-obj docutils literal notranslate"><span class="pre">put</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.queues.Queue.join">
+<code class="descname">join</code><span class="sig-paren">(</span><em>timeout: Union[float</em>, <em>datetime.timedelta] = None</em><span class="sig-paren">)</span> &#x2192; Awaitable[None]<a class="reference internal" href="_modules/tornado/queues.html#Queue.join"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.queues.Queue.join" title="Permalink to this definition">¶</a></dt>
+<dd><p>Block until all items in the queue are processed.</p>
+<p>Returns an awaitable, which raises <a class="reference internal" href="util.html#tornado.util.TimeoutError" title="tornado.util.TimeoutError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.util.TimeoutError</span></code></a> after a
+timeout.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="priorityqueue">
+<h3>PriorityQueue<a class="headerlink" href="#priorityqueue" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="tornado.queues.PriorityQueue">
+<em class="property">class </em><code class="descclassname">tornado.queues.</code><code class="descname">PriorityQueue</code><span class="sig-paren">(</span><em>maxsize: int = 0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/queues.html#PriorityQueue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.queues.PriorityQueue" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <a class="reference internal" href="#tornado.queues.Queue" title="tornado.queues.Queue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Queue</span></code></a> that retrieves entries in priority order, lowest first.</p>
+<p>Entries are typically tuples like <code class="docutils literal notranslate"><span class="pre">(priority</span> <span class="pre">number,</span> <span class="pre">data)</span></code>.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tornado.queues</span> <span class="k">import</span> <span class="n">PriorityQueue</span>
+
+<span class="n">q</span> <span class="o">=</span> <span class="n">PriorityQueue</span><span class="p">()</span>
+<span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;medium-priority item&#39;</span><span class="p">))</span>
+<span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;high-priority item&#39;</span><span class="p">))</span>
+<span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;low-priority item&#39;</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>(0, &#39;high-priority item&#39;)
+(1, &#39;medium-priority item&#39;)
+(10, &#39;low-priority item&#39;)
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="lifoqueue">
+<h3>LifoQueue<a class="headerlink" href="#lifoqueue" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="tornado.queues.LifoQueue">
+<em class="property">class </em><code class="descclassname">tornado.queues.</code><code class="descname">LifoQueue</code><span class="sig-paren">(</span><em>maxsize: int = 0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/queues.html#LifoQueue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.queues.LifoQueue" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <a class="reference internal" href="#tornado.queues.Queue" title="tornado.queues.Queue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Queue</span></code></a> that retrieves the most recently put items first.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tornado.queues</span> <span class="k">import</span> <span class="n">LifoQueue</span>
+
+<span class="n">q</span> <span class="o">=</span> <span class="n">LifoQueue</span><span class="p">()</span>
+<span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>1
+2
+3
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="queueempty">
+<h3>QueueEmpty<a class="headerlink" href="#queueempty" title="Permalink to this headline">¶</a></h3>
+<dl class="exception">
+<dt id="tornado.queues.QueueEmpty">
+<em class="property">exception </em><code class="descclassname">tornado.queues.</code><code class="descname">QueueEmpty</code><a class="reference internal" href="_modules/tornado/queues.html#QueueEmpty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.queues.QueueEmpty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised by <a class="reference internal" href="#tornado.queues.Queue.get_nowait" title="tornado.queues.Queue.get_nowait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Queue.get_nowait</span></code></a> when the queue has no items.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="queuefull">
+<h3>QueueFull<a class="headerlink" href="#queuefull" title="Permalink to this headline">¶</a></h3>
+<dl class="exception">
+<dt id="tornado.queues.QueueFull">
+<em class="property">exception </em><code class="descclassname">tornado.queues.</code><code class="descname">QueueFull</code><a class="reference internal" href="_modules/tornado/queues.html#QueueFull"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.queues.QueueFull" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised by <a class="reference internal" href="#tornado.queues.Queue.put_nowait" title="tornado.queues.Queue.put_nowait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Queue.put_nowait</span></code></a> when a queue is at its maximum size.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="process.html" class="btn btn-neutral float-right" title="tornado.process — Utilities for multiple processes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="locks.html" class="btn btn-neutral float-left" title="tornado.locks – Synchronization primitives" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

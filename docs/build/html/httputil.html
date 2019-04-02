@@ -1,0 +1,806 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.httputil — Manipulate HTTP headers and URLs &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.http1connection – HTTP/1.x client/server implementation" href="http1connection.html" />
+    <link rel="prev" title="tornado.httpclient — Asynchronous HTTP client" href="httpclient.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="http.html">HTTP servers and clients</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="httpserver.html"><code class="docutils literal notranslate"><span class="pre">tornado.httpserver</span></code> — Non-blocking HTTP server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="httpclient.html"><code class="docutils literal notranslate"><span class="pre">tornado.httpclient</span></code> — Asynchronous HTTP client</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.httputil</span></code> — Manipulate HTTP headers and URLs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="http1connection.html"><code class="docutils literal notranslate"><span class="pre">tornado.http1connection</span></code> – HTTP/1.x client/server implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="http.html">HTTP servers and clients</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.httputil</span></code> — Manipulate HTTP headers and URLs</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/httputil.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tornado-httputil-manipulate-http-headers-and-urls">
+<h1><code class="docutils literal notranslate"><span class="pre">tornado.httputil</span></code> — Manipulate HTTP headers and URLs<a class="headerlink" href="#tornado-httputil-manipulate-http-headers-and-urls" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-tornado.httputil"></span><p>HTTP utility code shared by clients and servers.</p>
+<p>This module also defines the <a class="reference internal" href="#tornado.httputil.HTTPServerRequest" title="tornado.httputil.HTTPServerRequest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServerRequest</span></code></a> class which is exposed
+via <a class="reference internal" href="web.html#tornado.web.RequestHandler.request" title="tornado.web.RequestHandler.request"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.web.RequestHandler.request</span></code></a>.</p>
+<dl class="class">
+<dt id="tornado.httputil.HTTPHeaders">
+<em class="property">class </em><code class="descclassname">tornado.httputil.</code><code class="descname">HTTPHeaders</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/httputil.html#HTTPHeaders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPHeaders" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary that maintains <code class="docutils literal notranslate"><span class="pre">Http-Header-Case</span></code> for all keys.</p>
+<p>Supports multiple values per key via a pair of new methods,
+<a class="reference internal" href="#tornado.httputil.HTTPHeaders.add" title="tornado.httputil.HTTPHeaders.add"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add()</span></code></a> and <a class="reference internal" href="#tornado.httputil.HTTPHeaders.get_list" title="tornado.httputil.HTTPHeaders.get_list"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_list()</span></code></a>.  The regular dictionary interface
+returns a single value per key, with multiple values joined by a
+comma.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="n">HTTPHeaders</span><span class="p">({</span><span class="s2">&quot;content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;text/html&quot;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="go">[&#39;Content-Type&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span><span class="p">[</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">]</span>
+<span class="go">&#39;text/html&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Set-Cookie&quot;</span><span class="p">,</span> <span class="s2">&quot;A=B&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Set-Cookie&quot;</span><span class="p">,</span> <span class="s2">&quot;C=D&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span><span class="p">[</span><span class="s2">&quot;set-cookie&quot;</span><span class="p">]</span>
+<span class="go">&#39;A=B,C=D&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span><span class="o">.</span><span class="n">get_list</span><span class="p">(</span><span class="s2">&quot;set-cookie&quot;</span><span class="p">)</span>
+<span class="go">[&#39;A=B&#39;, &#39;C=D&#39;]</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">get_all</span><span class="p">()):</span>
+<span class="gp">... </span>   <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">))</span>
+<span class="gp">...</span>
+<span class="go">Content-Type: text/html</span>
+<span class="go">Set-Cookie: A=B</span>
+<span class="go">Set-Cookie: C=D</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="tornado.httputil.HTTPHeaders.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>name: str</em>, <em>value: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/httputil.html#HTTPHeaders.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPHeaders.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a new value for the given key.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.httputil.HTTPHeaders.get_list">
+<code class="descname">get_list</code><span class="sig-paren">(</span><em>name: str</em><span class="sig-paren">)</span> &#x2192; List[str]<a class="reference internal" href="_modules/tornado/httputil.html#HTTPHeaders.get_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPHeaders.get_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all values for the given header as a list.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.httputil.HTTPHeaders.get_all">
+<code class="descname">get_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Iterable[Tuple[str, str]]<a class="reference internal" href="_modules/tornado/httputil.html#HTTPHeaders.get_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPHeaders.get_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an iterable of all (name, value) pairs.</p>
+<p>If a header has multiple values, multiple pairs will be
+returned with the same name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.httputil.HTTPHeaders.parse_line">
+<code class="descname">parse_line</code><span class="sig-paren">(</span><em>line: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/httputil.html#HTTPHeaders.parse_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPHeaders.parse_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the dictionary with a single header line.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="n">HTTPHeaders</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span><span class="o">.</span><span class="n">parse_line</span><span class="p">(</span><span class="s2">&quot;Content-Type: text/html&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;content-type&#39;</span><span class="p">)</span>
+<span class="go">&#39;text/html&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="tornado.httputil.HTTPHeaders.parse">
+<em class="property">classmethod </em><code class="descname">parse</code><span class="sig-paren">(</span><em>headers: str</em><span class="sig-paren">)</span> &#x2192; tornado.httputil.HTTPHeaders<a class="reference internal" href="_modules/tornado/httputil.html#HTTPHeaders.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPHeaders.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary from HTTP header text.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="n">HTTPHeaders</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;Content-Type: text/html</span><span class="se">\r\n</span><span class="s2">Content-Length: 42</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+<span class="go">[(&#39;Content-Length&#39;, &#39;42&#39;), (&#39;Content-Type&#39;, &#39;text/html&#39;)]</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span>Raises <a class="reference internal" href="#tornado.httputil.HTTPInputError" title="tornado.httputil.HTTPInputError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPInputError</span></code></a> on malformed headers instead of a
+mix of <a class="reference external" href="https://docs.python.org/3.6/library/exceptions.html#KeyError" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">KeyError</span></code></a>, and <a class="reference external" href="https://docs.python.org/3.6/library/exceptions.html#ValueError" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ValueError</span></code></a>.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.httputil.HTTPServerRequest">
+<em class="property">class </em><code class="descclassname">tornado.httputil.</code><code class="descname">HTTPServerRequest</code><span class="sig-paren">(</span><em>method: str = None</em>, <em>uri: str = None</em>, <em>version: str = 'HTTP/1.0'</em>, <em>headers: tornado.httputil.HTTPHeaders = None</em>, <em>body: bytes = None</em>, <em>host: str = None</em>, <em>files: Dict[str</em>, <em>List[HTTPFile]] = None</em>, <em>connection: Optional[tornado.httputil.HTTPConnection] = None</em>, <em>start_line: Optional[tornado.httputil.RequestStartLine] = None</em>, <em>server_connection: object = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/httputil.html#HTTPServerRequest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPServerRequest" title="Permalink to this definition">¶</a></dt>
+<dd><p>A single HTTP request.</p>
+<p>All attributes are type <a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> unless otherwise noted.</p>
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.method">
+<code class="descname">method</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.method" title="Permalink to this definition">¶</a></dt>
+<dd><p>HTTP request method, e.g. “GET” or “POST”</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.uri">
+<code class="descname">uri</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>The requested uri.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.path">
+<code class="descname">path</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path portion of <a class="reference internal" href="#tornado.httputil.HTTPServerRequest.uri" title="tornado.httputil.HTTPServerRequest.uri"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uri</span></code></a></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.query">
+<code class="descname">query</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>The query portion of <a class="reference internal" href="#tornado.httputil.HTTPServerRequest.uri" title="tornado.httputil.HTTPServerRequest.uri"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uri</span></code></a></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.version">
+<code class="descname">version</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>HTTP version specified in request, e.g. “HTTP/1.1”</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.headers">
+<code class="descname">headers</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.headers" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#tornado.httputil.HTTPHeaders" title="tornado.httputil.HTTPHeaders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPHeaders</span></code></a> dictionary-like object for request headers.  Acts like
+a case-insensitive dictionary with additional methods for repeated
+headers.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.body">
+<code class="descname">body</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.body" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request body, if present, as a byte string.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.remote_ip">
+<code class="descname">remote_ip</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.remote_ip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Client’s IP address as a string.  If <code class="docutils literal notranslate"><span class="pre">HTTPServer.xheaders</span></code> is set,
+will pass along the real IP address provided by a load balancer
+in the <code class="docutils literal notranslate"><span class="pre">X-Real-Ip</span></code> or <code class="docutils literal notranslate"><span class="pre">X-Forwarded-For</span></code> header.</p>
+</dd></dl>
+
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 3.1: </span>The list format of <code class="docutils literal notranslate"><span class="pre">X-Forwarded-For</span></code> is now supported.</p>
+</div>
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.protocol">
+<code class="descname">protocol</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.protocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>The protocol used, either “http” or “https”.  If <code class="docutils literal notranslate"><span class="pre">HTTPServer.xheaders</span></code>
+is set, will pass along the protocol used by a load balancer if
+reported via an <code class="docutils literal notranslate"><span class="pre">X-Scheme</span></code> header.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.host">
+<code class="descname">host</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.host" title="Permalink to this definition">¶</a></dt>
+<dd><p>The requested hostname, usually taken from the <code class="docutils literal notranslate"><span class="pre">Host</span></code> header.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.arguments">
+<code class="descname">arguments</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.arguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>GET/POST arguments are available in the arguments property, which
+maps arguments names to lists of values (to support multiple values
+for individual names). Names are of type <a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>, while arguments
+are byte strings.  Note that this is different from
+<a class="reference internal" href="web.html#tornado.web.RequestHandler.get_argument" title="tornado.web.RequestHandler.get_argument"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RequestHandler.get_argument</span></code></a>, which returns argument values as
+unicode strings.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.query_arguments">
+<code class="descname">query_arguments</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.query_arguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Same format as <code class="docutils literal notranslate"><span class="pre">arguments</span></code>, but contains only arguments extracted
+from the query string.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.2.</span></p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.body_arguments">
+<code class="descname">body_arguments</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.body_arguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Same format as <code class="docutils literal notranslate"><span class="pre">arguments</span></code>, but contains only arguments extracted
+from the request body.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.2.</span></p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.files">
+<code class="descname">files</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.files" title="Permalink to this definition">¶</a></dt>
+<dd><p>File uploads are available in the files property, which maps file
+names to lists of <a class="reference internal" href="#tornado.httputil.HTTPFile" title="tornado.httputil.HTTPFile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPFile</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.connection">
+<code class="descname">connection</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>An HTTP request is attached to a single HTTP connection, which can
+be accessed through the “connection” attribute. Since connections
+are typically kept open in HTTP/1.1, multiple requests can be handled
+sequentially on a single connection.</p>
+</dd></dl>
+
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Moved from <code class="docutils literal notranslate"><span class="pre">tornado.httpserver.HTTPRequest</span></code>.</p>
+</div>
+<dl class="attribute">
+<dt id="tornado.httputil.HTTPServerRequest.cookies">
+<code class="descname">cookies</code><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.cookies" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary of <code class="docutils literal notranslate"><span class="pre">http.cookies.Morsel</span></code> objects.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.httputil.HTTPServerRequest.full_url">
+<code class="descname">full_url</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="_modules/tornado/httputil.html#HTTPServerRequest.full_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.full_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reconstructs the full URL for this request.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.httputil.HTTPServerRequest.request_time">
+<code class="descname">request_time</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; float<a class="reference internal" href="_modules/tornado/httputil.html#HTTPServerRequest.request_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.request_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the amount of time it took for this request to execute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.httputil.HTTPServerRequest.get_ssl_certificate">
+<code class="descname">get_ssl_certificate</code><span class="sig-paren">(</span><em>binary_form: bool = False</em><span class="sig-paren">)</span> &#x2192; Union[None, Dict[KT, VT], bytes]<a class="reference internal" href="_modules/tornado/httputil.html#HTTPServerRequest.get_ssl_certificate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPServerRequest.get_ssl_certificate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the client’s SSL certificate, if any.</p>
+<p>To use client certificates, the HTTPServer’s
+<a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.SSLContext.verify_mode" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl.SSLContext.verify_mode</span></code></a> field must be set, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ssl_ctx</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">create_default_context</span><span class="p">(</span><span class="n">ssl</span><span class="o">.</span><span class="n">Purpose</span><span class="o">.</span><span class="n">CLIENT_AUTH</span><span class="p">)</span>
+<span class="n">ssl_ctx</span><span class="o">.</span><span class="n">load_cert_chain</span><span class="p">(</span><span class="s2">&quot;foo.crt&quot;</span><span class="p">,</span> <span class="s2">&quot;foo.key&quot;</span><span class="p">)</span>
+<span class="n">ssl_ctx</span><span class="o">.</span><span class="n">load_verify_locations</span><span class="p">(</span><span class="s2">&quot;cacerts.pem&quot;</span><span class="p">)</span>
+<span class="n">ssl_ctx</span><span class="o">.</span><span class="n">verify_mode</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">CERT_REQUIRED</span>
+<span class="n">server</span> <span class="o">=</span> <span class="n">HTTPServer</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">ssl_options</span><span class="o">=</span><span class="n">ssl_ctx</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By default, the return value is a dictionary (or None, if no
+client certificate is present).  If <code class="docutils literal notranslate"><span class="pre">binary_form</span></code> is true, a
+DER-encoded form of the certificate is returned instead.  See
+SSLSocket.getpeercert() in the standard library for more
+details.
+<a class="reference external" href="http://docs.python.org/library/ssl.html#sslsocket-objects">http://docs.python.org/library/ssl.html#sslsocket-objects</a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="tornado.httputil.HTTPInputError">
+<em class="property">exception </em><code class="descclassname">tornado.httputil.</code><code class="descname">HTTPInputError</code><a class="reference internal" href="_modules/tornado/httputil.html#HTTPInputError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPInputError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception class for malformed HTTP requests or responses
+from remote sources.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="exception">
+<dt id="tornado.httputil.HTTPOutputError">
+<em class="property">exception </em><code class="descclassname">tornado.httputil.</code><code class="descname">HTTPOutputError</code><a class="reference internal" href="_modules/tornado/httputil.html#HTTPOutputError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPOutputError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception class for errors in HTTP output.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.httputil.HTTPServerConnectionDelegate">
+<em class="property">class </em><code class="descclassname">tornado.httputil.</code><code class="descname">HTTPServerConnectionDelegate</code><a class="reference internal" href="_modules/tornado/httputil.html#HTTPServerConnectionDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPServerConnectionDelegate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement this interface to handle requests from <a class="reference internal" href="httpserver.html#tornado.httpserver.HTTPServer" title="tornado.httpserver.HTTPServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServer</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0.</span></p>
+</div>
+<dl class="method">
+<dt id="tornado.httputil.HTTPServerConnectionDelegate.start_request">
+<code class="descname">start_request</code><span class="sig-paren">(</span><em>server_conn: object</em>, <em>request_conn: tornado.httputil.HTTPConnection</em><span class="sig-paren">)</span> &#x2192; tornado.httputil.HTTPMessageDelegate<a class="reference internal" href="_modules/tornado/httputil.html#HTTPServerConnectionDelegate.start_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPServerConnectionDelegate.start_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is called by the server when a new request has started.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>server_conn</strong> – is an opaque object representing the long-lived
+(e.g. tcp-level) connection.</p></li>
+<li><p><strong>request_conn</strong> – is a <a class="reference internal" href="#tornado.httputil.HTTPConnection" title="tornado.httputil.HTTPConnection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPConnection</span></code></a> object for a single
+request/response exchange.</p></li>
+</ul>
+</dd>
+</dl>
+<p>This method should return a <a class="reference internal" href="#tornado.httputil.HTTPMessageDelegate" title="tornado.httputil.HTTPMessageDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPMessageDelegate</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.httputil.HTTPServerConnectionDelegate.on_close">
+<code class="descname">on_close</code><span class="sig-paren">(</span><em>server_conn: object</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/httputil.html#HTTPServerConnectionDelegate.on_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPServerConnectionDelegate.on_close" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is called when a connection has been closed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>server_conn</strong> – is a server connection that has previously been
+passed to <code class="docutils literal notranslate"><span class="pre">start_request</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.httputil.HTTPMessageDelegate">
+<em class="property">class </em><code class="descclassname">tornado.httputil.</code><code class="descname">HTTPMessageDelegate</code><a class="reference internal" href="_modules/tornado/httputil.html#HTTPMessageDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPMessageDelegate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement this interface to handle an HTTP request or response.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0.</span></p>
+</div>
+<dl class="method">
+<dt id="tornado.httputil.HTTPMessageDelegate.headers_received">
+<code class="descname">headers_received</code><span class="sig-paren">(</span><em>start_line: Union[RequestStartLine, ResponseStartLine], headers: tornado.httputil.HTTPHeaders</em><span class="sig-paren">)</span> &#x2192; Optional[Awaitable[None]]<a class="reference internal" href="_modules/tornado/httputil.html#HTTPMessageDelegate.headers_received"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPMessageDelegate.headers_received" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the HTTP headers have been received and parsed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_line</strong> – a <a class="reference internal" href="#tornado.httputil.RequestStartLine" title="tornado.httputil.RequestStartLine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RequestStartLine</span></code></a> or <a class="reference internal" href="#tornado.httputil.ResponseStartLine" title="tornado.httputil.ResponseStartLine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ResponseStartLine</span></code></a>
+depending on whether this is a client or server message.</p></li>
+<li><p><strong>headers</strong> – a <a class="reference internal" href="#tornado.httputil.HTTPHeaders" title="tornado.httputil.HTTPHeaders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPHeaders</span></code></a> instance.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Some <a class="reference internal" href="#tornado.httputil.HTTPConnection" title="tornado.httputil.HTTPConnection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPConnection</span></code></a> methods can only be called during
+<code class="docutils literal notranslate"><span class="pre">headers_received</span></code>.</p>
+<p>May return a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>; if it does the body will not be read
+until it is done.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.httputil.HTTPMessageDelegate.data_received">
+<code class="descname">data_received</code><span class="sig-paren">(</span><em>chunk: bytes</em><span class="sig-paren">)</span> &#x2192; Optional[Awaitable[None]]<a class="reference internal" href="_modules/tornado/httputil.html#HTTPMessageDelegate.data_received"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPMessageDelegate.data_received" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when a chunk of data has been received.</p>
+<p>May return a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> for flow control.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.httputil.HTTPMessageDelegate.finish">
+<code class="descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/httputil.html#HTTPMessageDelegate.finish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPMessageDelegate.finish" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called after the last chunk of data has been received.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.httputil.HTTPMessageDelegate.on_connection_close">
+<code class="descname">on_connection_close</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/httputil.html#HTTPMessageDelegate.on_connection_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPMessageDelegate.on_connection_close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called if the connection is closed without finishing the request.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">headers_received</span></code> is called, either <code class="docutils literal notranslate"><span class="pre">finish</span></code> or
+<code class="docutils literal notranslate"><span class="pre">on_connection_close</span></code> will be called, but not both.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.httputil.HTTPConnection">
+<em class="property">class </em><code class="descclassname">tornado.httputil.</code><code class="descname">HTTPConnection</code><a class="reference internal" href="_modules/tornado/httputil.html#HTTPConnection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPConnection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applications use this interface to write their responses.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0.</span></p>
+</div>
+<dl class="method">
+<dt id="tornado.httputil.HTTPConnection.write_headers">
+<code class="descname">write_headers</code><span class="sig-paren">(</span><em>start_line: Union[RequestStartLine, ResponseStartLine], headers: tornado.httputil.HTTPHeaders, chunk: bytes = None</em><span class="sig-paren">)</span> &#x2192; Future[None]<a class="reference internal" href="_modules/tornado/httputil.html#HTTPConnection.write_headers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPConnection.write_headers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write an HTTP header block.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_line</strong> – a <a class="reference internal" href="#tornado.httputil.RequestStartLine" title="tornado.httputil.RequestStartLine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RequestStartLine</span></code></a> or <a class="reference internal" href="#tornado.httputil.ResponseStartLine" title="tornado.httputil.ResponseStartLine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ResponseStartLine</span></code></a>.</p></li>
+<li><p><strong>headers</strong> – a <a class="reference internal" href="#tornado.httputil.HTTPHeaders" title="tornado.httputil.HTTPHeaders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPHeaders</span></code></a> instance.</p></li>
+<li><p><strong>chunk</strong> – the first (optional) chunk of data.  This is an optimization
+so that small responses can be written in the same call as their
+headers.</p></li>
+</ul>
+</dd>
+</dl>
+<p>The <code class="docutils literal notranslate"><span class="pre">version</span></code> field of <code class="docutils literal notranslate"><span class="pre">start_line</span></code> is ignored.</p>
+<p>Returns a future for flow control.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument was removed.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.httputil.HTTPConnection.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>chunk: bytes</em><span class="sig-paren">)</span> &#x2192; Future[None]<a class="reference internal" href="_modules/tornado/httputil.html#HTTPConnection.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPConnection.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a chunk of body data.</p>
+<p>Returns a future for flow control.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument was removed.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.httputil.HTTPConnection.finish">
+<code class="descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/httputil.html#HTTPConnection.finish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPConnection.finish" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates that the last body data has been written.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.httputil.url_concat">
+<code class="descclassname">tornado.httputil.</code><code class="descname">url_concat</code><span class="sig-paren">(</span><em>url: str, args: Union[None, Dict[str, str], List[Tuple[str, str]], Tuple[Tuple[str, str], ...]]</em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="_modules/tornado/httputil.html#url_concat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.url_concat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concatenate url and arguments regardless of whether
+url has existing query parameters.</p>
+<p><code class="docutils literal notranslate"><span class="pre">args</span></code> may be either a dictionary or a list of key-value pairs
+(the latter allows for multiple values with the same key.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">url_concat</span><span class="p">(</span><span class="s2">&quot;http://example.com/foo&quot;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">c</span><span class="o">=</span><span class="s2">&quot;d&quot;</span><span class="p">))</span>
+<span class="go">&#39;http://example.com/foo?c=d&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">url_concat</span><span class="p">(</span><span class="s2">&quot;http://example.com/foo?a=b&quot;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">c</span><span class="o">=</span><span class="s2">&quot;d&quot;</span><span class="p">))</span>
+<span class="go">&#39;http://example.com/foo?a=b&amp;c=d&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">url_concat</span><span class="p">(</span><span class="s2">&quot;http://example.com/foo?a=b&quot;</span><span class="p">,</span> <span class="p">[(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;d2&quot;</span><span class="p">)])</span>
+<span class="go">&#39;http://example.com/foo?a=b&amp;c=d&amp;c=d2&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.httputil.HTTPFile">
+<em class="property">class </em><code class="descclassname">tornado.httputil.</code><code class="descname">HTTPFile</code><a class="reference internal" href="_modules/tornado/httputil.html#HTTPFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.HTTPFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents a file uploaded via a form.</p>
+<p>For backwards compatibility, its instance attributes are also
+accessible as dictionary keys.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">filename</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">body</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">content_type</span></code></p></li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.httputil.parse_body_arguments">
+<code class="descclassname">tornado.httputil.</code><code class="descname">parse_body_arguments</code><span class="sig-paren">(</span><em>content_type: str, body: bytes, arguments: Dict[str, List[bytes]], files: Dict[str, List[tornado.httputil.HTTPFile]], headers: tornado.httputil.HTTPHeaders = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/httputil.html#parse_body_arguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.parse_body_arguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses a form request body.</p>
+<p>Supports <code class="docutils literal notranslate"><span class="pre">application/x-www-form-urlencoded</span></code> and
+<code class="docutils literal notranslate"><span class="pre">multipart/form-data</span></code>.  The <code class="docutils literal notranslate"><span class="pre">content_type</span></code> parameter should be
+a string and <code class="docutils literal notranslate"><span class="pre">body</span></code> should be a byte string.  The <code class="docutils literal notranslate"><span class="pre">arguments</span></code>
+and <code class="docutils literal notranslate"><span class="pre">files</span></code> parameters are dictionaries that will be updated
+with the parsed contents.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.httputil.parse_multipart_form_data">
+<code class="descclassname">tornado.httputil.</code><code class="descname">parse_multipart_form_data</code><span class="sig-paren">(</span><em>boundary: bytes, data: bytes, arguments: Dict[str, List[bytes]], files: Dict[str, List[tornado.httputil.HTTPFile]]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/httputil.html#parse_multipart_form_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.parse_multipart_form_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses a <code class="docutils literal notranslate"><span class="pre">multipart/form-data</span></code> body.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">boundary</span></code> and <code class="docutils literal notranslate"><span class="pre">data</span></code> parameters are both byte strings.
+The dictionaries given in the arguments and files parameters
+will be updated with the contents of the body.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span>Now recognizes non-ASCII filenames in RFC 2231/5987
+(<code class="docutils literal notranslate"><span class="pre">filename*=</span></code>) format.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.httputil.format_timestamp">
+<code class="descclassname">tornado.httputil.</code><code class="descname">format_timestamp</code><span class="sig-paren">(</span><em>ts: Union[int, float, tuple, time.struct_time, datetime.datetime]</em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="_modules/tornado/httputil.html#format_timestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.format_timestamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formats a timestamp in the format used by HTTP.</p>
+<p>The argument may be a numeric timestamp as returned by <a class="reference external" href="https://docs.python.org/3.6/library/time.html#time.time" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time.time</span></code></a>,
+a time tuple as returned by <a class="reference external" href="https://docs.python.org/3.6/library/time.html#time.gmtime" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time.gmtime</span></code></a>, or a <a class="reference external" href="https://docs.python.org/3.6/library/datetime.html#datetime.datetime" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a>
+object.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">format_timestamp</span><span class="p">(</span><span class="mi">1359312200</span><span class="p">)</span>
+<span class="go">&#39;Sun, 27 Jan 2013 18:43:20 GMT&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.httputil.RequestStartLine">
+<em class="property">class </em><code class="descclassname">tornado.httputil.</code><code class="descname">RequestStartLine</code><a class="headerlink" href="#tornado.httputil.RequestStartLine" title="Permalink to this definition">¶</a></dt>
+<dd><p>RequestStartLine(method, path, version)</p>
+<p>Create new instance of RequestStartLine(method, path, version)</p>
+<dl class="attribute">
+<dt id="tornado.httputil.RequestStartLine.method">
+<code class="descname">method</code><a class="headerlink" href="#tornado.httputil.RequestStartLine.method" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.RequestStartLine.path">
+<code class="descname">path</code><a class="headerlink" href="#tornado.httputil.RequestStartLine.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.RequestStartLine.version">
+<code class="descname">version</code><a class="headerlink" href="#tornado.httputil.RequestStartLine.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.httputil.parse_request_start_line">
+<code class="descclassname">tornado.httputil.</code><code class="descname">parse_request_start_line</code><span class="sig-paren">(</span><em>line: str</em><span class="sig-paren">)</span> &#x2192; tornado.httputil.RequestStartLine<a class="reference internal" href="_modules/tornado/httputil.html#parse_request_start_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.parse_request_start_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a (method, path, version) tuple for an HTTP 1.x request line.</p>
+<p>The response is a <a class="reference external" href="https://docs.python.org/3.6/library/collections.html#collections.namedtuple" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">collections.namedtuple</span></code></a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_request_start_line</span><span class="p">(</span><span class="s2">&quot;GET /foo HTTP/1.1&quot;</span><span class="p">)</span>
+<span class="go">RequestStartLine(method=&#39;GET&#39;, path=&#39;/foo&#39;, version=&#39;HTTP/1.1&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.httputil.ResponseStartLine">
+<em class="property">class </em><code class="descclassname">tornado.httputil.</code><code class="descname">ResponseStartLine</code><a class="headerlink" href="#tornado.httputil.ResponseStartLine" title="Permalink to this definition">¶</a></dt>
+<dd><p>ResponseStartLine(version, code, reason)</p>
+<p>Create new instance of ResponseStartLine(version, code, reason)</p>
+<dl class="attribute">
+<dt id="tornado.httputil.ResponseStartLine.code">
+<code class="descname">code</code><a class="headerlink" href="#tornado.httputil.ResponseStartLine.code" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.ResponseStartLine.reason">
+<code class="descname">reason</code><a class="headerlink" href="#tornado.httputil.ResponseStartLine.reason" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.httputil.ResponseStartLine.version">
+<code class="descname">version</code><a class="headerlink" href="#tornado.httputil.ResponseStartLine.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.httputil.parse_response_start_line">
+<code class="descclassname">tornado.httputil.</code><code class="descname">parse_response_start_line</code><span class="sig-paren">(</span><em>line: str</em><span class="sig-paren">)</span> &#x2192; tornado.httputil.ResponseStartLine<a class="reference internal" href="_modules/tornado/httputil.html#parse_response_start_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.parse_response_start_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a (version, code, reason) tuple for an HTTP 1.x response line.</p>
+<p>The response is a <a class="reference external" href="https://docs.python.org/3.6/library/collections.html#collections.namedtuple" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">collections.namedtuple</span></code></a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_response_start_line</span><span class="p">(</span><span class="s2">&quot;HTTP/1.1 200 OK&quot;</span><span class="p">)</span>
+<span class="go">ResponseStartLine(version=&#39;HTTP/1.1&#39;, code=200, reason=&#39;OK&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.httputil.encode_username_password">
+<code class="descclassname">tornado.httputil.</code><code class="descname">encode_username_password</code><span class="sig-paren">(</span><em>username: Union[str, bytes], password: Union[str, bytes]</em><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="_modules/tornado/httputil.html#encode_username_password"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.encode_username_password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encodes a username/password pair in the format used by HTTP auth.</p>
+<p>The return value is a byte string in the form <code class="docutils literal notranslate"><span class="pre">username:password</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 5.1.</span></p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.httputil.split_host_and_port">
+<code class="descclassname">tornado.httputil.</code><code class="descname">split_host_and_port</code><span class="sig-paren">(</span><em>netloc: str</em><span class="sig-paren">)</span> &#x2192; Tuple[str, Optional[int]]<a class="reference internal" href="_modules/tornado/httputil.html#split_host_and_port"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.split_host_and_port" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">(host,</span> <span class="pre">port)</span></code> tuple from <code class="docutils literal notranslate"><span class="pre">netloc</span></code>.</p>
+<p>Returned <code class="docutils literal notranslate"><span class="pre">port</span></code> will be <code class="docutils literal notranslate"><span class="pre">None</span></code> if not present.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.1.</span></p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.httputil.qs_to_qsl">
+<code class="descclassname">tornado.httputil.</code><code class="descname">qs_to_qsl</code><span class="sig-paren">(</span><em>qs: Dict[str, List[AnyStr]]</em><span class="sig-paren">)</span> &#x2192; Iterable[Tuple[str, AnyStr]]<a class="reference internal" href="_modules/tornado/httputil.html#qs_to_qsl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.qs_to_qsl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generator converting a result of <code class="docutils literal notranslate"><span class="pre">parse_qs</span></code> back to name-value pairs.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 5.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.httputil.parse_cookie">
+<code class="descclassname">tornado.httputil.</code><code class="descname">parse_cookie</code><span class="sig-paren">(</span><em>cookie: str</em><span class="sig-paren">)</span> &#x2192; Dict[str, str]<a class="reference internal" href="_modules/tornado/httputil.html#parse_cookie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httputil.parse_cookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a <code class="docutils literal notranslate"><span class="pre">Cookie</span></code> HTTP header into a dict of name/value pairs.</p>
+<p>This function attempts to mimic browser cookie parsing behavior;
+it specifically does not follow any of the cookie-related RFCs
+(because browsers don’t either).</p>
+<p>The algorithm used is identical to that used by Django version 1.9.10.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.4.2.</span></p>
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="http1connection.html" class="btn btn-neutral float-right" title="tornado.http1connection – HTTP/1.x client/server implementation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="httpclient.html" class="btn btn-neutral float-left" title="tornado.httpclient — Asynchronous HTTP client" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

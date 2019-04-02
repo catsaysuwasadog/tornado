@@ -1,0 +1,298 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.autoreload — Automatically detect code changes in development &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.concurrent — Work with Future objects" href="concurrent.html" />
+    <link rel="prev" title="Utilities" href="utilities.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="utilities.html">Utilities</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.autoreload</span></code> — Automatically detect code changes in development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concurrent.html"><code class="docutils literal notranslate"><span class="pre">tornado.concurrent</span></code> — Work with <code class="docutils literal notranslate"><span class="pre">Future</span></code> objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html"><code class="docutils literal notranslate"><span class="pre">tornado.log</span></code> — Logging support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options.html"><code class="docutils literal notranslate"><span class="pre">tornado.options</span></code> — Command-line parsing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html"><code class="docutils literal notranslate"><span class="pre">tornado.testing</span></code> — Unit testing support for asynchronous code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html"><code class="docutils literal notranslate"><span class="pre">tornado.util</span></code> — General-purpose utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="utilities.html">Utilities</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.autoreload</span></code> — Automatically detect code changes in development</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/autoreload.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-tornado.autoreload">
+<span id="tornado-autoreload-automatically-detect-code-changes-in-development"></span><h1><code class="docutils literal notranslate"><span class="pre">tornado.autoreload</span></code> — Automatically detect code changes in development<a class="headerlink" href="#module-tornado.autoreload" title="Permalink to this headline">¶</a></h1>
+<p>Automatically restart the server when a source file is modified.</p>
+<p>Most applications should not access this module directly.  Instead,
+pass the keyword argument <code class="docutils literal notranslate"><span class="pre">autoreload=True</span></code> to the
+<a class="reference internal" href="web.html#tornado.web.Application" title="tornado.web.Application"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.web.Application</span></code></a> constructor (or <code class="docutils literal notranslate"><span class="pre">debug=True</span></code>, which
+enables this setting and several others).  This will enable autoreload
+mode as well as checking for changes to templates and static
+resources.  Note that restarting is a destructive operation and any
+requests in progress will be aborted when the process restarts.  (If
+you want to disable autoreload while using other debug-mode features,
+pass both <code class="docutils literal notranslate"><span class="pre">debug=True</span></code> and <code class="docutils literal notranslate"><span class="pre">autoreload=False</span></code>).</p>
+<p>This module can also be used as a command-line wrapper around scripts
+such as unit test runners.  See the <a class="reference internal" href="#tornado.autoreload.main" title="tornado.autoreload.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a> method for details.</p>
+<p>The command-line wrapper and Application debug modes can be used together.
+This combination is encouraged as the wrapper catches syntax errors and
+other import-time failures, while debug mode catches changes once
+the server has started.</p>
+<p>This module will not work correctly when <a class="reference internal" href="httpserver.html#tornado.httpserver.HTTPServer" title="tornado.httpserver.HTTPServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServer</span></code></a>’s multi-process
+mode is used.</p>
+<p>Reloading loses any Python interpreter command-line arguments (e.g. <code class="docutils literal notranslate"><span class="pre">-u</span></code>)
+because it re-executes Python using <code class="docutils literal notranslate"><span class="pre">sys.executable</span></code> and <code class="docutils literal notranslate"><span class="pre">sys.argv</span></code>.
+Additionally, modifying these variables will cause reloading to behave
+incorrectly.</p>
+<dl class="function">
+<dt id="tornado.autoreload.start">
+<code class="descclassname">tornado.autoreload.</code><code class="descname">start</code><span class="sig-paren">(</span><em>check_time: int = 500</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/autoreload.html#start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.autoreload.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Begins watching source files for changes.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>The <code class="docutils literal notranslate"><span class="pre">io_loop</span></code> argument (deprecated since version 4.1) has been removed.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.autoreload.wait">
+<code class="descclassname">tornado.autoreload.</code><code class="descname">wait</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/autoreload.html#wait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.autoreload.wait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait for a watched file to change, then restart the process.</p>
+<p>Intended to be used at the end of scripts like unit test runners,
+to run the tests again after any source file changes (but see also
+the command-line interface in <a class="reference internal" href="#tornado.autoreload.main" title="tornado.autoreload.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.autoreload.watch">
+<code class="descclassname">tornado.autoreload.</code><code class="descname">watch</code><span class="sig-paren">(</span><em>filename: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/autoreload.html#watch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.autoreload.watch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a file to the watch list.</p>
+<p>All imported modules are watched by default.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.autoreload.add_reload_hook">
+<code class="descclassname">tornado.autoreload.</code><code class="descname">add_reload_hook</code><span class="sig-paren">(</span><em>fn: Callable[[], None]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/autoreload.html#add_reload_hook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.autoreload.add_reload_hook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a function to be called before reloading the process.</p>
+<p>Note that for open file and socket handles it is generally
+preferable to set the <code class="docutils literal notranslate"><span class="pre">FD_CLOEXEC</span></code> flag (using <a class="reference external" href="https://docs.python.org/3.6/library/fcntl.html#module-fcntl" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fcntl</span></code></a> or
+<code class="docutils literal notranslate"><span class="pre">tornado.platform.auto.set_close_exec</span></code>) instead
+of using a reload hook to close them.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.autoreload.main">
+<code class="descclassname">tornado.autoreload.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/autoreload.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.autoreload.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line wrapper to re-run a script whenever its source changes.</p>
+<p>Scripts may be specified by filename or module name:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">tornado</span><span class="o">.</span><span class="n">autoreload</span> <span class="o">-</span><span class="n">m</span> <span class="n">tornado</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">runtests</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">tornado</span><span class="o">.</span><span class="n">autoreload</span> <span class="n">tornado</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="n">runtests</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>Running a script with this wrapper is similar to calling
+<a class="reference internal" href="#tornado.autoreload.wait" title="tornado.autoreload.wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.autoreload.wait</span></code></a> at the end of the script, but this wrapper
+can catch import-time problems like syntax errors that would otherwise
+prevent the script from reaching its call to <a class="reference internal" href="#tornado.autoreload.wait" title="tornado.autoreload.wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wait</span></code></a>.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="concurrent.html" class="btn btn-neutral float-right" title="tornado.concurrent — Work with Future objects" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="utilities.html" class="btn btn-neutral float-left" title="Utilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,426 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.util — General-purpose utilities &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Frequently Asked Questions" href="faq.html" />
+    <link rel="prev" title="tornado.testing — Unit testing support for asynchronous code" href="testing.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="utilities.html">Utilities</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="autoreload.html"><code class="docutils literal notranslate"><span class="pre">tornado.autoreload</span></code> — Automatically detect code changes in development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concurrent.html"><code class="docutils literal notranslate"><span class="pre">tornado.concurrent</span></code> — Work with <code class="docutils literal notranslate"><span class="pre">Future</span></code> objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html"><code class="docutils literal notranslate"><span class="pre">tornado.log</span></code> — Logging support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options.html"><code class="docutils literal notranslate"><span class="pre">tornado.options</span></code> — Command-line parsing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html"><code class="docutils literal notranslate"><span class="pre">tornado.testing</span></code> — Unit testing support for asynchronous code</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.util</span></code> — General-purpose utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="utilities.html">Utilities</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.util</span></code> — General-purpose utilities</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/util.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tornado-util-general-purpose-utilities">
+<h1><code class="docutils literal notranslate"><span class="pre">tornado.util</span></code> — General-purpose utilities<a class="headerlink" href="#tornado-util-general-purpose-utilities" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-tornado.util"></span><p>Miscellaneous utility functions and classes.</p>
+<p>This module is used internally by Tornado.  It is not necessarily expected
+that the functions and classes defined here will be useful to other
+applications, but they are documented here in case they are.</p>
+<p>The one public-facing part of this module is the <a class="reference internal" href="#tornado.util.Configurable" title="tornado.util.Configurable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Configurable</span></code></a> class
+and its <a class="reference internal" href="#tornado.util.Configurable.configure" title="tornado.util.Configurable.configure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configure</span></code></a> method, which becomes a part of the
+interface of its subclasses, including <a class="reference internal" href="httpclient.html#tornado.httpclient.AsyncHTTPClient" title="tornado.httpclient.AsyncHTTPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient</span></code></a>, <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>,
+and <a class="reference internal" href="netutil.html#tornado.netutil.Resolver" title="tornado.netutil.Resolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Resolver</span></code></a>.</p>
+<dl class="exception">
+<dt id="tornado.util.TimeoutError">
+<em class="property">exception </em><code class="descclassname">tornado.util.</code><code class="descname">TimeoutError</code><a class="reference internal" href="_modules/tornado/util.html#TimeoutError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.TimeoutError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception raised by <a class="reference internal" href="gen.html#tornado.gen.with_timeout" title="tornado.gen.with_timeout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">with_timeout</span></code></a> and <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.run_sync" title="tornado.ioloop.IOLoop.run_sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.run_sync</span></code></a>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0:: </span>Unified <code class="docutils literal notranslate"><span class="pre">tornado.gen.TimeoutError</span></code> and
+<code class="docutils literal notranslate"><span class="pre">tornado.ioloop.TimeoutError</span></code> as <code class="docutils literal notranslate"><span class="pre">tornado.util.TimeoutError</span></code>.
+Both former names remain as aliases.</p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.util.ObjectDict">
+<em class="property">class </em><code class="descclassname">tornado.util.</code><code class="descname">ObjectDict</code><a class="reference internal" href="_modules/tornado/util.html#ObjectDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.ObjectDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes a dictionary behave like an object, with attribute-style access.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.util.GzipDecompressor">
+<em class="property">class </em><code class="descclassname">tornado.util.</code><code class="descname">GzipDecompressor</code><a class="reference internal" href="_modules/tornado/util.html#GzipDecompressor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.GzipDecompressor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Streaming gzip decompressor.</p>
+<p>The interface is like that of <a class="reference external" href="https://docs.python.org/3.6/library/zlib.html#zlib.decompressobj" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">zlib.decompressobj</span></code></a> (without some of the
+optional arguments, but it understands gzip headers and checksums.</p>
+<dl class="method">
+<dt id="tornado.util.GzipDecompressor.decompress">
+<code class="descname">decompress</code><span class="sig-paren">(</span><em>value: bytes</em>, <em>max_length: int = 0</em><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="_modules/tornado/util.html#GzipDecompressor.decompress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.GzipDecompressor.decompress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decompress a chunk, returning newly-available data.</p>
+<p>Some data may be buffered for later processing; <a class="reference internal" href="#tornado.util.GzipDecompressor.flush" title="tornado.util.GzipDecompressor.flush"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flush</span></code></a> must
+be called when there is no more input data to ensure that
+all data was processed.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">max_length</span></code> is given, some input data may be left over
+in <code class="docutils literal notranslate"><span class="pre">unconsumed_tail</span></code>; you must retrieve this value and pass
+it back to a future call to <a class="reference internal" href="#tornado.util.GzipDecompressor.decompress" title="tornado.util.GzipDecompressor.decompress"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decompress</span></code></a> if it is not empty.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.util.GzipDecompressor.unconsumed_tail">
+<code class="descname">unconsumed_tail</code><a class="headerlink" href="#tornado.util.GzipDecompressor.unconsumed_tail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the unconsumed portion left over</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.util.GzipDecompressor.flush">
+<code class="descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="_modules/tornado/util.html#GzipDecompressor.flush"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.GzipDecompressor.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return any remaining buffered data not yet returned by decompress.</p>
+<p>Also checks for errors such as truncated input.
+No other methods may be called on this object after <a class="reference internal" href="#tornado.util.GzipDecompressor.flush" title="tornado.util.GzipDecompressor.flush"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flush</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.util.import_object">
+<code class="descclassname">tornado.util.</code><code class="descname">import_object</code><span class="sig-paren">(</span><em>name: str</em><span class="sig-paren">)</span> &#x2192; Any<a class="reference internal" href="_modules/tornado/util.html#import_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.import_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Imports an object by name.</p>
+<p><code class="docutils literal notranslate"><span class="pre">import_object('x')</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">x</span></code>.
+<code class="docutils literal notranslate"><span class="pre">import_object('x.y.z')</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">x.y</span> <span class="pre">import</span> <span class="pre">z</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tornado.escape</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">import_object</span><span class="p">(</span><span class="s1">&#39;tornado.escape&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">import_object</span><span class="p">(</span><span class="s1">&#39;tornado.escape.utf8&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">utf8</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">import_object</span><span class="p">(</span><span class="s1">&#39;tornado&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">tornado</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">import_object</span><span class="p">(</span><span class="s1">&#39;tornado.missing_module&#39;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+    <span class="o">...</span>
+<span class="gr">ImportError</span>: <span class="n">No module named missing_module</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.util.errno_from_exception">
+<code class="descclassname">tornado.util.</code><code class="descname">errno_from_exception</code><span class="sig-paren">(</span><em>e: BaseException</em><span class="sig-paren">)</span> &#x2192; Optional[int]<a class="reference internal" href="_modules/tornado/util.html#errno_from_exception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.errno_from_exception" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides the errno from an Exception object.</p>
+<p>There are cases that the errno attribute was not set so we pull
+the errno out of the args but if someone instantiates an Exception
+without any args you will get a tuple error. So this function
+abstracts all that behavior to give you a safe way to get the
+errno.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.util.re_unescape">
+<code class="descclassname">tornado.util.</code><code class="descname">re_unescape</code><span class="sig-paren">(</span><em>s: str</em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="_modules/tornado/util.html#re_unescape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.re_unescape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unescape a string escaped by <a class="reference external" href="https://docs.python.org/3.6/library/re.html#re.escape" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">re.escape</span></code></a>.</p>
+<p>May raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> for regular expressions which could not
+have been produced by <a class="reference external" href="https://docs.python.org/3.6/library/re.html#re.escape" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">re.escape</span></code></a> (for example, strings containing
+<code class="docutils literal notranslate"><span class="pre">\d</span></code> cannot be unescaped).</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.4.</span></p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.util.Configurable">
+<em class="property">class </em><code class="descclassname">tornado.util.</code><code class="descname">Configurable</code><a class="reference internal" href="_modules/tornado/util.html#Configurable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.Configurable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for configurable interfaces.</p>
+<p>A configurable interface is an (abstract) class whose constructor
+acts as a factory function for one of its implementation subclasses.
+The implementation subclass as well as optional keyword arguments to
+its initializer can be set globally at runtime with <a class="reference internal" href="#tornado.util.Configurable.configure" title="tornado.util.Configurable.configure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configure</span></code></a>.</p>
+<p>By using the constructor as the factory method, the interface
+looks like a normal class, <a class="reference external" href="https://docs.python.org/3.6/library/functions.html#isinstance" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isinstance</span></code></a> works as usual, etc.  This
+pattern is most useful when the choice of implementation is likely
+to be a global decision (e.g. when <a class="reference external" href="https://docs.python.org/3.6/library/select.html#select.epoll" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">epoll</span></code></a> is available,
+always use it instead of <a class="reference external" href="https://docs.python.org/3.6/library/select.html#select.select" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">select</span></code></a>), or when a
+previously-monolithic class has been split into specialized
+subclasses.</p>
+<p>Configurable subclasses must define the class methods
+<a class="reference internal" href="#tornado.util.Configurable.configurable_base" title="tornado.util.Configurable.configurable_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configurable_base</span></code></a> and <a class="reference internal" href="#tornado.util.Configurable.configurable_default" title="tornado.util.Configurable.configurable_default"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configurable_default</span></code></a>, and use the instance
+method <a class="reference internal" href="#tornado.util.Configurable.initialize" title="tornado.util.Configurable.initialize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize</span></code></a> instead of <code class="docutils literal notranslate"><span class="pre">__init__</span></code>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>It is now possible for configuration to be specified at
+multiple levels of a class hierarchy.</p>
+</div>
+<dl class="classmethod">
+<dt id="tornado.util.Configurable.configurable_base">
+<em class="property">classmethod </em><code class="descname">configurable_base</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/util.html#Configurable.configurable_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.Configurable.configurable_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the base class of a configurable hierarchy.</p>
+<p>This will normally return the class in which it is defined.
+(which is <em>not</em> necessarily the same as the <code class="docutils literal notranslate"><span class="pre">cls</span></code> classmethod
+parameter).</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="tornado.util.Configurable.configurable_default">
+<em class="property">classmethod </em><code class="descname">configurable_default</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/util.html#Configurable.configurable_default"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.Configurable.configurable_default" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the implementation class to be used if none is configured.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.util.Configurable.initialize">
+<code class="descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#tornado.util.Configurable.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a <a class="reference internal" href="#tornado.util.Configurable" title="tornado.util.Configurable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Configurable</span></code></a> subclass instance.</p>
+<p>Configurable classes should use <a class="reference internal" href="#tornado.util.Configurable.initialize" title="tornado.util.Configurable.initialize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize</span></code></a> instead of <code class="docutils literal notranslate"><span class="pre">__init__</span></code>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.2: </span>Now accepts positional arguments in addition to keyword arguments.</p>
+</div>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="tornado.util.Configurable.configure">
+<em class="property">classmethod </em><code class="descname">configure</code><span class="sig-paren">(</span><em>impl</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/util.html#Configurable.configure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.Configurable.configure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the class to use when the base class is instantiated.</p>
+<p>Keyword arguments will be saved and added to the arguments passed
+to the constructor.  This can be used to set global defaults for
+some parameters.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="tornado.util.Configurable.configured_class">
+<em class="property">classmethod </em><code class="descname">configured_class</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/util.html#Configurable.configured_class"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.Configurable.configured_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the currently configured class.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.util.ArgReplacer">
+<em class="property">class </em><code class="descclassname">tornado.util.</code><code class="descname">ArgReplacer</code><span class="sig-paren">(</span><em>func: Callable</em>, <em>name: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/util.html#ArgReplacer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.ArgReplacer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces one value in an <code class="docutils literal notranslate"><span class="pre">args,</span> <span class="pre">kwargs</span></code> pair.</p>
+<p>Inspects the function signature to find an argument by name
+whether it is passed by position or keyword.  For use in decorators
+and similar wrappers.</p>
+<dl class="method">
+<dt id="tornado.util.ArgReplacer.get_old_value">
+<code class="descname">get_old_value</code><span class="sig-paren">(</span><em>args: Sequence[Any], kwargs: Dict[str, Any], default: Any = None</em><span class="sig-paren">)</span> &#x2192; Any<a class="reference internal" href="_modules/tornado/util.html#ArgReplacer.get_old_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.ArgReplacer.get_old_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the old value of the named argument without replacing it.</p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">default</span></code> if the argument is not present.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.util.ArgReplacer.replace">
+<code class="descname">replace</code><span class="sig-paren">(</span><em>new_value: Any, args: Sequence[Any], kwargs: Dict[str, Any]</em><span class="sig-paren">)</span> &#x2192; Tuple[Any, Sequence[Any], Dict[str, Any]]<a class="reference internal" href="_modules/tornado/util.html#ArgReplacer.replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.ArgReplacer.replace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace the named argument in <code class="docutils literal notranslate"><span class="pre">args,</span> <span class="pre">kwargs</span></code> with <code class="docutils literal notranslate"><span class="pre">new_value</span></code>.</p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">(old_value,</span> <span class="pre">args,</span> <span class="pre">kwargs)</span></code>.  The returned <code class="docutils literal notranslate"><span class="pre">args</span></code> and
+<code class="docutils literal notranslate"><span class="pre">kwargs</span></code> objects may not be the same as the input objects, or
+the input objects may be mutated.</p>
+<p>If the named argument was not found, <code class="docutils literal notranslate"><span class="pre">new_value</span></code> will be added
+to <code class="docutils literal notranslate"><span class="pre">kwargs</span></code> and None will be returned as <code class="docutils literal notranslate"><span class="pre">old_value</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.util.timedelta_to_seconds">
+<code class="descclassname">tornado.util.</code><code class="descname">timedelta_to_seconds</code><span class="sig-paren">(</span><em>td</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/util.html#timedelta_to_seconds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.util.timedelta_to_seconds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Equivalent to <code class="docutils literal notranslate"><span class="pre">td.total_seconds()</span></code> (introduced in Python 2.7).</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="faq.html" class="btn btn-neutral float-right" title="Frequently Asked Questions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="testing.html" class="btn btn-neutral float-left" title="tornado.testing — Unit testing support for asynchronous code" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

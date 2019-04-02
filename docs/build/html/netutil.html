@@ -1,0 +1,455 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.netutil — Miscellaneous network utilities &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.tcpclient — IOStream connection factory" href="tcpclient.html" />
+    <link rel="prev" title="tornado.iostream — Convenient wrappers for non-blocking sockets" href="iostream.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="networking.html">Asynchronous networking</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ioloop.html"><code class="docutils literal notranslate"><span class="pre">tornado.ioloop</span></code> — Main event loop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iostream.html"><code class="docutils literal notranslate"><span class="pre">tornado.iostream</span></code> — Convenient wrappers for non-blocking sockets</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.netutil</span></code> — Miscellaneous network utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tcpclient.html"><code class="docutils literal notranslate"><span class="pre">tornado.tcpclient</span></code> — <code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code> connection factory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tcpserver.html"><code class="docutils literal notranslate"><span class="pre">tornado.tcpserver</span></code> — Basic <code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code>-based TCP server</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="networking.html">Asynchronous networking</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.netutil</span></code> — Miscellaneous network utilities</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/netutil.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-tornado.netutil">
+<span id="tornado-netutil-miscellaneous-network-utilities"></span><h1><code class="docutils literal notranslate"><span class="pre">tornado.netutil</span></code> — Miscellaneous network utilities<a class="headerlink" href="#module-tornado.netutil" title="Permalink to this headline">¶</a></h1>
+<p>Miscellaneous network utility code.</p>
+<dl class="function">
+<dt id="tornado.netutil.bind_sockets">
+<code class="descclassname">tornado.netutil.</code><code class="descname">bind_sockets</code><span class="sig-paren">(</span><em>port: int</em>, <em>address: str = None</em>, <em>family: socket.AddressFamily = &lt;AddressFamily.AF_UNSPEC: 0&gt;</em>, <em>backlog: int = 128</em>, <em>flags: int = None</em>, <em>reuse_port: bool = False</em><span class="sig-paren">)</span> &#x2192; List[socket.socket]<a class="reference internal" href="_modules/tornado/netutil.html#bind_sockets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.netutil.bind_sockets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates listening sockets bound to the given port and address.</p>
+<p>Returns a list of socket objects (multiple sockets are returned if
+the given address maps to multiple IP addresses, which is most common
+for mixed IPv4 and IPv6 use).</p>
+<p>Address may be either an IP address or hostname.  If it’s a hostname,
+the server will listen on all IP addresses associated with the
+name.  Address may be an empty string or None to listen on all
+available interfaces.  Family may be set to either <a class="reference external" href="https://docs.python.org/3.6/library/socket.html#socket.AF_INET" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">socket.AF_INET</span></code></a>
+or <a class="reference external" href="https://docs.python.org/3.6/library/socket.html#socket.AF_INET6" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">socket.AF_INET6</span></code></a> to restrict to IPv4 or IPv6 addresses, otherwise
+both will be used if available.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">backlog</span></code> argument has the same meaning as for
+<a class="reference external" href="https://docs.python.org/3.6/library/socket.html#socket.socket.listen" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">socket.listen()</span></code></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">flags</span></code> is a bitmask of AI_* flags to <a class="reference external" href="https://docs.python.org/3.6/library/socket.html#socket.getaddrinfo" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getaddrinfo</span></code></a>, like
+<code class="docutils literal notranslate"><span class="pre">socket.AI_PASSIVE</span> <span class="pre">|</span> <span class="pre">socket.AI_NUMERICHOST</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">reuse_port</span></code> option sets <code class="docutils literal notranslate"><span class="pre">SO_REUSEPORT</span></code> option for every socket
+in the list. If your platform doesn’t support this option ValueError will
+be raised.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.netutil.bind_unix_socket">
+<code class="descclassname">tornado.netutil.</code><code class="descname">bind_unix_socket</code><span class="sig-paren">(</span><em>file: str</em>, <em>mode: int = 384</em>, <em>backlog: int = 128</em><span class="sig-paren">)</span> &#x2192; socket.socket<a class="reference internal" href="_modules/tornado/netutil.html#bind_unix_socket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.netutil.bind_unix_socket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a listening unix socket.</p>
+<p>If a socket with the given name already exists, it will be deleted.
+If any other file with that name exists, an exception will be
+raised.</p>
+<p>Returns a socket object (not a list of socket objects like
+<a class="reference internal" href="#tornado.netutil.bind_sockets" title="tornado.netutil.bind_sockets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bind_sockets</span></code></a>)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.netutil.add_accept_handler">
+<code class="descclassname">tornado.netutil.</code><code class="descname">add_accept_handler</code><span class="sig-paren">(</span><em>sock: socket.socket, callback: Callable[[socket.socket, Any], None]</em><span class="sig-paren">)</span> &#x2192; Callable[[], None]<a class="reference internal" href="_modules/tornado/netutil.html#add_accept_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.netutil.add_accept_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds an <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> event handler to accept new connections on <code class="docutils literal notranslate"><span class="pre">sock</span></code>.</p>
+<p>When a connection is accepted, <code class="docutils literal notranslate"><span class="pre">callback(connection,</span> <span class="pre">address)</span></code> will
+be run (<code class="docutils literal notranslate"><span class="pre">connection</span></code> is a socket object, and <code class="docutils literal notranslate"><span class="pre">address</span></code> is the
+address of the other end of the connection).  Note that this signature
+is different from the <code class="docutils literal notranslate"><span class="pre">callback(fd,</span> <span class="pre">events)</span></code> signature used for
+<a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> handlers.</p>
+<p>A callable is returned which, when called, will remove the <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>
+event handler and stop processing further incoming connections.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>The <code class="docutils literal notranslate"><span class="pre">io_loop</span></code> argument (deprecated since version 4.1) has been removed.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>A callable is returned (<code class="docutils literal notranslate"><span class="pre">None</span></code> was returned before).</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.netutil.is_valid_ip">
+<code class="descclassname">tornado.netutil.</code><code class="descname">is_valid_ip</code><span class="sig-paren">(</span><em>ip: str</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/tornado/netutil.html#is_valid_ip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.netutil.is_valid_ip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> if the given string is a well-formed IP address.</p>
+<p>Supports IPv4 and IPv6.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.netutil.Resolver">
+<em class="property">class </em><code class="descclassname">tornado.netutil.</code><code class="descname">Resolver</code><a class="reference internal" href="_modules/tornado/netutil.html#Resolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.netutil.Resolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configurable asynchronous DNS resolver interface.</p>
+<p>By default, a blocking implementation is used (which simply calls
+<a class="reference external" href="https://docs.python.org/3.6/library/socket.html#socket.getaddrinfo" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">socket.getaddrinfo</span></code></a>).  An alternative implementation can be
+chosen with the <a class="reference internal" href="util.html#tornado.util.Configurable.configure" title="tornado.util.Configurable.configure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Resolver.configure</span></code></a>
+class method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Resolver</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="s1">&#39;tornado.netutil.ThreadedResolver&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The implementations of this interface included with Tornado are</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#tornado.netutil.DefaultExecutorResolver" title="tornado.netutil.DefaultExecutorResolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.netutil.DefaultExecutorResolver</span></code></a></p></li>
+<li><p><a class="reference internal" href="#tornado.netutil.BlockingResolver" title="tornado.netutil.BlockingResolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.netutil.BlockingResolver</span></code></a> (deprecated)</p></li>
+<li><p><a class="reference internal" href="#tornado.netutil.ThreadedResolver" title="tornado.netutil.ThreadedResolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.netutil.ThreadedResolver</span></code></a> (deprecated)</p></li>
+<li><p><a class="reference internal" href="#tornado.netutil.OverrideResolver" title="tornado.netutil.OverrideResolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.netutil.OverrideResolver</span></code></a></p></li>
+<li><p><a class="reference internal" href="twisted.html#tornado.platform.twisted.TwistedResolver" title="tornado.platform.twisted.TwistedResolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.platform.twisted.TwistedResolver</span></code></a></p></li>
+<li><p><a class="reference internal" href="caresresolver.html#tornado.platform.caresresolver.CaresResolver" title="tornado.platform.caresresolver.CaresResolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.platform.caresresolver.CaresResolver</span></code></a></p></li>
+</ul>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>The default implementation has changed from <a class="reference internal" href="#tornado.netutil.BlockingResolver" title="tornado.netutil.BlockingResolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockingResolver</span></code></a> to
+<a class="reference internal" href="#tornado.netutil.DefaultExecutorResolver" title="tornado.netutil.DefaultExecutorResolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DefaultExecutorResolver</span></code></a>.</p>
+</div>
+<dl class="method">
+<dt id="tornado.netutil.Resolver.resolve">
+<code class="descname">resolve</code><span class="sig-paren">(</span><em>host: str</em>, <em>port: int</em>, <em>family: socket.AddressFamily = &lt;AddressFamily.AF_UNSPEC: 0&gt;</em><span class="sig-paren">)</span> &#x2192; Awaitable[List[Tuple[int, Any]]]<a class="reference internal" href="_modules/tornado/netutil.html#Resolver.resolve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.netutil.Resolver.resolve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resolves an address.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">host</span></code> argument is a string which may be a hostname or a
+literal IP address.</p>
+<p>Returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> whose result is a list of (family,
+address) pairs, where address is a tuple suitable to pass to
+<a class="reference external" href="https://docs.python.org/3.6/library/socket.html#socket.socket.connect" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">socket.connect</span></code></a> (i.e. a <code class="docutils literal notranslate"><span class="pre">(host,</span>
+<span class="pre">port)</span></code> pair for IPv4; additional fields may be present for
+IPv6). If a <code class="docutils literal notranslate"><span class="pre">callback</span></code> is passed, it will be run with the
+result as an argument when it is complete.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.6/library/exceptions.html#IOError" title="(in Python v3.6)"><strong>IOError</strong></a> – if the address cannot be resolved.</p>
+</dd>
+</dl>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.4: </span>Standardized all implementations to raise <a class="reference external" href="https://docs.python.org/3.6/library/exceptions.html#IOError" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOError</span></code></a>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument was removed.
+Use the returned awaitable object instead.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.netutil.Resolver.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/netutil.html#Resolver.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.netutil.Resolver.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the <a class="reference internal" href="#tornado.netutil.Resolver" title="tornado.netutil.Resolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Resolver</span></code></a>, freeing any resources used.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.1.</span></p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.netutil.DefaultExecutorResolver">
+<em class="property">class </em><code class="descclassname">tornado.netutil.</code><code class="descname">DefaultExecutorResolver</code><a class="reference internal" href="_modules/tornado/netutil.html#DefaultExecutorResolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.netutil.DefaultExecutorResolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resolver implementation using <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.run_in_executor" title="tornado.ioloop.IOLoop.run_in_executor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.run_in_executor</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 5.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.netutil.ExecutorResolver">
+<em class="property">class </em><code class="descclassname">tornado.netutil.</code><code class="descname">ExecutorResolver</code><a class="reference internal" href="_modules/tornado/netutil.html#ExecutorResolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.netutil.ExecutorResolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resolver implementation using a <a class="reference external" href="https://docs.python.org/3.6/library/concurrent.futures.html#concurrent.futures.Executor" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concurrent.futures.Executor</span></code></a>.</p>
+<p>Use this instead of <a class="reference internal" href="#tornado.netutil.ThreadedResolver" title="tornado.netutil.ThreadedResolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ThreadedResolver</span></code></a> when you require additional
+control over the executor being used.</p>
+<p>The executor will be shut down when the resolver is closed unless
+<code class="docutils literal notranslate"><span class="pre">close_resolver=False</span></code>; use this if you want to reuse the same
+executor elsewhere.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>The <code class="docutils literal notranslate"><span class="pre">io_loop</span></code> argument (deprecated since version 4.1) has been removed.</p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.0: </span>The default <a class="reference internal" href="#tornado.netutil.Resolver" title="tornado.netutil.Resolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Resolver</span></code></a> now uses <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.run_in_executor" title="tornado.ioloop.IOLoop.run_in_executor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.run_in_executor</span></code></a>; use that instead
+of this class.</p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.netutil.BlockingResolver">
+<em class="property">class </em><code class="descclassname">tornado.netutil.</code><code class="descname">BlockingResolver</code><a class="reference internal" href="_modules/tornado/netutil.html#BlockingResolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.netutil.BlockingResolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default <a class="reference internal" href="#tornado.netutil.Resolver" title="tornado.netutil.Resolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Resolver</span></code></a> implementation, using <a class="reference external" href="https://docs.python.org/3.6/library/socket.html#socket.getaddrinfo" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">socket.getaddrinfo</span></code></a>.</p>
+<p>The <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> will be blocked during the resolution, although the
+callback will not be run until the next <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> iteration.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.0: </span>The default <a class="reference internal" href="#tornado.netutil.Resolver" title="tornado.netutil.Resolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Resolver</span></code></a> now uses <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.run_in_executor" title="tornado.ioloop.IOLoop.run_in_executor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.run_in_executor</span></code></a>; use that instead
+of this class.</p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.netutil.ThreadedResolver">
+<em class="property">class </em><code class="descclassname">tornado.netutil.</code><code class="descname">ThreadedResolver</code><a class="reference internal" href="_modules/tornado/netutil.html#ThreadedResolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.netutil.ThreadedResolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multithreaded non-blocking <a class="reference internal" href="#tornado.netutil.Resolver" title="tornado.netutil.Resolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Resolver</span></code></a> implementation.</p>
+<p>Requires the <a class="reference external" href="https://docs.python.org/3.6/library/concurrent.futures.html#module-concurrent.futures" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concurrent.futures</span></code></a> package to be installed
+(available in the standard library since Python 3.2,
+installable with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">futures</span></code> in older versions).</p>
+<p>The thread pool size can be configured with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Resolver</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="s1">&#39;tornado.netutil.ThreadedResolver&#39;</span><span class="p">,</span>
+                   <span class="n">num_threads</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 3.1: </span>All <code class="docutils literal notranslate"><span class="pre">ThreadedResolvers</span></code> share a single thread pool, whose
+size is set by the first one to be created.</p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.0: </span>The default <a class="reference internal" href="#tornado.netutil.Resolver" title="tornado.netutil.Resolver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Resolver</span></code></a> now uses <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.run_in_executor" title="tornado.ioloop.IOLoop.run_in_executor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.run_in_executor</span></code></a>; use that instead
+of this class.</p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.netutil.OverrideResolver">
+<em class="property">class </em><code class="descclassname">tornado.netutil.</code><code class="descname">OverrideResolver</code><a class="reference internal" href="_modules/tornado/netutil.html#OverrideResolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.netutil.OverrideResolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wraps a resolver with a mapping of overrides.</p>
+<p>This can be used to make local DNS changes (e.g. for testing)
+without modifying system-wide settings.</p>
+<p>The mapping can be in three formats:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="c1"># Hostname to host or ip</span>
+    <span class="s2">&quot;example.com&quot;</span><span class="p">:</span> <span class="s2">&quot;127.0.1.1&quot;</span><span class="p">,</span>
+
+    <span class="c1"># Host+port to host+port</span>
+    <span class="p">(</span><span class="s2">&quot;login.example.com&quot;</span><span class="p">,</span> <span class="mi">443</span><span class="p">):</span> <span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="mi">1443</span><span class="p">),</span>
+
+    <span class="c1"># Host+port+address family to host+port</span>
+    <span class="p">(</span><span class="s2">&quot;login.example.com&quot;</span><span class="p">,</span> <span class="mi">443</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">AF_INET6</span><span class="p">):</span> <span class="p">(</span><span class="s2">&quot;::1&quot;</span><span class="p">,</span> <span class="mi">1443</span><span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Added support for host-port-family triplets.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.netutil.ssl_options_to_context">
+<code class="descclassname">tornado.netutil.</code><code class="descname">ssl_options_to_context</code><span class="sig-paren">(</span><em>ssl_options: Union[Dict[str, Any], ssl.SSLContext]</em><span class="sig-paren">)</span> &#x2192; ssl.SSLContext<a class="reference internal" href="_modules/tornado/netutil.html#ssl_options_to_context"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.netutil.ssl_options_to_context" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to convert an <code class="docutils literal notranslate"><span class="pre">ssl_options</span></code> dictionary to an
+<a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.SSLContext" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SSLContext</span></code></a> object.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ssl_options</span></code> dictionary contains keywords to be passed to
+<a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.wrap_socket" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl.wrap_socket</span></code></a>.  In Python 2.7.9+, <a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.SSLContext" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl.SSLContext</span></code></a> objects can
+be used instead.  This function converts the dict form to its
+<a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.SSLContext" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SSLContext</span></code></a> equivalent, and may be used when a component which
+accepts both forms needs to upgrade to the <a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.SSLContext" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SSLContext</span></code></a> version
+to use features like SNI or NPN.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.netutil.ssl_wrap_socket">
+<code class="descclassname">tornado.netutil.</code><code class="descname">ssl_wrap_socket</code><span class="sig-paren">(</span><em>socket: socket.socket, ssl_options: Union[Dict[str, Any], ssl.SSLContext], server_hostname: str = None, **kwargs</em><span class="sig-paren">)</span> &#x2192; ssl.SSLSocket<a class="reference internal" href="_modules/tornado/netutil.html#ssl_wrap_socket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.netutil.ssl_wrap_socket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an <code class="docutils literal notranslate"><span class="pre">ssl.SSLSocket</span></code> wrapping the given socket.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ssl_options</span></code> may be either an <a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.SSLContext" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl.SSLContext</span></code></a> object or a
+dictionary (as accepted by <a class="reference internal" href="#tornado.netutil.ssl_options_to_context" title="tornado.netutil.ssl_options_to_context"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl_options_to_context</span></code></a>).  Additional
+keyword arguments are passed to <code class="docutils literal notranslate"><span class="pre">wrap_socket</span></code> (either the
+<a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.SSLContext" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SSLContext</span></code></a> method or the <a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#module-ssl" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl</span></code></a> module function as
+appropriate).</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="tcpclient.html" class="btn btn-neutral float-right" title="tornado.tcpclient — IOStream connection factory" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="iostream.html" class="btn btn-neutral float-left" title="tornado.iostream — Convenient wrappers for non-blocking sockets" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

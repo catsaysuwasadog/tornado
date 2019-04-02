@@ -1,0 +1,688 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.iostream — Convenient wrappers for non-blocking sockets &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.netutil — Miscellaneous network utilities" href="netutil.html" />
+    <link rel="prev" title="tornado.ioloop — Main event loop" href="ioloop.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="networking.html">Asynchronous networking</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ioloop.html"><code class="docutils literal notranslate"><span class="pre">tornado.ioloop</span></code> — Main event loop</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.iostream</span></code> — Convenient wrappers for non-blocking sockets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="netutil.html"><code class="docutils literal notranslate"><span class="pre">tornado.netutil</span></code> — Miscellaneous network utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tcpclient.html"><code class="docutils literal notranslate"><span class="pre">tornado.tcpclient</span></code> — <code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code> connection factory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tcpserver.html"><code class="docutils literal notranslate"><span class="pre">tornado.tcpserver</span></code> — Basic <code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code>-based TCP server</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="networking.html">Asynchronous networking</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.iostream</span></code> — Convenient wrappers for non-blocking sockets</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/iostream.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-tornado.iostream">
+<span id="tornado-iostream-convenient-wrappers-for-non-blocking-sockets"></span><h1><code class="docutils literal notranslate"><span class="pre">tornado.iostream</span></code> — Convenient wrappers for non-blocking sockets<a class="headerlink" href="#module-tornado.iostream" title="Permalink to this headline">¶</a></h1>
+<p>Utility classes to write to and read from non-blocking files and sockets.</p>
+<p>Contents:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#tornado.iostream.BaseIOStream" title="tornado.iostream.BaseIOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseIOStream</span></code></a>: Generic interface for reading and writing.</p></li>
+<li><p><a class="reference internal" href="#tornado.iostream.IOStream" title="tornado.iostream.IOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code></a>: Implementation of BaseIOStream using non-blocking sockets.</p></li>
+<li><p><a class="reference internal" href="#tornado.iostream.SSLIOStream" title="tornado.iostream.SSLIOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SSLIOStream</span></code></a>: SSL-aware version of IOStream.</p></li>
+<li><p><a class="reference internal" href="#tornado.iostream.PipeIOStream" title="tornado.iostream.PipeIOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PipeIOStream</span></code></a>: Pipe-based IOStream implementation.</p></li>
+</ul>
+<div class="section" id="base-class">
+<h2>Base class<a class="headerlink" href="#base-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.iostream.BaseIOStream">
+<em class="property">class </em><code class="descclassname">tornado.iostream.</code><code class="descname">BaseIOStream</code><span class="sig-paren">(</span><em>max_buffer_size: int = None</em>, <em>read_chunk_size: int = None</em>, <em>max_write_buffer_size: int = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream" title="Permalink to this definition">¶</a></dt>
+<dd><p>A utility class to write to and read from a non-blocking file or socket.</p>
+<p>We support a non-blocking <code class="docutils literal notranslate"><span class="pre">write()</span></code> and a family of <code class="docutils literal notranslate"><span class="pre">read_*()</span></code>
+methods. When the operation completes, the <code class="docutils literal notranslate"><span class="pre">Awaitable</span></code> will resolve
+with the data read (or <code class="docutils literal notranslate"><span class="pre">None</span></code> for <code class="docutils literal notranslate"><span class="pre">write()</span></code>). All outstanding
+<code class="docutils literal notranslate"><span class="pre">Awaitables</span></code> will resolve with a <a class="reference internal" href="#tornado.iostream.StreamClosedError" title="tornado.iostream.StreamClosedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StreamClosedError</span></code></a> when the
+stream is closed; <a class="reference internal" href="#tornado.iostream.BaseIOStream.set_close_callback" title="tornado.iostream.BaseIOStream.set_close_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseIOStream.set_close_callback</span></code></a> can also be used
+to be notified of a closed stream.</p>
+<p>When a stream is closed due to an error, the IOStream’s <code class="docutils literal notranslate"><span class="pre">error</span></code>
+attribute contains the exception object.</p>
+<p>Subclasses must implement <a class="reference internal" href="#tornado.iostream.BaseIOStream.fileno" title="tornado.iostream.BaseIOStream.fileno"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fileno</span></code></a>, <a class="reference internal" href="#tornado.iostream.BaseIOStream.close_fd" title="tornado.iostream.BaseIOStream.close_fd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close_fd</span></code></a>, <a class="reference internal" href="#tornado.iostream.BaseIOStream.write_to_fd" title="tornado.iostream.BaseIOStream.write_to_fd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_to_fd</span></code></a>,
+<a class="reference internal" href="#tornado.iostream.BaseIOStream.read_from_fd" title="tornado.iostream.BaseIOStream.read_from_fd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_from_fd</span></code></a>, and optionally <a class="reference internal" href="#tornado.iostream.BaseIOStream.get_fd_error" title="tornado.iostream.BaseIOStream.get_fd_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fd_error</span></code></a>.</p>
+<p><a class="reference internal" href="#tornado.iostream.BaseIOStream" title="tornado.iostream.BaseIOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseIOStream</span></code></a> constructor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_buffer_size</strong> – Maximum amount of incoming data to buffer;
+defaults to 100MB.</p></li>
+<li><p><strong>read_chunk_size</strong> – Amount of data to read at one time from the
+underlying transport; defaults to 64KB.</p></li>
+<li><p><strong>max_write_buffer_size</strong> – Amount of outgoing data to buffer;
+defaults to unlimited.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Add the <code class="docutils literal notranslate"><span class="pre">max_write_buffer_size</span></code> parameter.  Changed default
+<code class="docutils literal notranslate"><span class="pre">read_chunk_size</span></code> to 64KB.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>The <code class="docutils literal notranslate"><span class="pre">io_loop</span></code> argument (deprecated since version 4.1) has been
+removed.</p>
+</div>
+</dd></dl>
+
+<div class="section" id="main-interface">
+<h3>Main interface<a class="headerlink" href="#main-interface" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.write">
+<code class="descclassname">BaseIOStream.</code><code class="descname">write</code><span class="sig-paren">(</span><em>data: Union[bytes, memoryview]</em><span class="sig-paren">)</span> &#x2192; Future[None]<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asynchronously write the given data to this stream.</p>
+<p>This method returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> that resolves (with a result
+of <code class="docutils literal notranslate"><span class="pre">None</span></code>) when the write has been completed.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">data</span></code> argument may be of type <a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#bytes" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bytes</span></code></a> or <a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#memoryview" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">memoryview</span></code></a>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Now returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> if no callback is given.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.5: </span>Added support for <a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#memoryview" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">memoryview</span></code></a> arguments.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument was removed. Use the returned
+<a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> instead.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.read_bytes">
+<code class="descclassname">BaseIOStream.</code><code class="descname">read_bytes</code><span class="sig-paren">(</span><em>num_bytes: int</em>, <em>partial: bool = False</em><span class="sig-paren">)</span> &#x2192; Awaitable[bytes]<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.read_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.read_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asynchronously read a number of bytes.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">partial</span></code> is true, data is returned as soon as we have
+any bytes to return (but never more than <code class="docutils literal notranslate"><span class="pre">num_bytes</span></code>)</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Added the <code class="docutils literal notranslate"><span class="pre">partial</span></code> argument.  The callback argument is now
+optional and a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> will be returned if it is omitted.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> and <code class="docutils literal notranslate"><span class="pre">streaming_callback</span></code> arguments have
+been removed. Use the returned <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> (and
+<code class="docutils literal notranslate"><span class="pre">partial=True</span></code> for <code class="docutils literal notranslate"><span class="pre">streaming_callback</span></code>) instead.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.read_into">
+<code class="descclassname">BaseIOStream.</code><code class="descname">read_into</code><span class="sig-paren">(</span><em>buf: bytearray</em>, <em>partial: bool = False</em><span class="sig-paren">)</span> &#x2192; Awaitable[int]<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.read_into"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.read_into" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asynchronously read a number of bytes.</p>
+<p><code class="docutils literal notranslate"><span class="pre">buf</span></code> must be a writable buffer into which data will be read.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">partial</span></code> is true, the callback is run as soon as any bytes
+have been read.  Otherwise, it is run when the <code class="docutils literal notranslate"><span class="pre">buf</span></code> has been
+entirely filled with read data.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 5.0.</span></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument was removed. Use the returned
+<a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> instead.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.read_until">
+<code class="descclassname">BaseIOStream.</code><code class="descname">read_until</code><span class="sig-paren">(</span><em>delimiter: bytes</em>, <em>max_bytes: int = None</em><span class="sig-paren">)</span> &#x2192; Awaitable[bytes]<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.read_until"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.read_until" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asynchronously read until we have found the given delimiter.</p>
+<p>The result includes all the data read including the delimiter.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">max_bytes</span></code> is not None, the connection will be closed
+if more than <code class="docutils literal notranslate"><span class="pre">max_bytes</span></code> bytes have been read and the delimiter
+is not found.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Added the <code class="docutils literal notranslate"><span class="pre">max_bytes</span></code> argument.  The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument is
+now optional and a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> will be returned if it is omitted.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument was removed. Use the returned
+<a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> instead.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.read_until_regex">
+<code class="descclassname">BaseIOStream.</code><code class="descname">read_until_regex</code><span class="sig-paren">(</span><em>regex: bytes</em>, <em>max_bytes: int = None</em><span class="sig-paren">)</span> &#x2192; Awaitable[bytes]<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.read_until_regex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.read_until_regex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asynchronously read until we have matched the given regex.</p>
+<p>The result includes the data that matches the regex and anything
+that came before it.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">max_bytes</span></code> is not None, the connection will be closed
+if more than <code class="docutils literal notranslate"><span class="pre">max_bytes</span></code> bytes have been read and the regex is
+not satisfied.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Added the <code class="docutils literal notranslate"><span class="pre">max_bytes</span></code> argument.  The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument is
+now optional and a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> will be returned if it is omitted.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument was removed. Use the returned
+<a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> instead.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.read_until_close">
+<code class="descclassname">BaseIOStream.</code><code class="descname">read_until_close</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Awaitable[bytes]<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.read_until_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.read_until_close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asynchronously reads all data from the socket until it is closed.</p>
+<p>This will buffer all available data until <code class="docutils literal notranslate"><span class="pre">max_buffer_size</span></code>
+is reached. If flow control or cancellation are desired, use a
+loop with <a class="reference internal" href="#tornado.iostream.BaseIOStream.read_bytes" title="tornado.iostream.BaseIOStream.read_bytes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_bytes(partial=True)</span></code></a> instead.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>The callback argument is now optional and a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> will
+be returned if it is omitted.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> and <code class="docutils literal notranslate"><span class="pre">streaming_callback</span></code> arguments have
+been removed. Use the returned <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> (and <a class="reference internal" href="#tornado.iostream.BaseIOStream.read_bytes" title="tornado.iostream.BaseIOStream.read_bytes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_bytes</span></code></a>
+with <code class="docutils literal notranslate"><span class="pre">partial=True</span></code> for <code class="docutils literal notranslate"><span class="pre">streaming_callback</span></code>) instead.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.close">
+<code class="descclassname">BaseIOStream.</code><code class="descname">close</code><span class="sig-paren">(</span><em>exc_info: Union[None, bool, BaseException, Tuple[Optional[Type[BaseException]], Optional[BaseException], Optional[traceback]]] = False</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close this stream.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">exc_info</span></code> is true, set the <code class="docutils literal notranslate"><span class="pre">error</span></code> attribute to the current
+exception from <a class="reference external" href="https://docs.python.org/3.6/library/sys.html#sys.exc_info" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sys.exc_info</span></code></a> (or if <code class="docutils literal notranslate"><span class="pre">exc_info</span></code> is a tuple,
+use that instead of <a class="reference external" href="https://docs.python.org/3.6/library/sys.html#sys.exc_info" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sys.exc_info</span></code></a>).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.set_close_callback">
+<code class="descclassname">BaseIOStream.</code><code class="descname">set_close_callback</code><span class="sig-paren">(</span><em>callback: Optional[Callable[[], None]]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.set_close_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.set_close_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call the given callback when the stream is closed.</p>
+<p>This mostly is not necessary for applications that use the
+<a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> interface; all outstanding <code class="docutils literal notranslate"><span class="pre">Futures</span></code> will resolve
+with a <a class="reference internal" href="#tornado.iostream.StreamClosedError" title="tornado.iostream.StreamClosedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StreamClosedError</span></code></a> when the stream is closed. However,
+it is still useful as a way to signal that the stream has been
+closed while no other read or write is in progress.</p>
+<p>Unlike other callback-based interfaces, <code class="docutils literal notranslate"><span class="pre">set_close_callback</span></code>
+was not removed in Tornado 6.0.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.closed">
+<code class="descclassname">BaseIOStream.</code><code class="descname">closed</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.closed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.closed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> if the stream has been closed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.reading">
+<code class="descclassname">BaseIOStream.</code><code class="descname">reading</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.reading"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.reading" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> if we are currently reading from the stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.writing">
+<code class="descclassname">BaseIOStream.</code><code class="descname">writing</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.writing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.writing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> if we are currently writing to the stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.set_nodelay">
+<code class="descclassname">BaseIOStream.</code><code class="descname">set_nodelay</code><span class="sig-paren">(</span><em>value: bool</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.set_nodelay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.set_nodelay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the no-delay flag for this stream.</p>
+<p>By default, data written to TCP streams may be held for a time
+to make the most efficient use of bandwidth (according to
+Nagle’s algorithm).  The no-delay flag requests that data be
+written as soon as possible, even if doing so would consume
+additional bandwidth.</p>
+<p>This flag is currently defined only for TCP-based <code class="docutils literal notranslate"><span class="pre">IOStreams</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.1.</span></p>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="methods-for-subclasses">
+<h3>Methods for subclasses<a class="headerlink" href="#methods-for-subclasses" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.fileno">
+<code class="descclassname">BaseIOStream.</code><code class="descname">fileno</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Union[int, tornado.ioloop._Selectable]<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.fileno"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.fileno" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the file descriptor for this stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.close_fd">
+<code class="descclassname">BaseIOStream.</code><code class="descname">close_fd</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.close_fd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.close_fd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the file underlying this stream.</p>
+<p><code class="docutils literal notranslate"><span class="pre">close_fd</span></code> is called by <a class="reference internal" href="#tornado.iostream.BaseIOStream" title="tornado.iostream.BaseIOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseIOStream</span></code></a> and should not be called
+elsewhere; other users should call <a class="reference internal" href="#tornado.iostream.BaseIOStream.close" title="tornado.iostream.BaseIOStream.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close</span></code></a> instead.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.write_to_fd">
+<code class="descclassname">BaseIOStream.</code><code class="descname">write_to_fd</code><span class="sig-paren">(</span><em>data: memoryview</em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.write_to_fd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.write_to_fd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempts to write <code class="docutils literal notranslate"><span class="pre">data</span></code> to the underlying file.</p>
+<p>Returns the number of bytes written.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.read_from_fd">
+<code class="descclassname">BaseIOStream.</code><code class="descname">read_from_fd</code><span class="sig-paren">(</span><em>buf: Union[bytearray, memoryview]</em><span class="sig-paren">)</span> &#x2192; Optional[int]<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.read_from_fd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.read_from_fd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempts to read from the underlying file.</p>
+<p>Reads up to <code class="docutils literal notranslate"><span class="pre">len(buf)</span></code> bytes, storing them in the buffer.
+Returns the number of bytes read. Returns None if there was
+nothing to read (the socket returned <a class="reference external" href="https://docs.python.org/3.6/library/errno.html#errno.EWOULDBLOCK" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EWOULDBLOCK</span></code></a> or
+equivalent), and zero on EOF.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Interface redesigned to take a buffer and return a number
+of bytes instead of a freshly-allocated object.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.BaseIOStream.get_fd_error">
+<code class="descclassname">BaseIOStream.</code><code class="descname">get_fd_error</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Optional[Exception]<a class="reference internal" href="_modules/tornado/iostream.html#BaseIOStream.get_fd_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.BaseIOStream.get_fd_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns information about any error on the underlying file.</p>
+<p>This method is called after the <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> has signaled an error on the
+file descriptor, and should return an Exception (such as <a class="reference external" href="https://docs.python.org/3.6/library/socket.html#socket.error" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">socket.error</span></code></a>
+with additional information, or None if no such information is
+available.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="implementations">
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.iostream.IOStream">
+<em class="property">class </em><code class="descclassname">tornado.iostream.</code><code class="descname">IOStream</code><span class="sig-paren">(</span><em>socket: socket.socket</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/iostream.html#IOStream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.IOStream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Socket-based <a class="reference internal" href="#tornado.iostream.IOStream" title="tornado.iostream.IOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code></a> implementation.</p>
+<p>This class supports the read and write methods from <a class="reference internal" href="#tornado.iostream.BaseIOStream" title="tornado.iostream.BaseIOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseIOStream</span></code></a>
+plus a <a class="reference internal" href="#tornado.iostream.IOStream.connect" title="tornado.iostream.IOStream.connect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">connect</span></code></a> method.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">socket</span></code> parameter may either be connected or unconnected.
+For server operations the socket is the result of calling
+<a class="reference external" href="https://docs.python.org/3.6/library/socket.html#socket.socket.accept" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">socket.accept</span></code></a>.  For client operations the
+socket is created with <a class="reference external" href="https://docs.python.org/3.6/library/socket.html#socket.socket" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">socket.socket</span></code></a>, and may either be
+connected before passing it to the <a class="reference internal" href="#tornado.iostream.IOStream" title="tornado.iostream.IOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code></a> or connected with
+<a class="reference internal" href="#tornado.iostream.IOStream.connect" title="tornado.iostream.IOStream.connect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream.connect</span></code></a>.</p>
+<p>A very simple (and broken) HTTP client using this class:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tornado.ioloop</span>
+<span class="kn">import</span> <span class="nn">tornado.iostream</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">stream</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">iostream</span><span class="o">.</span><span class="n">IOStream</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">stream</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="s2">&quot;friendfeed.com&quot;</span><span class="p">,</span> <span class="mi">80</span><span class="p">))</span>
+    <span class="k">await</span> <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;GET / HTTP/1.0</span><span class="se">\r\n</span><span class="s2">Host: friendfeed.com</span><span class="se">\r\n\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">header_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">stream</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">header_data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">):</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">headers</span><span class="p">[</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">body_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">stream</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">headers</span><span class="p">[</span><span class="sa">b</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">body_data</span><span class="p">)</span>
+    <span class="n">stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="n">main</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">stream</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">iostream</span><span class="o">.</span><span class="n">IOStream</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">stream</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="s2">&quot;friendfeed.com&quot;</span><span class="p">,</span> <span class="mi">80</span><span class="p">),</span> <span class="n">send_request</span><span class="p">)</span>
+    <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="tornado.iostream.IOStream.connect">
+<code class="descname">connect</code><span class="sig-paren">(</span><em>address: tuple</em>, <em>server_hostname: str = None</em><span class="sig-paren">)</span> &#x2192; Future[_IOStreamType]<a class="reference internal" href="_modules/tornado/iostream.html#IOStream.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.IOStream.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects the socket to a remote address without blocking.</p>
+<p>May only be called if the socket passed to the constructor was
+not previously connected.  The address parameter is in the
+same format as for <a class="reference external" href="https://docs.python.org/3.6/library/socket.html#socket.socket.connect" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">socket.connect</span></code></a> for
+the type of socket passed to the IOStream constructor,
+e.g. an <code class="docutils literal notranslate"><span class="pre">(ip,</span> <span class="pre">port)</span></code> tuple.  Hostnames are accepted here,
+but will be resolved synchronously and block the IOLoop.
+If you have a hostname instead of an IP address, the <a class="reference internal" href="tcpclient.html#tornado.tcpclient.TCPClient" title="tornado.tcpclient.TCPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TCPClient</span></code></a>
+class is recommended instead of calling this method directly.
+<a class="reference internal" href="tcpclient.html#tornado.tcpclient.TCPClient" title="tornado.tcpclient.TCPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TCPClient</span></code></a> will do asynchronous DNS resolution and handle
+both IPv4 and IPv6.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">callback</span></code> is specified, it will be called with no
+arguments when the connection is completed; if not this method
+returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> (whose result after a successful
+connection will be the stream itself).</p>
+<p>In SSL mode, the <code class="docutils literal notranslate"><span class="pre">server_hostname</span></code> parameter will be used
+for certificate validation (unless disabled in the
+<code class="docutils literal notranslate"><span class="pre">ssl_options</span></code>) and SNI (if supported; requires Python
+2.7.9+).</p>
+<p>Note that it is safe to call <a class="reference internal" href="#tornado.iostream.BaseIOStream.write" title="tornado.iostream.BaseIOStream.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream.write</span></code></a> while the connection is pending, in
+which case the data will be written as soon as the connection
+is ready.  Calling <a class="reference internal" href="#tornado.iostream.IOStream" title="tornado.iostream.IOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code></a> read methods before the socket is
+connected works on some platforms but is non-portable.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>If no callback is given, returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.2: </span>SSL certificates are validated by default; pass
+<code class="docutils literal notranslate"><span class="pre">ssl_options=dict(cert_reqs=ssl.CERT_NONE)</span></code> or a
+suitably-configured <a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.SSLContext" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl.SSLContext</span></code></a> to the
+<a class="reference internal" href="#tornado.iostream.SSLIOStream" title="tornado.iostream.SSLIOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SSLIOStream</span></code></a> constructor to disable.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument was removed. Use the returned
+<a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> instead.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.iostream.IOStream.start_tls">
+<code class="descname">start_tls</code><span class="sig-paren">(</span><em>server_side: bool, ssl_options: Union[Dict[str, Any], ssl.SSLContext] = None, server_hostname: str = None</em><span class="sig-paren">)</span> &#x2192; Awaitable[tornado.iostream.SSLIOStream]<a class="reference internal" href="_modules/tornado/iostream.html#IOStream.start_tls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.IOStream.start_tls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert this <a class="reference internal" href="#tornado.iostream.IOStream" title="tornado.iostream.IOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code></a> to an <a class="reference internal" href="#tornado.iostream.SSLIOStream" title="tornado.iostream.SSLIOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SSLIOStream</span></code></a>.</p>
+<p>This enables protocols that begin in clear-text mode and
+switch to SSL after some initial negotiation (such as the
+<code class="docutils literal notranslate"><span class="pre">STARTTLS</span></code> extension to SMTP and IMAP).</p>
+<p>This method cannot be used if there are outstanding reads
+or writes on the stream, or if there is any data in the
+IOStream’s buffer (data in the operating system’s socket
+buffer is allowed).  This means it must generally be used
+immediately after reading or writing the last clear-text
+data.  It can also be used immediately after connecting,
+before any reads or writes.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ssl_options</span></code> argument may be either an <a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.SSLContext" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl.SSLContext</span></code></a>
+object or a dictionary of keyword arguments for the
+<a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.wrap_socket" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl.wrap_socket</span></code></a> function.  The <code class="docutils literal notranslate"><span class="pre">server_hostname</span></code> argument
+will be used for certificate validation unless disabled
+in the <code class="docutils literal notranslate"><span class="pre">ssl_options</span></code>.</p>
+<p>This method returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> whose result is the new
+<a class="reference internal" href="#tornado.iostream.SSLIOStream" title="tornado.iostream.SSLIOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SSLIOStream</span></code></a>.  After this method has been called,
+any other operation on the original stream is undefined.</p>
+<p>If a close callback is defined on this stream, it will be
+transferred to the new stream.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0.</span></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.2: </span>SSL certificates are validated by default; pass
+<code class="docutils literal notranslate"><span class="pre">ssl_options=dict(cert_reqs=ssl.CERT_NONE)</span></code> or a
+suitably-configured <a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.SSLContext" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl.SSLContext</span></code></a> to disable.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.iostream.SSLIOStream">
+<em class="property">class </em><code class="descclassname">tornado.iostream.</code><code class="descname">SSLIOStream</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/iostream.html#SSLIOStream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.SSLIOStream" title="Permalink to this definition">¶</a></dt>
+<dd><p>A utility class to write to and read from a non-blocking SSL socket.</p>
+<p>If the socket passed to the constructor is already connected,
+it should be wrapped with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ssl</span><span class="o">.</span><span class="n">wrap_socket</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="n">do_handshake_on_connect</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>before constructing the <a class="reference internal" href="#tornado.iostream.SSLIOStream" title="tornado.iostream.SSLIOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SSLIOStream</span></code></a>.  Unconnected sockets will be
+wrapped when <a class="reference internal" href="#tornado.iostream.IOStream.connect" title="tornado.iostream.IOStream.connect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream.connect</span></code></a> is finished.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ssl_options</span></code> keyword argument may either be an
+<a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.SSLContext" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl.SSLContext</span></code></a> object or a dictionary of keywords arguments
+for <a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.wrap_socket" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl.wrap_socket</span></code></a></p>
+<dl class="method">
+<dt id="tornado.iostream.SSLIOStream.wait_for_handshake">
+<code class="descname">wait_for_handshake</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Future[SSLIOStream]<a class="reference internal" href="_modules/tornado/iostream.html#SSLIOStream.wait_for_handshake"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.SSLIOStream.wait_for_handshake" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait for the initial SSL handshake to complete.</p>
+<p>If a <code class="docutils literal notranslate"><span class="pre">callback</span></code> is given, it will be called with no
+arguments once the handshake is complete; otherwise this
+method returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> which will resolve to the
+stream itself after the handshake is complete.</p>
+<p>Once the handshake is complete, information such as
+the peer’s certificate and NPN/ALPN selections may be
+accessed on <code class="docutils literal notranslate"><span class="pre">self.socket</span></code>.</p>
+<p>This method is intended for use on server-side streams
+or after using <a class="reference internal" href="#tornado.iostream.IOStream.start_tls" title="tornado.iostream.IOStream.start_tls"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream.start_tls</span></code></a>; it should not be used
+with <a class="reference internal" href="#tornado.iostream.IOStream.connect" title="tornado.iostream.IOStream.connect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream.connect</span></code></a> (which already waits for the
+handshake to complete). It may only be called once per stream.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.2.</span></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument was removed. Use the returned
+<a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> instead.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.iostream.PipeIOStream">
+<em class="property">class </em><code class="descclassname">tornado.iostream.</code><code class="descname">PipeIOStream</code><span class="sig-paren">(</span><em>fd: int</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/iostream.html#PipeIOStream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.PipeIOStream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pipe-based <a class="reference internal" href="#tornado.iostream.IOStream" title="tornado.iostream.IOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code></a> implementation.</p>
+<p>The constructor takes an integer file descriptor (such as one returned
+by <a class="reference external" href="https://docs.python.org/3.6/library/os.html#os.pipe" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">os.pipe</span></code></a>) rather than an open file object.  Pipes are generally
+one-way, so a <a class="reference internal" href="#tornado.iostream.PipeIOStream" title="tornado.iostream.PipeIOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PipeIOStream</span></code></a> can be used for reading or writing but not
+both.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="tornado.iostream.StreamBufferFullError">
+<em class="property">exception </em><code class="descclassname">tornado.iostream.</code><code class="descname">StreamBufferFullError</code><a class="reference internal" href="_modules/tornado/iostream.html#StreamBufferFullError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.StreamBufferFullError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception raised by <a class="reference internal" href="#tornado.iostream.IOStream" title="tornado.iostream.IOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code></a> methods when the buffer is full.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="tornado.iostream.StreamClosedError">
+<em class="property">exception </em><code class="descclassname">tornado.iostream.</code><code class="descname">StreamClosedError</code><span class="sig-paren">(</span><em>real_error: BaseException = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/iostream.html#StreamClosedError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.StreamClosedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception raised by <a class="reference internal" href="#tornado.iostream.IOStream" title="tornado.iostream.IOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code></a> methods when the stream is closed.</p>
+<p>Note that the close callback is scheduled to run <em>after</em> other
+callbacks on the stream (to allow for buffered data to be processed),
+so you may see this error before you see the close callback.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">real_error</span></code> attribute contains the underlying error that caused
+the stream to close (if any).</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.3: </span>Added the <code class="docutils literal notranslate"><span class="pre">real_error</span></code> attribute.</p>
+</div>
+</dd></dl>
+
+<dl class="exception">
+<dt id="tornado.iostream.UnsatisfiableReadError">
+<em class="property">exception </em><code class="descclassname">tornado.iostream.</code><code class="descname">UnsatisfiableReadError</code><a class="reference internal" href="_modules/tornado/iostream.html#UnsatisfiableReadError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.iostream.UnsatisfiableReadError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception raised when a read cannot be satisfied.</p>
+<p>Raised by <code class="docutils literal notranslate"><span class="pre">read_until</span></code> and <code class="docutils literal notranslate"><span class="pre">read_until_regex</span></code> with a <code class="docutils literal notranslate"><span class="pre">max_bytes</span></code>
+argument.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="netutil.html" class="btn btn-neutral float-right" title="tornado.netutil — Miscellaneous network utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ioloop.html" class="btn btn-neutral float-left" title="tornado.ioloop — Main event loop" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

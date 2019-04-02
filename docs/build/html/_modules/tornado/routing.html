@@ -1,0 +1,912 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.routing &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tornado.routing</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tornado.routing</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2015 The Tornado Authors</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c1"># not use this file except in compliance with the License. You may obtain</span>
+<span class="c1"># a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c1"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c1"># License for the specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
+
+<span class="sd">&quot;&quot;&quot;Flexible routing implementation.</span>
+
+<span class="sd">Tornado routes HTTP requests to appropriate handlers using `Router`</span>
+<span class="sd">class implementations. The `tornado.web.Application` class is a</span>
+<span class="sd">`Router` implementation and may be used directly, or the classes in</span>
+<span class="sd">this module may be used for additional flexibility. The `RuleRouter`</span>
+<span class="sd">class can match on more criteria than `.Application`, or the `Router`</span>
+<span class="sd">interface can be subclassed for maximum customization.</span>
+
+<span class="sd">`Router` interface extends `~.httputil.HTTPServerConnectionDelegate`</span>
+<span class="sd">to provide additional routing capabilities. This also means that any</span>
+<span class="sd">`Router` implementation can be used directly as a ``request_callback``</span>
+<span class="sd">for `~.httpserver.HTTPServer` constructor.</span>
+
+<span class="sd">`Router` subclass must implement a ``find_handler`` method to provide</span>
+<span class="sd">a suitable `~.httputil.HTTPMessageDelegate` instance to handle the</span>
+<span class="sd">request:</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    class CustomRouter(Router):</span>
+<span class="sd">        def find_handler(self, request, **kwargs):</span>
+<span class="sd">            # some routing logic providing a suitable HTTPMessageDelegate instance</span>
+<span class="sd">            return MessageDelegate(request.connection)</span>
+
+<span class="sd">    class MessageDelegate(HTTPMessageDelegate):</span>
+<span class="sd">        def __init__(self, connection):</span>
+<span class="sd">            self.connection = connection</span>
+
+<span class="sd">        def finish(self):</span>
+<span class="sd">            self.connection.write_headers(</span>
+<span class="sd">                ResponseStartLine(&quot;HTTP/1.1&quot;, 200, &quot;OK&quot;),</span>
+<span class="sd">                HTTPHeaders({&quot;Content-Length&quot;: &quot;2&quot;}),</span>
+<span class="sd">                b&quot;OK&quot;)</span>
+<span class="sd">            self.connection.finish()</span>
+
+<span class="sd">    router = CustomRouter()</span>
+<span class="sd">    server = HTTPServer(router)</span>
+
+<span class="sd">The main responsibility of `Router` implementation is to provide a</span>
+<span class="sd">mapping from a request to `~.httputil.HTTPMessageDelegate` instance</span>
+<span class="sd">that will handle this request. In the example above we can see that</span>
+<span class="sd">routing is possible even without instantiating an `~.web.Application`.</span>
+
+<span class="sd">For routing to `~.web.RequestHandler` implementations we need an</span>
+<span class="sd">`~.web.Application` instance. `~.web.Application.get_handler_delegate`</span>
+<span class="sd">provides a convenient way to create `~.httputil.HTTPMessageDelegate`</span>
+<span class="sd">for a given request and `~.web.RequestHandler`.</span>
+
+<span class="sd">Here is a simple example of how we can we route to</span>
+<span class="sd">`~.web.RequestHandler` subclasses by HTTP method:</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    resources = {}</span>
+
+<span class="sd">    class GetResource(RequestHandler):</span>
+<span class="sd">        def get(self, path):</span>
+<span class="sd">            if path not in resources:</span>
+<span class="sd">                raise HTTPError(404)</span>
+
+<span class="sd">            self.finish(resources[path])</span>
+
+<span class="sd">    class PostResource(RequestHandler):</span>
+<span class="sd">        def post(self, path):</span>
+<span class="sd">            resources[path] = self.request.body</span>
+
+<span class="sd">    class HTTPMethodRouter(Router):</span>
+<span class="sd">        def __init__(self, app):</span>
+<span class="sd">            self.app = app</span>
+
+<span class="sd">        def find_handler(self, request, **kwargs):</span>
+<span class="sd">            handler = GetResource if request.method == &quot;GET&quot; else PostResource</span>
+<span class="sd">            return self.app.get_handler_delegate(request, handler, path_args=[request.path])</span>
+
+<span class="sd">    router = HTTPMethodRouter(Application())</span>
+<span class="sd">    server = HTTPServer(router)</span>
+
+<span class="sd">`ReversibleRouter` interface adds the ability to distinguish between</span>
+<span class="sd">the routes and reverse them to the original urls using route&#39;s name</span>
+<span class="sd">and additional arguments. `~.web.Application` is itself an</span>
+<span class="sd">implementation of `ReversibleRouter` class.</span>
+
+<span class="sd">`RuleRouter` and `ReversibleRuleRouter` are implementations of</span>
+<span class="sd">`Router` and `ReversibleRouter` interfaces and can be used for</span>
+<span class="sd">creating rule-based routing configurations.</span>
+
+<span class="sd">Rules are instances of `Rule` class. They contain a `Matcher`, which</span>
+<span class="sd">provides the logic for determining whether the rule is a match for a</span>
+<span class="sd">particular request and a target, which can be one of the following.</span>
+
+<span class="sd">1) An instance of `~.httputil.HTTPServerConnectionDelegate`:</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    router = RuleRouter([</span>
+<span class="sd">        Rule(PathMatches(&quot;/handler&quot;), ConnectionDelegate()),</span>
+<span class="sd">        # ... more rules</span>
+<span class="sd">    ])</span>
+
+<span class="sd">    class ConnectionDelegate(HTTPServerConnectionDelegate):</span>
+<span class="sd">        def start_request(self, server_conn, request_conn):</span>
+<span class="sd">            return MessageDelegate(request_conn)</span>
+
+<span class="sd">2) A callable accepting a single argument of `~.httputil.HTTPServerRequest` type:</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    router = RuleRouter([</span>
+<span class="sd">        Rule(PathMatches(&quot;/callable&quot;), request_callable)</span>
+<span class="sd">    ])</span>
+
+<span class="sd">    def request_callable(request):</span>
+<span class="sd">        request.write(b&quot;HTTP/1.1 200 OK\\r\\nContent-Length: 2\\r\\n\\r\\nOK&quot;)</span>
+<span class="sd">        request.finish()</span>
+
+<span class="sd">3) Another `Router` instance:</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    router = RuleRouter([</span>
+<span class="sd">        Rule(PathMatches(&quot;/router.*&quot;), CustomRouter())</span>
+<span class="sd">    ])</span>
+
+<span class="sd">Of course a nested `RuleRouter` or a `~.web.Application` is allowed:</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    router = RuleRouter([</span>
+<span class="sd">        Rule(HostMatches(&quot;example.com&quot;), RuleRouter([</span>
+<span class="sd">            Rule(PathMatches(&quot;/app1/.*&quot;), Application([(r&quot;/app1/handler&quot;, Handler)]))),</span>
+<span class="sd">        ]))</span>
+<span class="sd">    ])</span>
+
+<span class="sd">    server = HTTPServer(router)</span>
+
+<span class="sd">In the example below `RuleRouter` is used to route between applications:</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    app1 = Application([</span>
+<span class="sd">        (r&quot;/app1/handler&quot;, Handler1),</span>
+<span class="sd">        # other handlers ...</span>
+<span class="sd">    ])</span>
+
+<span class="sd">    app2 = Application([</span>
+<span class="sd">        (r&quot;/app2/handler&quot;, Handler2),</span>
+<span class="sd">        # other handlers ...</span>
+<span class="sd">    ])</span>
+
+<span class="sd">    router = RuleRouter([</span>
+<span class="sd">        Rule(PathMatches(&quot;/app1.*&quot;), app1),</span>
+<span class="sd">        Rule(PathMatches(&quot;/app2.*&quot;), app2)</span>
+<span class="sd">    ])</span>
+
+<span class="sd">    server = HTTPServer(router)</span>
+
+<span class="sd">For more information on application-level routing see docs for `~.web.Application`.</span>
+
+<span class="sd">.. versionadded:: 4.5</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">httputil</span>
+<span class="kn">from</span> <span class="nn">tornado.httpserver</span> <span class="k">import</span> <span class="n">_CallableAdapter</span>
+<span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="k">import</span> <span class="n">url_escape</span><span class="p">,</span> <span class="n">url_unescape</span><span class="p">,</span> <span class="n">utf8</span>
+<span class="kn">from</span> <span class="nn">tornado.log</span> <span class="k">import</span> <span class="n">app_log</span>
+<span class="kn">from</span> <span class="nn">tornado.util</span> <span class="k">import</span> <span class="n">basestring_type</span><span class="p">,</span> <span class="n">import_object</span><span class="p">,</span> <span class="n">re_unescape</span><span class="p">,</span> <span class="n">unicode_type</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Pattern</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">overload</span>
+
+
+<div class="viewcode-block" id="Router"><a class="viewcode-back" href="../../routing.html#tornado.routing.Router">[docs]</a><span class="k">class</span> <span class="nc">Router</span><span class="p">(</span><span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerConnectionDelegate</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract router interface.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Router.find_handler"><a class="viewcode-back" href="../../routing.html#tornado.routing.Router.find_handler">[docs]</a>    <span class="k">def</span> <span class="nf">find_handler</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Must be implemented to return an appropriate instance of `~.httputil.HTTPMessageDelegate`</span>
+<span class="sd">        that can serve the request.</span>
+<span class="sd">        Routing implementations may pass additional kwargs to extend the routing logic.</span>
+
+<span class="sd">        :arg httputil.HTTPServerRequest request: current HTTP request.</span>
+<span class="sd">        :arg kwargs: additional keyword arguments passed by routing implementation.</span>
+<span class="sd">        :returns: an instance of `~.httputil.HTTPMessageDelegate` that will be used to</span>
+<span class="sd">            process the request.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">start_request</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">server_conn</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">request_conn</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPConnection</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_RoutingDelegate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server_conn</span><span class="p">,</span> <span class="n">request_conn</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ReversibleRouter"><a class="viewcode-back" href="../../routing.html#tornado.routing.ReversibleRouter">[docs]</a><span class="k">class</span> <span class="nc">ReversibleRouter</span><span class="p">(</span><span class="n">Router</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract router interface for routers that can handle named routes</span>
+<span class="sd">    and support reversing them to original urls.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ReversibleRouter.reverse_url"><a class="viewcode-back" href="../../routing.html#tornado.routing.ReversibleRouter.reverse_url">[docs]</a>    <span class="k">def</span> <span class="nf">reverse_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Returns url string for a given route name and arguments</span>
+<span class="sd">        or ``None`` if no match is found.</span>
+
+<span class="sd">        :arg str name: route name.</span>
+<span class="sd">        :arg args: url parameters.</span>
+<span class="sd">        :returns: parametrized url string for a given route name (or ``None``).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">_RoutingDelegate</span><span class="p">(</span><span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">router</span><span class="p">:</span> <span class="n">Router</span><span class="p">,</span> <span class="n">server_conn</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">request_conn</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPConnection</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">server_conn</span> <span class="o">=</span> <span class="n">server_conn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_conn</span> <span class="o">=</span> <span class="n">request_conn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[httputil.HTTPMessageDelegate]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">router</span>  <span class="c1"># type: Router</span>
+
+    <span class="k">def</span> <span class="nf">headers_received</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">start_line</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">httputil</span><span class="o">.</span><span class="n">RequestStartLine</span><span class="p">,</span> <span class="n">httputil</span><span class="o">.</span><span class="n">ResponseStartLine</span><span class="p">],</span>
+        <span class="n">headers</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start_line</span><span class="p">,</span> <span class="n">httputil</span><span class="o">.</span><span class="n">RequestStartLine</span><span class="p">)</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">(</span>
+            <span class="n">connection</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_conn</span><span class="p">,</span>
+            <span class="n">server_connection</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">server_conn</span><span class="p">,</span>
+            <span class="n">start_line</span><span class="o">=</span><span class="n">start_line</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">find_handler</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">app_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Delegate for </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> request not found&quot;</span><span class="p">,</span>
+                <span class="n">start_line</span><span class="o">.</span><span class="n">method</span><span class="p">,</span>
+                <span class="n">start_line</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="n">_DefaultMessageDelegate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request_conn</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="o">.</span><span class="n">headers_received</span><span class="p">(</span><span class="n">start_line</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">data_received</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="o">.</span><span class="n">data_received</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">on_connection_close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="o">.</span><span class="n">on_connection_close</span><span class="p">()</span>
+
+
+<span class="k">class</span> <span class="nc">_DefaultMessageDelegate</span><span class="p">(</span><span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPConnection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">connection</span>
+
+    <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">write_headers</span><span class="p">(</span>
+            <span class="n">httputil</span><span class="o">.</span><span class="n">ResponseStartLine</span><span class="p">(</span><span class="s2">&quot;HTTP/1.1&quot;</span><span class="p">,</span> <span class="mi">404</span><span class="p">,</span> <span class="s2">&quot;Not Found&quot;</span><span class="p">),</span>
+            <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">(),</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+
+
+<span class="c1"># _RuleList can either contain pre-constructed Rules or a sequence of</span>
+<span class="c1"># arguments to be passed to the Rule constructor.</span>
+<span class="n">_RuleList</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span>
+    <span class="n">Union</span><span class="p">[</span>
+        <span class="s2">&quot;Rule&quot;</span><span class="p">,</span>
+        <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>  <span class="c1"># Can&#39;t do detailed typechecking of lists.</span>
+        <span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;Matcher&quot;</span><span class="p">],</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;Matcher&quot;</span><span class="p">],</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+        <span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;Matcher&quot;</span><span class="p">],</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="p">]</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="RuleRouter"><a class="viewcode-back" href="../../routing.html#tornado.routing.RuleRouter">[docs]</a><span class="k">class</span> <span class="nc">RuleRouter</span><span class="p">(</span><span class="n">Router</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Rule-based router implementation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rules</span><span class="p">:</span> <span class="n">_RuleList</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Constructs a router from an ordered list of rules::</span>
+
+<span class="sd">            RuleRouter([</span>
+<span class="sd">                Rule(PathMatches(&quot;/handler&quot;), Target),</span>
+<span class="sd">                # ... more rules</span>
+<span class="sd">            ])</span>
+
+<span class="sd">        You can also omit explicit `Rule` constructor and use tuples of arguments::</span>
+
+<span class="sd">            RuleRouter([</span>
+<span class="sd">                (PathMatches(&quot;/handler&quot;), Target),</span>
+<span class="sd">            ])</span>
+
+<span class="sd">        `PathMatches` is a default matcher, so the example above can be simplified::</span>
+
+<span class="sd">            RuleRouter([</span>
+<span class="sd">                (&quot;/handler&quot;, Target),</span>
+<span class="sd">            ])</span>
+
+<span class="sd">        In the examples above, ``Target`` can be a nested `Router` instance, an instance of</span>
+<span class="sd">        `~.httputil.HTTPServerConnectionDelegate` or an old-style callable,</span>
+<span class="sd">        accepting a request argument.</span>
+
+<span class="sd">        :arg rules: a list of `Rule` instances or tuples of `Rule`</span>
+<span class="sd">            constructor arguments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rules</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[Rule]</span>
+        <span class="k">if</span> <span class="n">rules</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_rules</span><span class="p">(</span><span class="n">rules</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RuleRouter.add_rules"><a class="viewcode-back" href="../../routing.html#tornado.routing.RuleRouter.add_rules">[docs]</a>    <span class="k">def</span> <span class="nf">add_rules</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rules</span><span class="p">:</span> <span class="n">_RuleList</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Appends new rules to the router.</span>
+
+<span class="sd">        :arg rules: a list of Rule instances (or tuples of arguments, which are</span>
+<span class="sd">            passed to Rule constructor).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">rules</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+                <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">basestring_type</span><span class="p">):</span>
+                    <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="n">PathMatches</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="o">*</span><span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">rule</span> <span class="o">=</span> <span class="n">Rule</span><span class="p">(</span><span class="o">*</span><span class="n">rule</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">rules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">process_rule</span><span class="p">(</span><span class="n">rule</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="RuleRouter.process_rule"><a class="viewcode-back" href="../../routing.html#tornado.routing.RuleRouter.process_rule">[docs]</a>    <span class="k">def</span> <span class="nf">process_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rule</span><span class="p">:</span> <span class="s2">&quot;Rule&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Rule&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Override this method for additional preprocessing of each rule.</span>
+
+<span class="sd">        :arg Rule rule: a rule to be processed.</span>
+<span class="sd">        :returns: the same or modified Rule instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">rule</span></div>
+
+    <span class="k">def</span> <span class="nf">find_handler</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rules</span><span class="p">:</span>
+            <span class="n">target_params</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">target_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">rule</span><span class="o">.</span><span class="n">target_kwargs</span><span class="p">:</span>
+                    <span class="n">target_params</span><span class="p">[</span><span class="s2">&quot;target_kwargs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">target_kwargs</span>
+
+                <span class="n">delegate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_target_delegate</span><span class="p">(</span>
+                    <span class="n">rule</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">target_params</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">delegate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">delegate</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="RuleRouter.get_target_delegate"><a class="viewcode-back" href="../../routing.html#tornado.routing.RuleRouter.get_target_delegate">[docs]</a>    <span class="k">def</span> <span class="nf">get_target_delegate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">,</span> <span class="o">**</span><span class="n">target_params</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Returns an instance of `~.httputil.HTTPMessageDelegate` for a</span>
+<span class="sd">        Rule&#39;s target. This method is called by `~.find_handler` and can be</span>
+<span class="sd">        extended to provide additional target types.</span>
+
+<span class="sd">        :arg target: a Rule&#39;s target.</span>
+<span class="sd">        :arg httputil.HTTPServerRequest request: current request.</span>
+<span class="sd">        :arg target_params: additional parameters that can be useful</span>
+<span class="sd">            for `~.httputil.HTTPMessageDelegate` creation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">Router</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">target</span><span class="o">.</span><span class="n">find_handler</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">target_params</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerConnectionDelegate</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">connection</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="n">target</span><span class="o">.</span><span class="n">start_request</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">server_connection</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">connection</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">callable</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">connection</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="n">_CallableAdapter</span><span class="p">(</span>
+                <span class="n">partial</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="o">**</span><span class="n">target_params</span><span class="p">),</span> <span class="n">request</span><span class="o">.</span><span class="n">connection</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div></div>
+
+
+<div class="viewcode-block" id="ReversibleRuleRouter"><a class="viewcode-back" href="../../routing.html#tornado.routing.ReversibleRuleRouter">[docs]</a><span class="k">class</span> <span class="nc">ReversibleRuleRouter</span><span class="p">(</span><span class="n">ReversibleRouter</span><span class="p">,</span> <span class="n">RuleRouter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A rule-based router that implements ``reverse_url`` method.</span>
+
+<span class="sd">    Each rule added to this router may have a ``name`` attribute that can be</span>
+<span class="sd">    used to reconstruct an original uri. The actual reconstruction takes place</span>
+<span class="sd">    in a rule&#39;s matcher (see `Matcher.reverse`).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rules</span><span class="p">:</span> <span class="n">_RuleList</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">named_rules</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, Any]</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ReversibleRuleRouter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">rules</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">process_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rule</span><span class="p">:</span> <span class="s2">&quot;Rule&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Rule&quot;</span><span class="p">:</span>
+        <span class="n">rule</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">ReversibleRuleRouter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">process_rule</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">rule</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rule</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_rules</span><span class="p">:</span>
+                <span class="n">app_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Multiple handlers named </span><span class="si">%s</span><span class="s2">; replacing previous value&quot;</span><span class="p">,</span> <span class="n">rule</span><span class="o">.</span><span class="n">name</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">named_rules</span><span class="p">[</span><span class="n">rule</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">rule</span>
+
+        <span class="k">return</span> <span class="n">rule</span>
+
+    <span class="k">def</span> <span class="nf">reverse_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_rules</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_rules</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">reverse</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rules</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">ReversibleRouter</span><span class="p">):</span>
+                <span class="n">reversed_url</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">reverse_url</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">reversed_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">reversed_url</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Rule"><a class="viewcode-back" href="../../routing.html#tornado.routing.Rule">[docs]</a><span class="k">class</span> <span class="nc">Rule</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A routing rule.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">matcher</span><span class="p">:</span> <span class="s2">&quot;Matcher&quot;</span><span class="p">,</span>
+        <span class="n">target</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">target_kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Constructs a Rule instance.</span>
+
+<span class="sd">        :arg Matcher matcher: a `Matcher` instance used for determining</span>
+<span class="sd">            whether the rule should be considered a match for a specific</span>
+<span class="sd">            request.</span>
+<span class="sd">        :arg target: a Rule&#39;s target (typically a ``RequestHandler`` or</span>
+<span class="sd">            `~.httputil.HTTPServerConnectionDelegate` subclass or even a nested `Router`,</span>
+<span class="sd">            depending on routing implementation).</span>
+<span class="sd">        :arg dict target_kwargs: a dict of parameters that can be useful</span>
+<span class="sd">            at the moment of target instantiation (for example, ``status_code``</span>
+<span class="sd">            for a ``RequestHandler`` subclass). They end up in</span>
+<span class="sd">            ``target_params[&#39;target_kwargs&#39;]`` of `RuleRouter.get_target_delegate`</span>
+<span class="sd">            method.</span>
+<span class="sd">        :arg str name: the name of the rule that can be used to find it</span>
+<span class="sd">            in `ReversibleRouter.reverse_url` implementation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="c1"># import the Module and instantiate the class</span>
+            <span class="c1"># Must be a fully qualified name (module.ClassName)</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">import_object</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span> <span class="o">=</span> <span class="n">matcher</span>  <span class="c1"># type: Matcher</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">target</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_kwargs</span> <span class="o">=</span> <span class="n">target_kwargs</span> <span class="k">if</span> <span class="n">target_kwargs</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">reverse</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%r</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, kwargs=</span><span class="si">%r</span><span class="s2">, name=</span><span class="si">%r</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_kwargs</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Matcher"><a class="viewcode-back" href="../../routing.html#tornado.routing.Matcher">[docs]</a><span class="k">class</span> <span class="nc">Matcher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Represents a matcher for request features.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Matcher.match"><a class="viewcode-back" href="../../routing.html#tornado.routing.Matcher.match">[docs]</a>    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;Matches current instance against the request.</span>
+
+<span class="sd">        :arg httputil.HTTPServerRequest request: current HTTP request</span>
+<span class="sd">        :returns: a dict of parameters to be passed to the target handler</span>
+<span class="sd">            (for example, ``handler_kwargs``, ``path_args``, ``path_kwargs``</span>
+<span class="sd">            can be passed for proper `~.web.RequestHandler` instantiation).</span>
+<span class="sd">            An empty dict is a valid (and common) return value to indicate a match</span>
+<span class="sd">            when the argument-passing features are not used.</span>
+<span class="sd">            ``None`` must be returned to indicate that there is no match.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Matcher.reverse"><a class="viewcode-back" href="../../routing.html#tornado.routing.Matcher.reverse">[docs]</a>    <span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Reconstructs full url from matcher instance and additional arguments.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
+
+
+<div class="viewcode-block" id="AnyMatches"><a class="viewcode-back" href="../../routing.html#tornado.routing.AnyMatches">[docs]</a><span class="k">class</span> <span class="nc">AnyMatches</span><span class="p">(</span><span class="n">Matcher</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Matches any request.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="p">{}</span></div>
+
+
+<div class="viewcode-block" id="HostMatches"><a class="viewcode-back" href="../../routing.html#tornado.routing.HostMatches">[docs]</a><span class="k">class</span> <span class="nc">HostMatches</span><span class="p">(</span><span class="n">Matcher</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Matches requests from hosts specified by ``host_pattern`` regex.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host_pattern</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Pattern</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">host_pattern</span><span class="p">,</span> <span class="n">basestring_type</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">host_pattern</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">):</span>
+                <span class="n">host_pattern</span> <span class="o">+=</span> <span class="s2">&quot;$&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">host_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">host_pattern</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">host_pattern</span> <span class="o">=</span> <span class="n">host_pattern</span>
+
+    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">host_pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">host_name</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="DefaultHostMatches"><a class="viewcode-back" href="../../routing.html#tornado.routing.DefaultHostMatches">[docs]</a><span class="k">class</span> <span class="nc">DefaultHostMatches</span><span class="p">(</span><span class="n">Matcher</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Matches requests from host that is equal to application&#39;s default_host.</span>
+<span class="sd">    Always returns no match if ``X-Real-Ip`` header is present.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">host_pattern</span><span class="p">:</span> <span class="n">Pattern</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">application</span> <span class="o">=</span> <span class="n">application</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">host_pattern</span> <span class="o">=</span> <span class="n">host_pattern</span>
+
+    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="c1"># Look for default host if not behind load balancer (for debugging)</span>
+        <span class="k">if</span> <span class="s2">&quot;X-Real-Ip&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">host_pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">default_host</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="PathMatches"><a class="viewcode-back" href="../../routing.html#tornado.routing.PathMatches">[docs]</a><span class="k">class</span> <span class="nc">PathMatches</span><span class="p">(</span><span class="n">Matcher</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Matches requests with paths specified by ``path_pattern`` regex.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_pattern</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Pattern</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_pattern</span><span class="p">,</span> <span class="n">basestring_type</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">path_pattern</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">):</span>
+                <span class="n">path_pattern</span> <span class="o">+=</span> <span class="s2">&quot;$&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">path_pattern</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">regex</span> <span class="o">=</span> <span class="n">path_pattern</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regex</span><span class="o">.</span><span class="n">groupindex</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">regex</span><span class="o">.</span><span class="n">groups</span><span class="p">),</span> <span class="p">(</span>
+            <span class="s2">&quot;groups in url regexes must either be all named or all &quot;</span>
+            <span class="s2">&quot;positional: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">regex</span><span class="o">.</span><span class="n">pattern</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_group_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_groups</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">regex</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="n">path_args</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[bytes]</span>
+        <span class="n">path_kwargs</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, bytes]</span>
+
+        <span class="c1"># Pass matched groups to the handler.  Since</span>
+        <span class="c1"># match.groups() includes both named and</span>
+        <span class="c1"># unnamed groups, we want to use either groups</span>
+        <span class="c1"># or groupdict but not both.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">regex</span><span class="o">.</span><span class="n">groupindex</span><span class="p">:</span>
+            <span class="n">path_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">_unquote_or_none</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">match</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">path_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">_unquote_or_none</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">()]</span>
+
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">path_args</span><span class="o">=</span><span class="n">path_args</span><span class="p">,</span> <span class="n">path_kwargs</span><span class="o">=</span><span class="n">path_kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot reverse url regex &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">regex</span><span class="o">.</span><span class="n">pattern</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_group_count</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s2">&quot;required number of arguments &quot;</span> <span class="s2">&quot;not found&quot;</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span>
+        <span class="n">converted_args</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="n">unicode_type</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+            <span class="n">converted_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">url_escape</span><span class="p">(</span><span class="n">utf8</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">plus</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">converted_args</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_find_groups</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;Returns a tuple (reverse string, group count) for a url.</span>
+
+<span class="sd">        For example: Given the url pattern /([0-9]{4})/([a-z-]+)/, this method</span>
+<span class="sd">        would return (&#39;/%s/%s/&#39;, 2).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regex</span><span class="o">.</span><span class="n">pattern</span>
+        <span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;^&quot;</span><span class="p">):</span>
+            <span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">):</span>
+            <span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">regex</span><span class="o">.</span><span class="n">groups</span> <span class="o">!=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">):</span>
+            <span class="c1"># The pattern is too complicated for our simplistic matching,</span>
+            <span class="c1"># so we can&#39;t support reversing it.</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+        <span class="n">pieces</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">fragment</span> <span class="ow">in</span> <span class="n">pattern</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s2">&quot;)&quot;</span> <span class="ow">in</span> <span class="n">fragment</span><span class="p">:</span>
+                <span class="n">paren_loc</span> <span class="o">=</span> <span class="n">fragment</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">paren_loc</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">pieces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">fragment</span><span class="p">[</span><span class="n">paren_loc</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">unescaped_fragment</span> <span class="o">=</span> <span class="n">re_unescape</span><span class="p">(</span><span class="n">fragment</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="c1"># If we can&#39;t unescape part of it, we can&#39;t</span>
+                    <span class="c1"># reverse this url.</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">pieces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unescaped_fragment</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">regex</span><span class="o">.</span><span class="n">groups</span></div>
+
+
+<div class="viewcode-block" id="URLSpec"><a class="viewcode-back" href="../../web.html#tornado.routing.URLSpec">[docs]</a><span class="k">class</span> <span class="nc">URLSpec</span><span class="p">(</span><span class="n">Rule</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Specifies mappings between URLs and handlers.</span>
+
+<span class="sd">    .. versionchanged: 4.5</span>
+<span class="sd">       `URLSpec` is now a subclass of a `Rule` with `PathMatches` matcher and is preserved for</span>
+<span class="sd">       backwards compatibility.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">pattern</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Pattern</span><span class="p">],</span>
+        <span class="n">handler</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Parameters:</span>
+
+<span class="sd">        * ``pattern``: Regular expression to be matched. Any capturing</span>
+<span class="sd">          groups in the regex will be passed in to the handler&#39;s</span>
+<span class="sd">          get/post/etc methods as arguments (by keyword if named, by</span>
+<span class="sd">          position if unnamed. Named and unnamed capturing groups</span>
+<span class="sd">          may not be mixed in the same rule).</span>
+
+<span class="sd">        * ``handler``: `~.web.RequestHandler` subclass to be invoked.</span>
+
+<span class="sd">        * ``kwargs`` (optional): A dictionary of additional arguments</span>
+<span class="sd">          to be passed to the handler&#39;s constructor.</span>
+
+<span class="sd">        * ``name`` (optional): A name for this handler.  Used by</span>
+<span class="sd">          `~.web.Application.reverse_url`.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">matcher</span> <span class="o">=</span> <span class="n">PathMatches</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">URLSpec</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">matcher</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">regex</span> <span class="o">=</span> <span class="n">matcher</span><span class="o">.</span><span class="n">regex</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handler_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%r</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, kwargs=</span><span class="si">%r</span><span class="s2">, name=</span><span class="si">%r</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">regex</span><span class="o">.</span><span class="n">pattern</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handler_class</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span> <span class="nf">_unquote_or_none</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@overload</span>  <span class="c1"># noqa: F811</span>
+<span class="k">def</span> <span class="nf">_unquote_or_none</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<span class="k">def</span> <span class="nf">_unquote_or_none</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]:</span>  <span class="c1"># noqa: F811</span>
+    <span class="sd">&quot;&quot;&quot;None-safe wrapper around url_unescape to handle unmatched optional</span>
+<span class="sd">    groups correctly.</span>
+
+<span class="sd">    Note that args are passed as bytes so the handler can decide what</span>
+<span class="sd">    encoding to use.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">s</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">s</span>
+    <span class="k">return</span> <span class="n">url_unescape</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plus</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

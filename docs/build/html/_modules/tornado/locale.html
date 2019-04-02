@@ -1,0 +1,763 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.locale &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tornado.locale</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tornado.locale</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright 2009 Facebook</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c1"># not use this file except in compliance with the License. You may obtain</span>
+<span class="c1"># a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c1"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c1"># License for the specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
+
+<span class="sd">&quot;&quot;&quot;Translation methods for generating localized strings.</span>
+
+<span class="sd">To load a locale and generate a translated string::</span>
+
+<span class="sd">    user_locale = tornado.locale.get(&quot;es_LA&quot;)</span>
+<span class="sd">    print(user_locale.translate(&quot;Sign out&quot;))</span>
+
+<span class="sd">`tornado.locale.get()` returns the closest matching locale, not necessarily the</span>
+<span class="sd">specific locale you requested. You can support pluralization with</span>
+<span class="sd">additional arguments to `~Locale.translate()`, e.g.::</span>
+
+<span class="sd">    people = [...]</span>
+<span class="sd">    message = user_locale.translate(</span>
+<span class="sd">        &quot;%(list)s is online&quot;, &quot;%(list)s are online&quot;, len(people))</span>
+<span class="sd">    print(message % {&quot;list&quot;: user_locale.list(people)})</span>
+
+<span class="sd">The first string is chosen if ``len(people) == 1``, otherwise the second</span>
+<span class="sd">string is chosen.</span>
+
+<span class="sd">Applications should call one of `load_translations` (which uses a simple</span>
+<span class="sd">CSV format) or `load_gettext_translations` (which uses the ``.mo`` format</span>
+<span class="sd">supported by `gettext` and related tools).  If neither method is called,</span>
+<span class="sd">the `Locale.translate` method will simply return the original string.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">codecs</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">gettext</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">escape</span>
+<span class="kn">from</span> <span class="nn">tornado.log</span> <span class="k">import</span> <span class="n">gen_log</span>
+
+<span class="kn">from</span> <span class="nn">tornado._locale_data</span> <span class="k">import</span> <span class="n">LOCALE_NAMES</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span>
+
+<span class="n">_default_locale</span> <span class="o">=</span> <span class="s2">&quot;en_US&quot;</span>
+<span class="n">_translations</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, Any]</span>
+<span class="n">_supported_locales</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">([</span><span class="n">_default_locale</span><span class="p">])</span>
+<span class="n">_use_gettext</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">CONTEXT_SEPARATOR</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\x04</span><span class="s2">&quot;</span>
+
+
+<div class="viewcode-block" id="get"><a class="viewcode-back" href="../../locale.html#tornado.locale.get">[docs]</a><span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="o">*</span><span class="n">locale_codes</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Locale&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Returns the closest match for the given locale codes.</span>
+
+<span class="sd">    We iterate over all given locale codes in order. If we have a tight</span>
+<span class="sd">    or a loose match for the code (e.g., &quot;en&quot; for &quot;en_US&quot;), we return</span>
+<span class="sd">    the locale. Otherwise we move to the next code in the list.</span>
+
+<span class="sd">    By default we return ``en_US`` if no translations are found for any of</span>
+<span class="sd">    the specified locales. You can change the default locale with</span>
+<span class="sd">    `set_default_locale()`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Locale</span><span class="o">.</span><span class="n">get_closest</span><span class="p">(</span><span class="o">*</span><span class="n">locale_codes</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_default_locale"><a class="viewcode-back" href="../../locale.html#tornado.locale.set_default_locale">[docs]</a><span class="k">def</span> <span class="nf">set_default_locale</span><span class="p">(</span><span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Sets the default locale.</span>
+
+<span class="sd">    The default locale is assumed to be the language used for all strings</span>
+<span class="sd">    in the system. The translations loaded from disk are mappings from</span>
+<span class="sd">    the default locale to the destination locale. Consequently, you don&#39;t</span>
+<span class="sd">    need to create a translation file for the default locale.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">_default_locale</span>
+    <span class="k">global</span> <span class="n">_supported_locales</span>
+    <span class="n">_default_locale</span> <span class="o">=</span> <span class="n">code</span>
+    <span class="n">_supported_locales</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">_translations</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="n">_default_locale</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="load_translations"><a class="viewcode-back" href="../../locale.html#tornado.locale.load_translations">[docs]</a><span class="k">def</span> <span class="nf">load_translations</span><span class="p">(</span><span class="n">directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">encoding</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Loads translations from CSV files in a directory.</span>
+
+<span class="sd">    Translations are strings with optional Python-style named placeholders</span>
+<span class="sd">    (e.g., ``My name is %(name)s``) and their associated translations.</span>
+
+<span class="sd">    The directory should have translation files of the form ``LOCALE.csv``,</span>
+<span class="sd">    e.g. ``es_GT.csv``. The CSV files should have two or three columns: string,</span>
+<span class="sd">    translation, and an optional plural indicator. Plural indicators should</span>
+<span class="sd">    be one of &quot;plural&quot; or &quot;singular&quot;. A given string can have both singular</span>
+<span class="sd">    and plural forms. For example ``%(name)s liked this`` may have a</span>
+<span class="sd">    different verb conjugation depending on whether %(name)s is one</span>
+<span class="sd">    name or a list of names. There should be two rows in the CSV file for</span>
+<span class="sd">    that string, one with plural indicator &quot;singular&quot;, and one &quot;plural&quot;.</span>
+<span class="sd">    For strings with no verbs that would change on translation, simply</span>
+<span class="sd">    use &quot;unknown&quot; or the empty string (or don&#39;t include the column at all).</span>
+
+<span class="sd">    The file is read using the `csv` module in the default &quot;excel&quot; dialect.</span>
+<span class="sd">    In this format there should not be spaces after the commas.</span>
+
+<span class="sd">    If no ``encoding`` parameter is given, the encoding will be</span>
+<span class="sd">    detected automatically (among UTF-8 and UTF-16) if the file</span>
+<span class="sd">    contains a byte-order marker (BOM), defaulting to UTF-8 if no BOM</span>
+<span class="sd">    is present.</span>
+
+<span class="sd">    Example translation ``es_LA.csv``::</span>
+
+<span class="sd">        &quot;I love you&quot;,&quot;Te amo&quot;</span>
+<span class="sd">        &quot;%(name)s liked this&quot;,&quot;A %(name)s les gustó esto&quot;,&quot;plural&quot;</span>
+<span class="sd">        &quot;%(name)s liked this&quot;,&quot;A %(name)s le gustó esto&quot;,&quot;singular&quot;</span>
+
+<span class="sd">    .. versionchanged:: 4.3</span>
+<span class="sd">       Added ``encoding`` parameter. Added support for BOM-based encoding</span>
+<span class="sd">       detection, UTF-16, and UTF-8-with-BOM.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">_translations</span>
+    <span class="k">global</span> <span class="n">_supported_locales</span>
+    <span class="n">_translations</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.csv&quot;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">locale</span><span class="p">,</span> <span class="n">extension</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;[a-z]+(_[A-Z]+)?$&quot;</span><span class="p">,</span> <span class="n">locale</span><span class="p">):</span>
+            <span class="n">gen_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;Unrecognized locale </span><span class="si">%r</span><span class="s2"> (path: </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span>
+                <span class="n">locale</span><span class="p">,</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">path</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">encoding</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Try to autodetect encoding based on the BOM.</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">full_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">bf</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">bf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">codecs</span><span class="o">.</span><span class="n">BOM_UTF16_LE</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">data</span> <span class="ow">in</span> <span class="p">(</span><span class="n">codecs</span><span class="o">.</span><span class="n">BOM_UTF16_LE</span><span class="p">,</span> <span class="n">codecs</span><span class="o">.</span><span class="n">BOM_UTF16_BE</span><span class="p">):</span>
+                <span class="n">encoding</span> <span class="o">=</span> <span class="s2">&quot;utf-16&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># utf-8-sig is &quot;utf-8 with optional BOM&quot;. It&#39;s discouraged</span>
+                <span class="c1"># in most cases but is common with CSV files because Excel</span>
+                <span class="c1"># cannot read utf-8 files without a BOM.</span>
+                <span class="n">encoding</span> <span class="o">=</span> <span class="s2">&quot;utf-8-sig&quot;</span>
+        <span class="c1"># python 3: csv.reader requires a file open in text mode.</span>
+        <span class="c1"># Specify an encoding to avoid dependence on $LANG environment variable.</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">full_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">_translations</span><span class="p">[</span><span class="n">locale</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">f</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="n">escape</span><span class="o">.</span><span class="n">to_unicode</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">row</span><span class="p">]</span>
+                <span class="n">english</span><span class="p">,</span> <span class="n">translation</span> <span class="o">=</span> <span class="n">row</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">plural</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;unknown&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">plural</span> <span class="o">=</span> <span class="s2">&quot;unknown&quot;</span>
+                <span class="k">if</span> <span class="n">plural</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;plural&quot;</span><span class="p">,</span> <span class="s2">&quot;singular&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">):</span>
+                    <span class="n">gen_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="s2">&quot;Unrecognized plural indicator </span><span class="si">%r</span><span class="s2"> in </span><span class="si">%s</span><span class="s2"> line </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="n">plural</span><span class="p">,</span>
+                        <span class="n">path</span><span class="p">,</span>
+                        <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="n">_translations</span><span class="p">[</span><span class="n">locale</span><span class="p">]</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">plural</span><span class="p">,</span> <span class="p">{})[</span><span class="n">english</span><span class="p">]</span> <span class="o">=</span> <span class="n">translation</span>
+    <span class="n">_supported_locales</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">_translations</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="n">_default_locale</span><span class="p">])</span>
+    <span class="n">gen_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Supported locales: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">_supported_locales</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="load_gettext_translations"><a class="viewcode-back" href="../../locale.html#tornado.locale.load_gettext_translations">[docs]</a><span class="k">def</span> <span class="nf">load_gettext_translations</span><span class="p">(</span><span class="n">directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">domain</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Loads translations from `gettext`&#39;s locale tree</span>
+
+<span class="sd">    Locale tree is similar to system&#39;s ``/usr/share/locale``, like::</span>
+
+<span class="sd">        {directory}/{lang}/LC_MESSAGES/{domain}.mo</span>
+
+<span class="sd">    Three steps are required to have your app translated:</span>
+
+<span class="sd">    1. Generate POT translation file::</span>
+
+<span class="sd">        xgettext --language=Python --keyword=_:1,2 -d mydomain file1.py file2.html etc</span>
+
+<span class="sd">    2. Merge against existing POT file::</span>
+
+<span class="sd">        msgmerge old.po mydomain.po &gt; new.po</span>
+
+<span class="sd">    3. Compile::</span>
+
+<span class="sd">        msgfmt mydomain.po -o {directory}/pt_BR/LC_MESSAGES/mydomain.mo</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">_translations</span>
+    <span class="k">global</span> <span class="n">_supported_locales</span>
+    <span class="k">global</span> <span class="n">_use_gettext</span>
+    <span class="n">_translations</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">lang</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">lang</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
+            <span class="k">continue</span>  <span class="c1"># skip .svn, etc</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">lang</span><span class="p">)):</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">lang</span><span class="p">,</span> <span class="s2">&quot;LC_MESSAGES&quot;</span><span class="p">,</span> <span class="n">domain</span> <span class="o">+</span> <span class="s2">&quot;.mo&quot;</span><span class="p">))</span>
+            <span class="n">_translations</span><span class="p">[</span><span class="n">lang</span><span class="p">]</span> <span class="o">=</span> <span class="n">gettext</span><span class="o">.</span><span class="n">translation</span><span class="p">(</span>
+                <span class="n">domain</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="n">languages</span><span class="o">=</span><span class="p">[</span><span class="n">lang</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">gen_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Cannot load translation for &#39;</span><span class="si">%s</span><span class="s2">&#39;: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">lang</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="k">continue</span>
+    <span class="n">_supported_locales</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">_translations</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="n">_default_locale</span><span class="p">])</span>
+    <span class="n">_use_gettext</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">gen_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Supported locales: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">_supported_locales</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="get_supported_locales"><a class="viewcode-back" href="../../locale.html#tornado.locale.get_supported_locales">[docs]</a><span class="k">def</span> <span class="nf">get_supported_locales</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Returns a list of all the supported locale codes.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_supported_locales</span></div>
+
+
+<div class="viewcode-block" id="Locale"><a class="viewcode-back" href="../../locale.html#tornado.locale.Locale">[docs]</a><span class="k">class</span> <span class="nc">Locale</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Object representing a locale.</span>
+
+<span class="sd">    After calling one of `load_translations` or `load_gettext_translations`,</span>
+<span class="sd">    call `get` or `get_closest` to get a Locale object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_cache</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, Locale]</span>
+
+<div class="viewcode-block" id="Locale.get_closest"><a class="viewcode-back" href="../../locale.html#tornado.locale.Locale.get_closest">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_closest</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">locale_codes</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Locale&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the closest match for the given locale code.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">locale_codes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">code</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">code</span> <span class="o">=</span> <span class="n">code</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">code</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">code</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">_supported_locales</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">_supported_locales</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_default_locale</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Locale.get"><a class="viewcode-back" href="../../locale.html#tornado.locale.Locale.get">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Locale&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the Locale for the given locale code.</span>
+
+<span class="sd">        If it is not supported, we raise an exception.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">_supported_locales</span>
+            <span class="n">translations</span> <span class="o">=</span> <span class="n">_translations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">translations</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">locale</span> <span class="o">=</span> <span class="n">CSVLocale</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="p">{})</span>  <span class="c1"># type: Locale</span>
+            <span class="k">elif</span> <span class="n">_use_gettext</span><span class="p">:</span>
+                <span class="n">locale</span> <span class="o">=</span> <span class="n">GettextLocale</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">translations</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">locale</span> <span class="o">=</span> <span class="n">CSVLocale</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">translations</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="n">code</span><span class="p">]</span> <span class="o">=</span> <span class="n">locale</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="n">code</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">LOCALE_NAMES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="sa">u</span><span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rtl</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;fa&quot;</span><span class="p">,</span> <span class="s2">&quot;ar&quot;</span><span class="p">,</span> <span class="s2">&quot;he&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">rtl</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+
+        <span class="c1"># Initialize strings for date formatting</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">translate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_months</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;January&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;February&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;March&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;April&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;May&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;June&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;July&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;August&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;September&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;October&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;November&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;December&quot;</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_weekdays</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Monday&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Tuesday&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Wednesday&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Thursday&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Friday&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Saturday&quot;</span><span class="p">),</span>
+            <span class="n">_</span><span class="p">(</span><span class="s2">&quot;Sunday&quot;</span><span class="p">),</span>
+        <span class="p">]</span>
+
+<div class="viewcode-block" id="Locale.translate"><a class="viewcode-back" href="../../locale.html#tornado.locale.Locale.translate">[docs]</a>    <span class="k">def</span> <span class="nf">translate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plural_message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the translation for the given message for this locale.</span>
+
+<span class="sd">        If ``plural_message`` is given, you must also provide</span>
+<span class="sd">        ``count``. We return ``plural_message`` when ``count != 1``,</span>
+<span class="sd">        and we return the singular form for the given message when</span>
+<span class="sd">        ``count == 1``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">pgettext</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plural_message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Locale.format_date"><a class="viewcode-back" href="../../locale.html#tornado.locale.Locale.format_date">[docs]</a>    <span class="k">def</span> <span class="nf">format_date</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">date</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">],</span>
+        <span class="n">gmt_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">relative</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">shorter</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">full_format</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Formats the given date (which should be GMT).</span>
+
+<span class="sd">        By default, we return a relative time (e.g., &quot;2 minutes ago&quot;). You</span>
+<span class="sd">        can return an absolute date string with ``relative=False``.</span>
+
+<span class="sd">        You can force a full format date (&quot;July 10, 1980&quot;) with</span>
+<span class="sd">        ``full_format=True``.</span>
+
+<span class="sd">        This method is primarily intended for dates in the past.</span>
+<span class="sd">        For dates in the future, we fall back to full format.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcfromtimestamp</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">date</span> <span class="o">&gt;</span> <span class="n">now</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">relative</span> <span class="ow">and</span> <span class="p">(</span><span class="n">date</span> <span class="o">-</span> <span class="n">now</span><span class="p">)</span><span class="o">.</span><span class="n">seconds</span> <span class="o">&lt;</span> <span class="mi">60</span><span class="p">:</span>
+                <span class="c1"># Due to click skew, things are some things slightly</span>
+                <span class="c1"># in the future. Round timestamps in the immediate</span>
+                <span class="c1"># future down to now in relative mode.</span>
+                <span class="n">date</span> <span class="o">=</span> <span class="n">now</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Otherwise, future dates always use the full format.</span>
+                <span class="n">full_format</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">local_date</span> <span class="o">=</span> <span class="n">date</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="n">gmt_offset</span><span class="p">)</span>
+        <span class="n">local_now</span> <span class="o">=</span> <span class="n">now</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="n">gmt_offset</span><span class="p">)</span>
+        <span class="n">local_yesterday</span> <span class="o">=</span> <span class="n">local_now</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
+        <span class="n">difference</span> <span class="o">=</span> <span class="n">now</span> <span class="o">-</span> <span class="n">date</span>
+        <span class="n">seconds</span> <span class="o">=</span> <span class="n">difference</span><span class="o">.</span><span class="n">seconds</span>
+        <span class="n">days</span> <span class="o">=</span> <span class="n">difference</span><span class="o">.</span><span class="n">days</span>
+
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">translate</span>
+        <span class="nb">format</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">full_format</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">relative</span> <span class="ow">and</span> <span class="n">days</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">seconds</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;1 second ago&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%(seconds)d</span><span class="s2"> seconds ago&quot;</span><span class="p">,</span> <span class="n">seconds</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span>
+                        <span class="s2">&quot;seconds&quot;</span><span class="p">:</span> <span class="n">seconds</span>
+                    <span class="p">}</span>
+
+                <span class="k">if</span> <span class="n">seconds</span> <span class="o">&lt;</span> <span class="mi">50</span> <span class="o">*</span> <span class="mi">60</span><span class="p">:</span>
+                    <span class="n">minutes</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">seconds</span> <span class="o">/</span> <span class="mf">60.0</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;1 minute ago&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%(minutes)d</span><span class="s2"> minutes ago&quot;</span><span class="p">,</span> <span class="n">minutes</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span>
+                        <span class="s2">&quot;minutes&quot;</span><span class="p">:</span> <span class="n">minutes</span>
+                    <span class="p">}</span>
+
+                <span class="n">hours</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">seconds</span> <span class="o">/</span> <span class="p">(</span><span class="mf">60.0</span> <span class="o">*</span> <span class="mi">60</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;1 hour ago&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%(hours)d</span><span class="s2"> hours ago&quot;</span><span class="p">,</span> <span class="n">hours</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span><span class="s2">&quot;hours&quot;</span><span class="p">:</span> <span class="n">hours</span><span class="p">}</span>
+
+            <span class="k">if</span> <span class="n">days</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">format</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(time)s</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">days</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">local_date</span><span class="o">.</span><span class="n">day</span> <span class="o">==</span> <span class="n">local_yesterday</span><span class="o">.</span><span class="n">day</span> <span class="ow">and</span> <span class="n">relative</span><span class="p">:</span>
+                <span class="nb">format</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;yesterday&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">shorter</span> <span class="k">else</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;yesterday at </span><span class="si">%(time)s</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">days</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+                <span class="nb">format</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(weekday)s</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">shorter</span> <span class="k">else</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(weekday)s</span><span class="s2"> at </span><span class="si">%(time)s</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">days</span> <span class="o">&lt;</span> <span class="mi">334</span><span class="p">:</span>  <span class="c1"># 11mo, since confusing for same month last year</span>
+                <span class="nb">format</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">_</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(month_name)s</span><span class="s2"> </span><span class="si">%(day)s</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">shorter</span>
+                    <span class="k">else</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(month_name)s</span><span class="s2"> </span><span class="si">%(day)s</span><span class="s2"> at </span><span class="si">%(time)s</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">format</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">format</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">_</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(month_name)s</span><span class="s2"> </span><span class="si">%(day)s</span><span class="s2">, </span><span class="si">%(year)s</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">shorter</span>
+                <span class="k">else</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(month_name)s</span><span class="s2"> </span><span class="si">%(day)s</span><span class="s2">, </span><span class="si">%(year)s</span><span class="s2"> at </span><span class="si">%(time)s</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">tfhour_clock</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;en&quot;</span><span class="p">,</span> <span class="s2">&quot;en_US&quot;</span><span class="p">,</span> <span class="s2">&quot;zh_CN&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tfhour_clock</span><span class="p">:</span>
+            <span class="n">str_time</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">:</span><span class="si">%02d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">local_date</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">local_date</span><span class="o">.</span><span class="n">minute</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">==</span> <span class="s2">&quot;zh_CN&quot;</span><span class="p">:</span>
+            <span class="n">str_time</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s%d</span><span class="s2">:</span><span class="si">%02d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="p">(</span><span class="sa">u</span><span class="s2">&quot;</span><span class="se">\u4e0a\u5348</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="se">\u4e0b\u5348</span><span class="s2">&quot;</span><span class="p">)[</span><span class="n">local_date</span><span class="o">.</span><span class="n">hour</span> <span class="o">&gt;=</span> <span class="mi">12</span><span class="p">],</span>
+                <span class="n">local_date</span><span class="o">.</span><span class="n">hour</span> <span class="o">%</span> <span class="mi">12</span> <span class="ow">or</span> <span class="mi">12</span><span class="p">,</span>
+                <span class="n">local_date</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">str_time</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">:</span><span class="si">%02d</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">local_date</span><span class="o">.</span><span class="n">hour</span> <span class="o">%</span> <span class="mi">12</span> <span class="ow">or</span> <span class="mi">12</span><span class="p">,</span>
+                <span class="n">local_date</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span>
+                <span class="p">(</span><span class="s2">&quot;am&quot;</span><span class="p">,</span> <span class="s2">&quot;pm&quot;</span><span class="p">)[</span><span class="n">local_date</span><span class="o">.</span><span class="n">hour</span> <span class="o">&gt;=</span> <span class="mi">12</span><span class="p">],</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">format</span> <span class="o">%</span> <span class="p">{</span>
+            <span class="s2">&quot;month_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_months</span><span class="p">[</span><span class="n">local_date</span><span class="o">.</span><span class="n">month</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="s2">&quot;weekday&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_weekdays</span><span class="p">[</span><span class="n">local_date</span><span class="o">.</span><span class="n">weekday</span><span class="p">()],</span>
+            <span class="s2">&quot;day&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">local_date</span><span class="o">.</span><span class="n">day</span><span class="p">),</span>
+            <span class="s2">&quot;year&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">local_date</span><span class="o">.</span><span class="n">year</span><span class="p">),</span>
+            <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">str_time</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="Locale.format_day"><a class="viewcode-back" href="../../locale.html#tornado.locale.Locale.format_day">[docs]</a>    <span class="k">def</span> <span class="nf">format_day</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span> <span class="n">gmt_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dow</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Formats the given date as a day of week.</span>
+
+<span class="sd">        Example: &quot;Monday, January 22&quot;. You can remove the day of week with</span>
+<span class="sd">        ``dow=False``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">local_date</span> <span class="o">=</span> <span class="n">date</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="n">gmt_offset</span><span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">translate</span>
+        <span class="k">if</span> <span class="n">dow</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(weekday)s</span><span class="s2">, </span><span class="si">%(month_name)s</span><span class="s2"> </span><span class="si">%(day)s</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span>
+                <span class="s2">&quot;month_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_months</span><span class="p">[</span><span class="n">local_date</span><span class="o">.</span><span class="n">month</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="s2">&quot;weekday&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_weekdays</span><span class="p">[</span><span class="n">local_date</span><span class="o">.</span><span class="n">weekday</span><span class="p">()],</span>
+                <span class="s2">&quot;day&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">local_date</span><span class="o">.</span><span class="n">day</span><span class="p">),</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(month_name)s</span><span class="s2"> </span><span class="si">%(day)s</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span>
+                <span class="s2">&quot;month_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_months</span><span class="p">[</span><span class="n">local_date</span><span class="o">.</span><span class="n">month</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="s2">&quot;day&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">local_date</span><span class="o">.</span><span class="n">day</span><span class="p">),</span>
+            <span class="p">}</span></div>
+
+<div class="viewcode-block" id="Locale.list"><a class="viewcode-back" href="../../locale.html#tornado.locale.Locale.list">[docs]</a>    <span class="k">def</span> <span class="nf">list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parts</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns a comma-separated list for the given list of parts.</span>
+
+<span class="sd">        The format is, e.g., &quot;A, B and C&quot;, &quot;A and B&quot; or just &quot;A&quot; for lists</span>
+<span class="sd">        of size 1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">translate</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">comma</span> <span class="o">=</span> <span class="sa">u</span><span class="s2">&quot; </span><span class="se">\u0648</span><span class="s2"> &quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;fa&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="sa">u</span><span class="s2">&quot;, &quot;</span>
+        <span class="k">return</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(commas)s</span><span class="s2"> and </span><span class="si">%(last)s</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span>
+            <span class="s2">&quot;commas&quot;</span><span class="p">:</span> <span class="n">comma</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="s2">&quot;last&quot;</span><span class="p">:</span> <span class="n">parts</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="Locale.friendly_number"><a class="viewcode-back" href="../../locale.html#tornado.locale.Locale.friendly_number">[docs]</a>    <span class="k">def</span> <span class="nf">friendly_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns a comma-separated number for the given integer.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;en&quot;</span><span class="p">,</span> <span class="s2">&quot;en_US&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="n">s</span><span class="p">:</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:])</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">parts</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="CSVLocale"><a class="viewcode-back" href="../../locale.html#tornado.locale.CSVLocale">[docs]</a><span class="k">class</span> <span class="nc">CSVLocale</span><span class="p">(</span><span class="n">Locale</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Locale implementation using tornado&#39;s CSV translation format.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">translations</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">translations</span> <span class="o">=</span> <span class="n">translations</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CSVLocale</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">translate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plural_message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">plural_message</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">count</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">count</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="n">plural_message</span>
+                <span class="n">message_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">translations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;plural&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">message_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">translations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;singular&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">message_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">translations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">return</span> <span class="n">message_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">pgettext</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plural_message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">translations</span><span class="p">:</span>
+            <span class="n">gen_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;pgettext is not supported by CSVLocale&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">plural_message</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="GettextLocale"><a class="viewcode-back" href="../../locale.html#tornado.locale.GettextLocale">[docs]</a><span class="k">class</span> <span class="nc">GettextLocale</span><span class="p">(</span><span class="n">Locale</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Locale implementation using the `gettext` module.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">translations</span><span class="p">:</span> <span class="n">gettext</span><span class="o">.</span><span class="n">NullTranslations</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ngettext</span> <span class="o">=</span> <span class="n">translations</span><span class="o">.</span><span class="n">ngettext</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gettext</span> <span class="o">=</span> <span class="n">translations</span><span class="o">.</span><span class="n">gettext</span>
+        <span class="c1"># self.gettext must exist before __init__ is called, since it</span>
+        <span class="c1"># calls into self.translate</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GettextLocale</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">translate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plural_message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">plural_message</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">count</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngettext</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">plural_message</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gettext</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GettextLocale.pgettext"><a class="viewcode-back" href="../../locale.html#tornado.locale.GettextLocale.pgettext">[docs]</a>    <span class="k">def</span> <span class="nf">pgettext</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plural_message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Allows to set context for translation, accepts plural forms.</span>
+
+<span class="sd">        Usage example::</span>
+
+<span class="sd">            pgettext(&quot;law&quot;, &quot;right&quot;)</span>
+<span class="sd">            pgettext(&quot;good&quot;, &quot;right&quot;)</span>
+
+<span class="sd">        Plural message example::</span>
+
+<span class="sd">            pgettext(&quot;organization&quot;, &quot;club&quot;, &quot;clubs&quot;, len(clubs))</span>
+<span class="sd">            pgettext(&quot;stick&quot;, &quot;club&quot;, &quot;clubs&quot;, len(clubs))</span>
+
+<span class="sd">        To generate POT file with context, add following options to step 1</span>
+<span class="sd">        of `load_gettext_translations` sequence::</span>
+
+<span class="sd">            xgettext [basic options] --keyword=pgettext:1c,2 --keyword=pgettext:1c,2,3</span>
+
+<span class="sd">        .. versionadded:: 4.2</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">plural_message</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">count</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="n">msgs_with_ctxt</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">%s%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">CONTEXT_SEPARATOR</span><span class="p">,</span> <span class="n">message</span><span class="p">),</span>
+                <span class="s2">&quot;</span><span class="si">%s%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">CONTEXT_SEPARATOR</span><span class="p">,</span> <span class="n">plural_message</span><span class="p">),</span>
+                <span class="n">count</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngettext</span><span class="p">(</span><span class="o">*</span><span class="n">msgs_with_ctxt</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">CONTEXT_SEPARATOR</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                <span class="c1"># Translation not found</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngettext</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">plural_message</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">result</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg_with_ctxt</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">CONTEXT_SEPARATOR</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gettext</span><span class="p">(</span><span class="n">msg_with_ctxt</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">CONTEXT_SEPARATOR</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                <span class="c1"># Translation not found</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">message</span>
+            <span class="k">return</span> <span class="n">result</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

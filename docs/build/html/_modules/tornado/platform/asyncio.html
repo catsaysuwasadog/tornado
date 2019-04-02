@@ -1,0 +1,538 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.platform.asyncio &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>tornado.platform.asyncio</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tornado.platform.asyncio</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Bridges between the `asyncio` module and Tornado IOLoop.</span>
+
+<span class="sd">.. versionadded:: 3.2</span>
+
+<span class="sd">This module integrates Tornado with the ``asyncio`` module introduced</span>
+<span class="sd">in Python 3.4. This makes it possible to combine the two libraries on</span>
+<span class="sd">the same event loop.</span>
+
+<span class="sd">.. deprecated:: 5.0</span>
+
+<span class="sd">   While the code in this module is still used, it is now enabled</span>
+<span class="sd">   automatically when `asyncio` is available, so applications should</span>
+<span class="sd">   no longer need to refer to this module directly.</span>
+
+<span class="sd">.. note::</span>
+
+<span class="sd">   Tornado requires the `~asyncio.AbstractEventLoop.add_reader` family of</span>
+<span class="sd">   methods, so it is not compatible with the `~asyncio.ProactorEventLoop` on</span>
+<span class="sd">   Windows. Use the `~asyncio.SelectorEventLoop` instead.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">concurrent.futures</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+
+<span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">get_ident</span>
+<span class="kn">from</span> <span class="nn">tornado.gen</span> <span class="k">import</span> <span class="n">convert_yielded</span>
+<span class="kn">from</span> <span class="nn">tornado.ioloop</span> <span class="k">import</span> <span class="n">IOLoop</span><span class="p">,</span> <span class="n">_Selectable</span>
+
+<span class="kn">import</span> <span class="nn">asyncio</span>
+
+<span class="kn">import</span> <span class="nn">typing</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="k">if</span> <span class="n">typing</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>  <span class="c1"># noqa: F401</span>
+
+<span class="n">_T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;_T&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">BaseAsyncIOLoop</span><span class="p">(</span><span class="n">IOLoop</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">asyncio_loop</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">AbstractEventLoop</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span> <span class="o">=</span> <span class="n">asyncio_loop</span>
+        <span class="c1"># Maps fd to (fileobj, handler function) pair (as in IOLoop.add_handler)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[int, Tuple[Union[int, _Selectable], Callable]]</span>
+        <span class="c1"># Set of fds listening for reads/writes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">readers</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># type: Set[int]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writers</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># type: Set[int]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">closing</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># If an asyncio loop was closed through an asyncio interface</span>
+        <span class="c1"># instead of IOLoop.close(), we&#39;d never hear about it and may</span>
+        <span class="c1"># have left a dangling reference in our map. In case an</span>
+        <span class="c1"># application (or, more likely, a test suite) creates and</span>
+        <span class="c1"># destroys a lot of event loops in this way, check here to</span>
+        <span class="c1"># ensure that we don&#39;t have a lot of dead loops building up in</span>
+        <span class="c1"># the map.</span>
+        <span class="c1">#</span>
+        <span class="c1"># TODO(bdarnell): consider making self.asyncio_loop a weakref</span>
+        <span class="c1"># for AsyncIOMainLoop and make _ioloop_for_asyncio a</span>
+        <span class="c1"># WeakKeyDictionary.</span>
+        <span class="k">for</span> <span class="n">loop</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">_ioloop_for_asyncio</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">loop</span><span class="o">.</span><span class="n">is_closed</span><span class="p">():</span>
+                <span class="k">del</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">_ioloop_for_asyncio</span><span class="p">[</span><span class="n">loop</span><span class="p">]</span>
+        <span class="n">IOLoop</span><span class="o">.</span><span class="n">_ioloop_for_asyncio</span><span class="p">[</span><span class="n">asyncio_loop</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_thread_identity</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">BaseAsyncIOLoop</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">assign_thread_identity</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_thread_identity</span> <span class="o">=</span> <span class="n">get_ident</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">assign_thread_identity</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_fds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">closing</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">fd</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">):</span>
+            <span class="n">fileobj</span><span class="p">,</span> <span class="n">handler_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">[</span><span class="n">fd</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">all_fds</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">close_fd</span><span class="p">(</span><span class="n">fileobj</span><span class="p">)</span>
+        <span class="c1"># Remove the mapping before closing the asyncio loop. If this</span>
+        <span class="c1"># happened in the other order, we could race against another</span>
+        <span class="c1"># initialize() call which would see the closed asyncio loop,</span>
+        <span class="c1"># assume it was closed from the asyncio side, and do this</span>
+        <span class="c1"># cleanup for us, leading to a KeyError.</span>
+        <span class="k">del</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">_ioloop_for_asyncio</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">add_handler</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">_Selectable</span><span class="p">],</span> <span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">events</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fd</span><span class="p">,</span> <span class="n">fileobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_fd</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;fd </span><span class="si">%s</span><span class="s2"> added twice&quot;</span> <span class="o">%</span> <span class="n">fd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">[</span><span class="n">fd</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">fileobj</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">events</span> <span class="o">&amp;</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">READ</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">add_reader</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_events</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">events</span> <span class="o">&amp;</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">WRITE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">add_writer</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_events</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">WRITE</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">update_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">_Selectable</span><span class="p">],</span> <span class="n">events</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fd</span><span class="p">,</span> <span class="n">fileobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_fd</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">events</span> <span class="o">&amp;</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">READ</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fd</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">add_reader</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_events</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">remove_reader</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">events</span> <span class="o">&amp;</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">WRITE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fd</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">writers</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">add_writer</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_events</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">WRITE</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">writers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">writers</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">remove_writer</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">writers</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">remove_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">_Selectable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fd</span><span class="p">,</span> <span class="n">fileobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_fd</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fd</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">fd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">remove_reader</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">writers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">remove_writer</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writers</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">[</span><span class="n">fd</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_handle_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fileobj</span><span class="p">,</span> <span class="n">handler_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">[</span><span class="n">fd</span><span class="p">]</span>
+        <span class="n">handler_func</span><span class="p">(</span><span class="n">fileobj</span><span class="p">,</span> <span class="n">events</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">old_loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">,</span> <span class="ne">AssertionError</span><span class="p">):</span>
+            <span class="n">old_loop</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_setup_logging</span><span class="p">()</span>
+            <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">run_forever</span><span class="p">()</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="n">old_loop</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">call_at</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">when</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="c1"># asyncio.call_at supports *args but not **kwargs, so bind them here.</span>
+        <span class="c1"># We do not synchronize self.time and asyncio_loop.time, so</span>
+        <span class="c1"># convert from absolute to relative.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">call_later</span><span class="p">(</span>
+            <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">when</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">()),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_run_callback</span><span class="p">,</span>
+            <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">remove_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">timeout</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+
+    <span class="k">def</span> <span class="nf">add_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">get_ident</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thread_identity</span><span class="p">:</span>
+            <span class="n">call_soon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">call_soon</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">call_soon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">call_soon_threadsafe</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">call_soon</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run_callback</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="c1"># &quot;Event loop is closed&quot;. Swallow the exception for</span>
+            <span class="c1"># consistency with PollIOLoop (and logical consistency</span>
+            <span class="c1"># with the fact that we can&#39;t guarantee that an</span>
+            <span class="c1"># add_callback that completes without error will</span>
+            <span class="c1"># eventually execute).</span>
+            <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">add_callback_from_signal</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">call_soon_threadsafe</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_run_callback</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">run_in_executor</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">executor</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">],</span>
+        <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">_T</span><span class="p">],</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Awaitable</span><span class="p">[</span><span class="n">_T</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">run_in_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set_default_executor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">executor</span><span class="p">:</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="o">.</span><span class="n">set_default_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="AsyncIOMainLoop"><a class="viewcode-back" href="../../../asyncio.html#tornado.platform.asyncio.AsyncIOMainLoop">[docs]</a><span class="k">class</span> <span class="nc">AsyncIOMainLoop</span><span class="p">(</span><span class="n">BaseAsyncIOLoop</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;``AsyncIOMainLoop`` creates an `.IOLoop` that corresponds to the</span>
+<span class="sd">    current ``asyncio`` event loop (i.e. the one returned by</span>
+<span class="sd">    ``asyncio.get_event_loop()``).</span>
+
+<span class="sd">    .. deprecated:: 5.0</span>
+
+<span class="sd">       Now used automatically when appropriate; it is no longer necessary</span>
+<span class="sd">       to refer to this class directly.</span>
+
+<span class="sd">    .. versionchanged:: 5.0</span>
+
+<span class="sd">       Closing an `AsyncIOMainLoop` now closes the underlying asyncio loop.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AsyncIOMainLoop</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">make_current</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># AsyncIOMainLoop already refers to the current asyncio loop so</span>
+        <span class="c1"># nothing to do here.</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="AsyncIOLoop"><a class="viewcode-back" href="../../../asyncio.html#tornado.platform.asyncio.AsyncIOLoop">[docs]</a><span class="k">class</span> <span class="nc">AsyncIOLoop</span><span class="p">(</span><span class="n">BaseAsyncIOLoop</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;``AsyncIOLoop`` is an `.IOLoop` that runs on an ``asyncio`` event loop.</span>
+<span class="sd">    This class follows the usual Tornado semantics for creating new</span>
+<span class="sd">    ``IOLoops``; these loops are not necessarily related to the</span>
+<span class="sd">    ``asyncio`` default event loop.</span>
+
+<span class="sd">    Each ``AsyncIOLoop`` creates a new ``asyncio.EventLoop``; this object</span>
+<span class="sd">    can be accessed with the ``asyncio_loop`` attribute.</span>
+
+<span class="sd">    .. versionchanged:: 5.0</span>
+
+<span class="sd">       When an ``AsyncIOLoop`` becomes the current `.IOLoop`, it also sets</span>
+<span class="sd">       the current `asyncio` event loop.</span>
+
+<span class="sd">    .. deprecated:: 5.0</span>
+
+<span class="sd">       Now used automatically when appropriate; it is no longer necessary</span>
+<span class="sd">       to refer to this class directly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_current</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">new_event_loop</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">AsyncIOLoop</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">loop</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># If initialize() does not succeed (taking ownership of the loop),</span>
+            <span class="c1"># we have to close it.</span>
+            <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">raise</span>
+
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_fds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_current</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_current</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AsyncIOLoop</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">all_fds</span><span class="o">=</span><span class="n">all_fds</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">make_current</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_current</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">old_asyncio</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">,</span> <span class="ne">AssertionError</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">old_asyncio</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_current</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">asyncio_loop</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_clear_current_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_current</span><span class="p">:</span>
+            <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">old_asyncio</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_current</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="to_tornado_future"><a class="viewcode-back" href="../../../asyncio.html#tornado.platform.asyncio.to_tornado_future">[docs]</a><span class="k">def</span> <span class="nf">to_tornado_future</span><span class="p">(</span><span class="n">asyncio_future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert an `asyncio.Future` to a `tornado.concurrent.Future`.</span>
+
+<span class="sd">    .. versionadded:: 4.1</span>
+
+<span class="sd">    .. deprecated:: 5.0</span>
+<span class="sd">       Tornado ``Futures`` have been merged with `asyncio.Future`,</span>
+<span class="sd">       so this method is now a no-op.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">asyncio_future</span></div>
+
+
+<div class="viewcode-block" id="to_asyncio_future"><a class="viewcode-back" href="../../../asyncio.html#tornado.platform.asyncio.to_asyncio_future">[docs]</a><span class="k">def</span> <span class="nf">to_asyncio_future</span><span class="p">(</span><span class="n">tornado_future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert a Tornado yieldable object to an `asyncio.Future`.</span>
+
+<span class="sd">    .. versionadded:: 4.1</span>
+
+<span class="sd">    .. versionchanged:: 4.3</span>
+<span class="sd">       Now accepts any yieldable object, not just</span>
+<span class="sd">       `tornado.concurrent.Future`.</span>
+
+<span class="sd">    .. deprecated:: 5.0</span>
+<span class="sd">       Tornado ``Futures`` have been merged with `asyncio.Future`,</span>
+<span class="sd">       so this method is now equivalent to `tornado.gen.convert_yielded`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">convert_yielded</span><span class="p">(</span><span class="n">tornado_future</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AnyThreadEventLoopPolicy"><a class="viewcode-back" href="../../../asyncio.html#tornado.platform.asyncio.AnyThreadEventLoopPolicy">[docs]</a><span class="k">class</span> <span class="nc">AnyThreadEventLoopPolicy</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">DefaultEventLoopPolicy</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+    <span class="sd">&quot;&quot;&quot;Event loop policy that allows loop creation on any thread.</span>
+
+<span class="sd">    The default `asyncio` event loop policy only automatically creates</span>
+<span class="sd">    event loops in the main threads. Other threads must create event</span>
+<span class="sd">    loops explicitly or `asyncio.get_event_loop` (and therefore</span>
+<span class="sd">    `.IOLoop.current`) will fail. Installing this policy allows event</span>
+<span class="sd">    loops to be created automatically on any thread, matching the</span>
+<span class="sd">    behavior of Tornado versions prior to 5.0 (or 5.0 on Python 2).</span>
+
+<span class="sd">    Usage::</span>
+
+<span class="sd">        asyncio.set_event_loop_policy(AnyThreadEventLoopPolicy())</span>
+
+<span class="sd">    .. versionadded:: 5.0</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">get_event_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">AbstractEventLoop</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">,</span> <span class="ne">AssertionError</span><span class="p">):</span>
+            <span class="c1"># This was an AssertionError in python 3.4.2 (which ships with debian jessie)</span>
+            <span class="c1"># and changed to a RuntimeError in 3.4.3.</span>
+            <span class="c1"># &quot;There is no current event loop in thread %r&quot;</span>
+            <span class="n">loop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_event_loop</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">loop</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

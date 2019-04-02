@@ -1,0 +1,565 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.testing — Unit testing support for asynchronous code &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.util — General-purpose utilities" href="util.html" />
+    <link rel="prev" title="tornado.options — Command-line parsing" href="options.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="utilities.html">Utilities</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="autoreload.html"><code class="docutils literal notranslate"><span class="pre">tornado.autoreload</span></code> — Automatically detect code changes in development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concurrent.html"><code class="docutils literal notranslate"><span class="pre">tornado.concurrent</span></code> — Work with <code class="docutils literal notranslate"><span class="pre">Future</span></code> objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html"><code class="docutils literal notranslate"><span class="pre">tornado.log</span></code> — Logging support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options.html"><code class="docutils literal notranslate"><span class="pre">tornado.options</span></code> — Command-line parsing</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.testing</span></code> — Unit testing support for asynchronous code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html"><code class="docutils literal notranslate"><span class="pre">tornado.util</span></code> — General-purpose utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="utilities.html">Utilities</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.testing</span></code> — Unit testing support for asynchronous code</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/testing.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-tornado.testing">
+<span id="tornado-testing-unit-testing-support-for-asynchronous-code"></span><h1><code class="docutils literal notranslate"><span class="pre">tornado.testing</span></code> — Unit testing support for asynchronous code<a class="headerlink" href="#module-tornado.testing" title="Permalink to this headline">¶</a></h1>
+<p>Support classes for automated testing.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#tornado.testing.AsyncTestCase" title="tornado.testing.AsyncTestCase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncTestCase</span></code></a> and <a class="reference internal" href="#tornado.testing.AsyncHTTPTestCase" title="tornado.testing.AsyncHTTPTestCase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPTestCase</span></code></a>:  Subclasses of unittest.TestCase
+with additional support for testing asynchronous (<a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>-based) code.</p></li>
+<li><p><a class="reference internal" href="#tornado.testing.ExpectLog" title="tornado.testing.ExpectLog"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExpectLog</span></code></a>: Make test logs less spammy.</p></li>
+<li><p><a class="reference internal" href="#tornado.testing.main" title="tornado.testing.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main()</span></code></a>: A simple test runner (wrapper around unittest.main()) with support
+for the tornado.autoreload module to rerun the tests when code changes.</p></li>
+</ul>
+<div class="section" id="asynchronous-test-cases">
+<h2>Asynchronous test cases<a class="headerlink" href="#asynchronous-test-cases" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.testing.AsyncTestCase">
+<em class="property">class </em><code class="descclassname">tornado.testing.</code><code class="descname">AsyncTestCase</code><span class="sig-paren">(</span><em>methodName: str = 'runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/testing.html#AsyncTestCase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.AsyncTestCase" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="https://docs.python.org/3.6/library/unittest.html#unittest.TestCase" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestCase</span></code></a> subclass for testing <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>-based
+asynchronous code.</p>
+<p>The unittest framework is synchronous, so the test must be
+complete by the time the test method returns. This means that
+asynchronous code cannot be used in quite the same way as usual
+and must be adapted to fit. To write your tests with coroutines,
+decorate your test methods with <a class="reference internal" href="#tornado.testing.gen_test" title="tornado.testing.gen_test"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.testing.gen_test</span></code></a> instead
+of <a class="reference internal" href="gen.html#tornado.gen.coroutine" title="tornado.gen.coroutine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.gen.coroutine</span></code></a>.</p>
+<p>This class also provides the (deprecated) <a class="reference internal" href="#tornado.testing.AsyncTestCase.stop" title="tornado.testing.AsyncTestCase.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stop()</span></code></a> and <a class="reference internal" href="#tornado.testing.AsyncTestCase.wait" title="tornado.testing.AsyncTestCase.wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wait()</span></code></a>
+methods for a more manual style of testing. The test method itself
+must call <code class="docutils literal notranslate"><span class="pre">self.wait()</span></code>, and asynchronous callbacks should call
+<code class="docutils literal notranslate"><span class="pre">self.stop()</span></code> to signal completion.</p>
+<p>By default, a new <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> is constructed for each test and is available
+as <code class="docutils literal notranslate"><span class="pre">self.io_loop</span></code>.  If the code being tested requires a
+global <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>, subclasses should override <a class="reference internal" href="#tornado.testing.AsyncTestCase.get_new_ioloop" title="tornado.testing.AsyncTestCase.get_new_ioloop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_new_ioloop</span></code></a> to return it.</p>
+<p>The <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>’s <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">stop</span></code> methods should not be
+called directly.  Instead, use <a class="reference internal" href="#tornado.testing.AsyncTestCase.stop" title="tornado.testing.AsyncTestCase.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">self.stop</span></code></a> and <a class="reference internal" href="#tornado.testing.AsyncTestCase.wait" title="tornado.testing.AsyncTestCase.wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">self.wait</span></code></a>.  Arguments passed to <code class="docutils literal notranslate"><span class="pre">self.stop</span></code> are returned from
+<code class="docutils literal notranslate"><span class="pre">self.wait</span></code>.  It is possible to have multiple <code class="docutils literal notranslate"><span class="pre">wait</span></code>/<code class="docutils literal notranslate"><span class="pre">stop</span></code>
+cycles in the same test.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># This test uses coroutine style.</span>
+<span class="k">class</span> <span class="nc">MyTestCase</span><span class="p">(</span><span class="n">AsyncTestCase</span><span class="p">):</span>
+    <span class="nd">@tornado</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">gen_test</span>
+    <span class="k">def</span> <span class="nf">test_http_fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">AsyncHTTPClient</span><span class="p">()</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;http://www.tornadoweb.org&quot;</span><span class="p">)</span>
+        <span class="c1"># Test contents of response</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&quot;FriendFeed&quot;</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+
+<span class="c1"># This test uses argument passing between self.stop and self.wait.</span>
+<span class="k">class</span> <span class="nc">MyTestCase2</span><span class="p">(</span><span class="n">AsyncTestCase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">test_http_fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">AsyncHTTPClient</span><span class="p">()</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;http://www.tornadoweb.org/&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="c1"># Test contents of response</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&quot;FriendFeed&quot;</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="tornado.testing.AsyncTestCase.get_new_ioloop">
+<code class="descname">get_new_ioloop</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; tornado.ioloop.IOLoop<a class="reference internal" href="_modules/tornado/testing.html#AsyncTestCase.get_new_ioloop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.AsyncTestCase.get_new_ioloop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> to use for this test.</p>
+<p>By default, a new <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> is created for each test.
+Subclasses may override this method to return
+<a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.current" title="tornado.ioloop.IOLoop.current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.current()</span></code></a> if it is not appropriate to use a new
+<a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> in each tests (for example, if there are global
+singletons using the default <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>) or if a per-test event
+loop is being provided by another system (such as
+<code class="docutils literal notranslate"><span class="pre">pytest-asyncio</span></code>).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.testing.AsyncTestCase.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><em>_arg: Any = None</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/testing.html#AsyncTestCase.stop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.AsyncTestCase.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops the <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>, causing one pending (or future) call to <a class="reference internal" href="#tornado.testing.AsyncTestCase.wait" title="tornado.testing.AsyncTestCase.wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wait()</span></code></a>
+to return.</p>
+<p>Keyword arguments or a single positional argument passed to <a class="reference internal" href="#tornado.testing.AsyncTestCase.stop" title="tornado.testing.AsyncTestCase.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stop()</span></code></a> are
+saved and will be returned by <a class="reference internal" href="#tornado.testing.AsyncTestCase.wait" title="tornado.testing.AsyncTestCase.wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wait()</span></code></a>.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.1: </span><a class="reference internal" href="#tornado.testing.AsyncTestCase.stop" title="tornado.testing.AsyncTestCase.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stop</span></code></a> and <a class="reference internal" href="#tornado.testing.AsyncTestCase.wait" title="tornado.testing.AsyncTestCase.wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wait</span></code></a> are deprecated; use <code class="docutils literal notranslate"><span class="pre">&#64;gen_test</span></code> instead.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.testing.AsyncTestCase.wait">
+<code class="descname">wait</code><span class="sig-paren">(</span><em>condition: Callable[[...], bool] = None, timeout: float = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/testing.html#AsyncTestCase.wait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.AsyncTestCase.wait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> until stop is called or timeout has passed.</p>
+<p>In the event of a timeout, an exception will be thrown. The
+default timeout is 5 seconds; it may be overridden with a
+<code class="docutils literal notranslate"><span class="pre">timeout</span></code> keyword argument or globally with the
+<code class="docutils literal notranslate"><span class="pre">ASYNC_TEST_TIMEOUT</span></code> environment variable.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">condition</span></code> is not <code class="docutils literal notranslate"><span class="pre">None</span></code>, the <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> will be restarted
+after <a class="reference internal" href="#tornado.testing.AsyncTestCase.stop" title="tornado.testing.AsyncTestCase.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stop()</span></code></a> until <code class="docutils literal notranslate"><span class="pre">condition()</span></code> returns <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 3.1: </span>Added the <code class="docutils literal notranslate"><span class="pre">ASYNC_TEST_TIMEOUT</span></code> environment variable.</p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.1: </span><a class="reference internal" href="#tornado.testing.AsyncTestCase.stop" title="tornado.testing.AsyncTestCase.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stop</span></code></a> and <a class="reference internal" href="#tornado.testing.AsyncTestCase.wait" title="tornado.testing.AsyncTestCase.wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wait</span></code></a> are deprecated; use <code class="docutils literal notranslate"><span class="pre">&#64;gen_test</span></code> instead.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.testing.AsyncHTTPTestCase">
+<em class="property">class </em><code class="descclassname">tornado.testing.</code><code class="descname">AsyncHTTPTestCase</code><span class="sig-paren">(</span><em>methodName: str = 'runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/testing.html#AsyncHTTPTestCase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.AsyncHTTPTestCase" title="Permalink to this definition">¶</a></dt>
+<dd><p>A test case that starts up an HTTP server.</p>
+<p>Subclasses must override <a class="reference internal" href="#tornado.testing.AsyncHTTPTestCase.get_app" title="tornado.testing.AsyncHTTPTestCase.get_app"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_app()</span></code></a>, which returns the
+<a class="reference internal" href="web.html#tornado.web.Application" title="tornado.web.Application"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.web.Application</span></code></a> (or other <a class="reference internal" href="httpserver.html#tornado.httpserver.HTTPServer" title="tornado.httpserver.HTTPServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServer</span></code></a> callback) to be tested.
+Tests will typically use the provided <code class="docutils literal notranslate"><span class="pre">self.http_client</span></code> to fetch
+URLs from this server.</p>
+<p>Example, assuming the “Hello, world” example from the user guide is in
+<code class="docutils literal notranslate"><span class="pre">hello.py</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">hello</span>
+
+<span class="k">class</span> <span class="nc">TestHelloApp</span><span class="p">(</span><span class="n">AsyncHTTPTestCase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_app</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">hello</span><span class="o">.</span><span class="n">make_app</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">test_homepage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="s1">&#39;Hello, world&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>That call to <code class="docutils literal notranslate"><span class="pre">self.fetch()</span></code> is equivalent to</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_url</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span>
+<span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>which illustrates how AsyncTestCase can turn an asynchronous operation,
+like <code class="docutils literal notranslate"><span class="pre">http_client.fetch()</span></code>, into a synchronous operation. If you need
+to do other asynchronous operations in tests, you’ll probably need to use
+<code class="docutils literal notranslate"><span class="pre">stop()</span></code> and <code class="docutils literal notranslate"><span class="pre">wait()</span></code> yourself.</p>
+<dl class="method">
+<dt id="tornado.testing.AsyncHTTPTestCase.get_app">
+<code class="descname">get_app</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; tornado.web.Application<a class="reference internal" href="_modules/tornado/testing.html#AsyncHTTPTestCase.get_app"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.AsyncHTTPTestCase.get_app" title="Permalink to this definition">¶</a></dt>
+<dd><p>Should be overridden by subclasses to return a
+<a class="reference internal" href="web.html#tornado.web.Application" title="tornado.web.Application"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.web.Application</span></code></a> or other <a class="reference internal" href="httpserver.html#tornado.httpserver.HTTPServer" title="tornado.httpserver.HTTPServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServer</span></code></a> callback.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.testing.AsyncHTTPTestCase.fetch">
+<code class="descname">fetch</code><span class="sig-paren">(</span><em>path: str</em>, <em>raise_error: bool = False</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; tornado.httpclient.HTTPResponse<a class="reference internal" href="_modules/tornado/testing.html#AsyncHTTPTestCase.fetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.AsyncHTTPTestCase.fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method to synchronously fetch a URL.</p>
+<p>The given path will be appended to the local server’s host and
+port.  Any additional keyword arguments will be passed directly to
+<a class="reference internal" href="httpclient.html#tornado.httpclient.AsyncHTTPClient.fetch" title="tornado.httpclient.AsyncHTTPClient.fetch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient.fetch</span></code></a> (and so could be used to pass
+<code class="docutils literal notranslate"><span class="pre">method=&quot;POST&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">body=&quot;...&quot;</span></code>, etc).</p>
+<p>If the path begins with <a class="reference external" href="http://">http://</a> or <a class="reference external" href="https://">https://</a>, it will be treated as a
+full URL and will be fetched as-is.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">raise_error</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, a <a class="reference internal" href="httpclient.html#tornado.httpclient.HTTPError" title="tornado.httpclient.HTTPError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.httpclient.HTTPError</span></code></a> will
+be raised if the response code is not 200. This is the same behavior
+as the <code class="docutils literal notranslate"><span class="pre">raise_error</span></code> argument to <a class="reference internal" href="httpclient.html#tornado.httpclient.AsyncHTTPClient.fetch" title="tornado.httpclient.AsyncHTTPClient.fetch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient.fetch</span></code></a>, but
+the default is <code class="docutils literal notranslate"><span class="pre">False</span></code> here (it’s <code class="docutils literal notranslate"><span class="pre">True</span></code> in <a class="reference internal" href="httpclient.html#tornado.httpclient.AsyncHTTPClient" title="tornado.httpclient.AsyncHTTPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient</span></code></a>)
+because tests often need to deal with non-200 response codes.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Added support for absolute URLs.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span>Added the <code class="docutils literal notranslate"><span class="pre">raise_error</span></code> argument.</p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.1: </span>This method currently turns any exception into an
+<a class="reference internal" href="httpclient.html#tornado.httpclient.HTTPResponse" title="tornado.httpclient.HTTPResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPResponse</span></code></a> with status code 599. In Tornado 6.0,
+errors other than <a class="reference internal" href="httpclient.html#tornado.httpclient.HTTPError" title="tornado.httpclient.HTTPError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.httpclient.HTTPError</span></code></a> will be
+passed through, and <code class="docutils literal notranslate"><span class="pre">raise_error=False</span></code> will only
+suppress errors that would be raised due to non-200
+response codes.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.testing.AsyncHTTPTestCase.get_httpserver_options">
+<code class="descname">get_httpserver_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict[str, Any]<a class="reference internal" href="_modules/tornado/testing.html#AsyncHTTPTestCase.get_httpserver_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.AsyncHTTPTestCase.get_httpserver_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>May be overridden by subclasses to return additional
+keyword arguments for the server.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.testing.AsyncHTTPTestCase.get_http_port">
+<code class="descname">get_http_port</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="_modules/tornado/testing.html#AsyncHTTPTestCase.get_http_port"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.AsyncHTTPTestCase.get_http_port" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the port used by the server.</p>
+<p>A new port is chosen for each test.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.testing.AsyncHTTPTestCase.get_url">
+<code class="descname">get_url</code><span class="sig-paren">(</span><em>path: str</em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="_modules/tornado/testing.html#AsyncHTTPTestCase.get_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.AsyncHTTPTestCase.get_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an absolute url for the given path on the test server.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.testing.AsyncHTTPSTestCase">
+<em class="property">class </em><code class="descclassname">tornado.testing.</code><code class="descname">AsyncHTTPSTestCase</code><span class="sig-paren">(</span><em>methodName: str = 'runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/testing.html#AsyncHTTPSTestCase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.AsyncHTTPSTestCase" title="Permalink to this definition">¶</a></dt>
+<dd><p>A test case that starts an HTTPS server.</p>
+<p>Interface is generally the same as <a class="reference internal" href="#tornado.testing.AsyncHTTPTestCase" title="tornado.testing.AsyncHTTPTestCase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPTestCase</span></code></a>.</p>
+<dl class="method">
+<dt id="tornado.testing.AsyncHTTPSTestCase.get_ssl_options">
+<code class="descname">get_ssl_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict[str, Any]<a class="reference internal" href="_modules/tornado/testing.html#AsyncHTTPSTestCase.get_ssl_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.AsyncHTTPSTestCase.get_ssl_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>May be overridden by subclasses to select SSL options.</p>
+<p>By default includes a self-signed testing certificate.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.testing.gen_test">
+<code class="descclassname">tornado.testing.</code><code class="descname">gen_test</code><span class="sig-paren">(</span><em>func: Callable[[...], Union[collections.abc.Generator, Coroutine]] = None, timeout: float = None</em><span class="sig-paren">)</span> &#x2192; Union[Callable[[...], None], Callable[[Callable[[...], Union[collections.abc.Generator, Coroutine]]], Callable[[...], None]]]<a class="reference internal" href="_modules/tornado/testing.html#gen_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.gen_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Testing equivalent of <code class="docutils literal notranslate"><span class="pre">&#64;gen.coroutine</span></code>, to be applied to test methods.</p>
+<p><code class="docutils literal notranslate"><span class="pre">&#64;gen.coroutine</span></code> cannot be used on tests because the <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> is not
+already running.  <code class="docutils literal notranslate"><span class="pre">&#64;gen_test</span></code> should be applied to test methods
+on subclasses of <a class="reference internal" href="#tornado.testing.AsyncTestCase" title="tornado.testing.AsyncTestCase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncTestCase</span></code></a>.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyTest</span><span class="p">(</span><span class="n">AsyncHTTPTestCase</span><span class="p">):</span>
+    <span class="nd">@gen_test</span>
+    <span class="k">def</span> <span class="nf">test_something</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_url</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">&#64;gen_test</span></code> times out after 5 seconds. The timeout may be
+overridden globally with the <code class="docutils literal notranslate"><span class="pre">ASYNC_TEST_TIMEOUT</span></code> environment variable,
+or for each test with the <code class="docutils literal notranslate"><span class="pre">timeout</span></code> keyword argument:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyTest</span><span class="p">(</span><span class="n">AsyncHTTPTestCase</span><span class="p">):</span>
+    <span class="nd">@gen_test</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">test_something_slow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_url</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">&#64;gen_test</span></code> is incompatible with <a class="reference internal" href="#tornado.testing.AsyncTestCase.stop" title="tornado.testing.AsyncTestCase.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncTestCase.stop</span></code></a>,
+<a class="reference internal" href="#tornado.testing.AsyncTestCase.wait" title="tornado.testing.AsyncTestCase.wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncTestCase.wait</span></code></a>, and <a class="reference internal" href="#tornado.testing.AsyncHTTPTestCase.fetch" title="tornado.testing.AsyncHTTPTestCase.fetch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPTestCase.fetch</span></code></a>. Use <code class="docutils literal notranslate"><span class="pre">yield</span>
+<span class="pre">self.http_client.fetch(self.get_url())</span></code> as shown above instead.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.1: </span>The <code class="docutils literal notranslate"><span class="pre">timeout</span></code> argument and <code class="docutils literal notranslate"><span class="pre">ASYNC_TEST_TIMEOUT</span></code> environment
+variable.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>The wrapper now passes along <code class="docutils literal notranslate"><span class="pre">*args,</span> <span class="pre">**kwargs</span></code> so it can be used
+on functions with arguments.</p>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="controlling-log-output">
+<h2>Controlling log output<a class="headerlink" href="#controlling-log-output" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.testing.ExpectLog">
+<em class="property">class </em><code class="descclassname">tornado.testing.</code><code class="descname">ExpectLog</code><span class="sig-paren">(</span><em>logger: Union[logging.Logger, str], regex: str, required: bool = True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/testing.html#ExpectLog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.ExpectLog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Context manager to capture and suppress expected log output.</p>
+<p>Useful to make tests of error conditions less noisy, while still
+leaving unexpected log entries visible.  <em>Not thread safe.</em></p>
+<p>The attribute <code class="docutils literal notranslate"><span class="pre">logged_stack</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code> if any exception
+stack trace was logged.</p>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">ExpectLog</span><span class="p">(</span><span class="s1">&#39;tornado.application&#39;</span><span class="p">,</span> <span class="s2">&quot;Uncaught exception&quot;</span><span class="p">):</span>
+    <span class="n">error_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;/some_page&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.3: </span>Added the <code class="docutils literal notranslate"><span class="pre">logged_stack</span></code> attribute.</p>
+</div>
+<p>Constructs an ExpectLog context manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logger</strong> – Logger object (or name of logger) to watch.  Pass
+an empty string to watch the root logger.</p></li>
+<li><p><strong>regex</strong> – Regular expression to match.  Any log entries on
+the specified logger that match this regex will be suppressed.</p></li>
+<li><p><strong>required</strong> – If true, an exception will be raised if the end of
+the <code class="docutils literal notranslate"><span class="pre">with</span></code> statement is reached without matching any log entries.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="test-runner">
+<h2>Test runner<a class="headerlink" href="#test-runner" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="tornado.testing.main">
+<code class="descclassname">tornado.testing.</code><code class="descname">main</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/testing.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>A simple test runner.</p>
+<p>This test runner is essentially equivalent to <a class="reference external" href="https://docs.python.org/3.6/library/unittest.html#unittest.main" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unittest.main</span></code></a> from
+the standard library, but adds support for Tornado-style option
+parsing and log formatting. It is <em>not</em> necessary to use this
+<a class="reference internal" href="#tornado.testing.main" title="tornado.testing.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a> function to run tests using <a class="reference internal" href="#tornado.testing.AsyncTestCase" title="tornado.testing.AsyncTestCase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncTestCase</span></code></a>; these tests
+are self-contained and can run with any test runner.</p>
+<p>The easiest way to run a test is via the command line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">tornado</span><span class="o">.</span><span class="n">testing</span> <span class="n">tornado</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">web_test</span>
+</pre></div>
+</div>
+<p>See the standard library <code class="docutils literal notranslate"><span class="pre">unittest</span></code> module for ways in which
+tests can be specified.</p>
+<p>Projects with many tests may wish to define a test script like
+<code class="docutils literal notranslate"><span class="pre">tornado/test/runtests.py</span></code>.  This script should define a method
+<code class="docutils literal notranslate"><span class="pre">all()</span></code> which returns a test suite and then call
+<a class="reference internal" href="#tornado.testing.main" title="tornado.testing.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.testing.main()</span></code></a>.  Note that even when a test script is
+used, the <code class="docutils literal notranslate"><span class="pre">all()</span></code> test suite may be overridden by naming a
+single test on the command line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Runs all tests</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">tornado</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">runtests</span>
+<span class="c1"># Runs one test</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">tornado</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">runtests</span> <span class="n">tornado</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">web_test</span>
+</pre></div>
+</div>
+<p>Additional keyword arguments passed through to <code class="docutils literal notranslate"><span class="pre">unittest.main()</span></code>.
+For example, use <code class="docutils literal notranslate"><span class="pre">tornado.testing.main(verbosity=2)</span></code>
+to show many test details as they are run.
+See <a class="reference external" href="http://docs.python.org/library/unittest.html#unittest.main">http://docs.python.org/library/unittest.html#unittest.main</a>
+for full argument list.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>This function produces no output of its own; only that produced
+by the <a class="reference external" href="https://docs.python.org/3.6/library/unittest.html#module-unittest" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unittest</span></code></a> module (previously it would add a PASS or FAIL
+log message).</p>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="helper-functions">
+<h2>Helper functions<a class="headerlink" href="#helper-functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="tornado.testing.bind_unused_port">
+<code class="descclassname">tornado.testing.</code><code class="descname">bind_unused_port</code><span class="sig-paren">(</span><em>reuse_port: bool = False</em><span class="sig-paren">)</span> &#x2192; Tuple[socket.socket, int]<a class="reference internal" href="_modules/tornado/testing.html#bind_unused_port"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.bind_unused_port" title="Permalink to this definition">¶</a></dt>
+<dd><p>Binds a server socket to an available port on localhost.</p>
+<p>Returns a tuple (socket, port).</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.4: </span>Always binds to <code class="docutils literal notranslate"><span class="pre">127.0.0.1</span></code> without resolving the name
+<code class="docutils literal notranslate"><span class="pre">localhost</span></code>.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.testing.get_async_test_timeout">
+<code class="descclassname">tornado.testing.</code><code class="descname">get_async_test_timeout</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; float<a class="reference internal" href="_modules/tornado/testing.html#get_async_test_timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.testing.get_async_test_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the global timeout setting for async tests.</p>
+<p>Returns a float, the timeout in seconds.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.1.</span></p>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="util.html" class="btn btn-neutral float-right" title="tornado.util — General-purpose utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="options.html" class="btn btn-neutral float-left" title="tornado.options — Command-line parsing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

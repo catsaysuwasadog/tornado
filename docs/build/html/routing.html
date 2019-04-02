@@ -1,0 +1,610 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.routing — Basic routing implementation &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.escape — Escaping and string manipulation" href="escape.html" />
+    <link rel="prev" title="tornado.template — Flexible output generation" href="template.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="webframework.html">Web framework</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="web.html"><code class="docutils literal notranslate"><span class="pre">tornado.web</span></code> — <code class="docutils literal notranslate"><span class="pre">RequestHandler</span></code> and <code class="docutils literal notranslate"><span class="pre">Application</span></code> classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="template.html"><code class="docutils literal notranslate"><span class="pre">tornado.template</span></code> — Flexible output generation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.routing</span></code> — Basic routing implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="escape.html"><code class="docutils literal notranslate"><span class="pre">tornado.escape</span></code> — Escaping and string manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="locale.html"><code class="docutils literal notranslate"><span class="pre">tornado.locale</span></code> — Internationalization support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="websocket.html"><code class="docutils literal notranslate"><span class="pre">tornado.websocket</span></code> — Bidirectional communication to the browser</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="webframework.html">Web framework</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.routing</span></code> — Basic routing implementation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/routing.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-tornado.routing">
+<span id="tornado-routing-basic-routing-implementation"></span><h1><code class="docutils literal notranslate"><span class="pre">tornado.routing</span></code> — Basic routing implementation<a class="headerlink" href="#module-tornado.routing" title="Permalink to this headline">¶</a></h1>
+<p>Flexible routing implementation.</p>
+<p>Tornado routes HTTP requests to appropriate handlers using <a class="reference internal" href="#tornado.routing.Router" title="tornado.routing.Router"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Router</span></code></a>
+class implementations. The <a class="reference internal" href="web.html#tornado.web.Application" title="tornado.web.Application"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.web.Application</span></code></a> class is a
+<a class="reference internal" href="#tornado.routing.Router" title="tornado.routing.Router"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Router</span></code></a> implementation and may be used directly, or the classes in
+this module may be used for additional flexibility. The <a class="reference internal" href="#tornado.routing.RuleRouter" title="tornado.routing.RuleRouter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RuleRouter</span></code></a>
+class can match on more criteria than <a class="reference internal" href="web.html#tornado.web.Application" title="tornado.web.Application"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Application</span></code></a>, or the <a class="reference internal" href="#tornado.routing.Router" title="tornado.routing.Router"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Router</span></code></a>
+interface can be subclassed for maximum customization.</p>
+<p><a class="reference internal" href="#tornado.routing.Router" title="tornado.routing.Router"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Router</span></code></a> interface extends <a class="reference internal" href="httputil.html#tornado.httputil.HTTPServerConnectionDelegate" title="tornado.httputil.HTTPServerConnectionDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServerConnectionDelegate</span></code></a>
+to provide additional routing capabilities. This also means that any
+<a class="reference internal" href="#tornado.routing.Router" title="tornado.routing.Router"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Router</span></code></a> implementation can be used directly as a <code class="docutils literal notranslate"><span class="pre">request_callback</span></code>
+for <a class="reference internal" href="httpserver.html#tornado.httpserver.HTTPServer" title="tornado.httpserver.HTTPServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServer</span></code></a> constructor.</p>
+<p><a class="reference internal" href="#tornado.routing.Router" title="tornado.routing.Router"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Router</span></code></a> subclass must implement a <code class="docutils literal notranslate"><span class="pre">find_handler</span></code> method to provide
+a suitable <a class="reference internal" href="httputil.html#tornado.httputil.HTTPMessageDelegate" title="tornado.httputil.HTTPMessageDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPMessageDelegate</span></code></a> instance to handle the
+request:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">CustomRouter</span><span class="p">(</span><span class="n">Router</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">find_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># some routing logic providing a suitable HTTPMessageDelegate instance</span>
+        <span class="k">return</span> <span class="n">MessageDelegate</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">connection</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">MessageDelegate</span><span class="p">(</span><span class="n">HTTPMessageDelegate</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">connection</span>
+
+    <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">write_headers</span><span class="p">(</span>
+            <span class="n">ResponseStartLine</span><span class="p">(</span><span class="s2">&quot;HTTP/1.1&quot;</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="s2">&quot;OK&quot;</span><span class="p">),</span>
+            <span class="n">HTTPHeaders</span><span class="p">({</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">}),</span>
+            <span class="sa">b</span><span class="s2">&quot;OK&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+
+<span class="n">router</span> <span class="o">=</span> <span class="n">CustomRouter</span><span class="p">()</span>
+<span class="n">server</span> <span class="o">=</span> <span class="n">HTTPServer</span><span class="p">(</span><span class="n">router</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The main responsibility of <a class="reference internal" href="#tornado.routing.Router" title="tornado.routing.Router"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Router</span></code></a> implementation is to provide a
+mapping from a request to <a class="reference internal" href="httputil.html#tornado.httputil.HTTPMessageDelegate" title="tornado.httputil.HTTPMessageDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPMessageDelegate</span></code></a> instance
+that will handle this request. In the example above we can see that
+routing is possible even without instantiating an <a class="reference internal" href="web.html#tornado.web.Application" title="tornado.web.Application"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Application</span></code></a>.</p>
+<p>For routing to <a class="reference internal" href="web.html#tornado.web.RequestHandler" title="tornado.web.RequestHandler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RequestHandler</span></code></a> implementations we need an
+<a class="reference internal" href="web.html#tornado.web.Application" title="tornado.web.Application"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Application</span></code></a> instance. <a class="reference internal" href="web.html#tornado.web.Application.get_handler_delegate" title="tornado.web.Application.get_handler_delegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_handler_delegate</span></code></a>
+provides a convenient way to create <a class="reference internal" href="httputil.html#tornado.httputil.HTTPMessageDelegate" title="tornado.httputil.HTTPMessageDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPMessageDelegate</span></code></a>
+for a given request and <a class="reference internal" href="web.html#tornado.web.RequestHandler" title="tornado.web.RequestHandler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RequestHandler</span></code></a>.</p>
+<p>Here is a simple example of how we can we route to
+<a class="reference internal" href="web.html#tornado.web.RequestHandler" title="tornado.web.RequestHandler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RequestHandler</span></code></a> subclasses by HTTP method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">resources</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">class</span> <span class="nc">GetResource</span><span class="p">(</span><span class="n">RequestHandler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">resources</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">HTTPError</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">(</span><span class="n">resources</span><span class="p">[</span><span class="n">path</span><span class="p">])</span>
+
+<span class="k">class</span> <span class="nc">PostResource</span><span class="p">(</span><span class="n">RequestHandler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="n">resources</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">body</span>
+
+<span class="k">class</span> <span class="nc">HTTPMethodRouter</span><span class="p">(</span><span class="n">Router</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="o">=</span> <span class="n">app</span>
+
+    <span class="k">def</span> <span class="nf">find_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="n">GetResource</span> <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;GET&quot;</span> <span class="k">else</span> <span class="n">PostResource</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">get_handler_delegate</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">path_args</span><span class="o">=</span><span class="p">[</span><span class="n">request</span><span class="o">.</span><span class="n">path</span><span class="p">])</span>
+
+<span class="n">router</span> <span class="o">=</span> <span class="n">HTTPMethodRouter</span><span class="p">(</span><span class="n">Application</span><span class="p">())</span>
+<span class="n">server</span> <span class="o">=</span> <span class="n">HTTPServer</span><span class="p">(</span><span class="n">router</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#tornado.routing.ReversibleRouter" title="tornado.routing.ReversibleRouter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReversibleRouter</span></code></a> interface adds the ability to distinguish between
+the routes and reverse them to the original urls using route’s name
+and additional arguments. <a class="reference internal" href="web.html#tornado.web.Application" title="tornado.web.Application"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Application</span></code></a> is itself an
+implementation of <a class="reference internal" href="#tornado.routing.ReversibleRouter" title="tornado.routing.ReversibleRouter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReversibleRouter</span></code></a> class.</p>
+<p><a class="reference internal" href="#tornado.routing.RuleRouter" title="tornado.routing.RuleRouter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RuleRouter</span></code></a> and <a class="reference internal" href="#tornado.routing.ReversibleRuleRouter" title="tornado.routing.ReversibleRuleRouter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReversibleRuleRouter</span></code></a> are implementations of
+<a class="reference internal" href="#tornado.routing.Router" title="tornado.routing.Router"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Router</span></code></a> and <a class="reference internal" href="#tornado.routing.ReversibleRouter" title="tornado.routing.ReversibleRouter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReversibleRouter</span></code></a> interfaces and can be used for
+creating rule-based routing configurations.</p>
+<p>Rules are instances of <a class="reference internal" href="#tornado.routing.Rule" title="tornado.routing.Rule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Rule</span></code></a> class. They contain a <a class="reference internal" href="#tornado.routing.Matcher" title="tornado.routing.Matcher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Matcher</span></code></a>, which
+provides the logic for determining whether the rule is a match for a
+particular request and a target, which can be one of the following.</p>
+<ol class="arabic simple">
+<li><p>An instance of <a class="reference internal" href="httputil.html#tornado.httputil.HTTPServerConnectionDelegate" title="tornado.httputil.HTTPServerConnectionDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServerConnectionDelegate</span></code></a>:</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">router</span> <span class="o">=</span> <span class="n">RuleRouter</span><span class="p">([</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">PathMatches</span><span class="p">(</span><span class="s2">&quot;/handler&quot;</span><span class="p">),</span> <span class="n">ConnectionDelegate</span><span class="p">()),</span>
+    <span class="c1"># ... more rules</span>
+<span class="p">])</span>
+
+<span class="k">class</span> <span class="nc">ConnectionDelegate</span><span class="p">(</span><span class="n">HTTPServerConnectionDelegate</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">start_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server_conn</span><span class="p">,</span> <span class="n">request_conn</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">MessageDelegate</span><span class="p">(</span><span class="n">request_conn</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>A callable accepting a single argument of <a class="reference internal" href="httputil.html#tornado.httputil.HTTPServerRequest" title="tornado.httputil.HTTPServerRequest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServerRequest</span></code></a> type:</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">router</span> <span class="o">=</span> <span class="n">RuleRouter</span><span class="p">([</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">PathMatches</span><span class="p">(</span><span class="s2">&quot;/callable&quot;</span><span class="p">),</span> <span class="n">request_callable</span><span class="p">)</span>
+<span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">request_callable</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">request</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;HTTP/1.1 200 OK</span><span class="se">\r\n</span><span class="s2">Content-Length: 2</span><span class="se">\r\n\r\n</span><span class="s2">OK&quot;</span><span class="p">)</span>
+    <span class="n">request</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Another <a class="reference internal" href="#tornado.routing.Router" title="tornado.routing.Router"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Router</span></code></a> instance:</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">router</span> <span class="o">=</span> <span class="n">RuleRouter</span><span class="p">([</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">PathMatches</span><span class="p">(</span><span class="s2">&quot;/router.*&quot;</span><span class="p">),</span> <span class="n">CustomRouter</span><span class="p">())</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<p>Of course a nested <a class="reference internal" href="#tornado.routing.RuleRouter" title="tornado.routing.RuleRouter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RuleRouter</span></code></a> or a <a class="reference internal" href="web.html#tornado.web.Application" title="tornado.web.Application"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Application</span></code></a> is allowed:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">router</span> <span class="o">=</span> <span class="n">RuleRouter</span><span class="p">([</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">HostMatches</span><span class="p">(</span><span class="s2">&quot;example.com&quot;</span><span class="p">),</span> <span class="n">RuleRouter</span><span class="p">([</span>
+        <span class="n">Rule</span><span class="p">(</span><span class="n">PathMatches</span><span class="p">(</span><span class="s2">&quot;/app1/.*&quot;</span><span class="p">),</span> <span class="n">Application</span><span class="p">([(</span><span class="sa">r</span><span class="s2">&quot;/app1/handler&quot;</span><span class="p">,</span> <span class="n">Handler</span><span class="p">)]))),</span>
+    <span class="p">]))</span>
+<span class="p">])</span>
+
+<span class="n">server</span> <span class="o">=</span> <span class="n">HTTPServer</span><span class="p">(</span><span class="n">router</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the example below <a class="reference internal" href="#tornado.routing.RuleRouter" title="tornado.routing.RuleRouter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RuleRouter</span></code></a> is used to route between applications:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app1</span> <span class="o">=</span> <span class="n">Application</span><span class="p">([</span>
+    <span class="p">(</span><span class="sa">r</span><span class="s2">&quot;/app1/handler&quot;</span><span class="p">,</span> <span class="n">Handler1</span><span class="p">),</span>
+    <span class="c1"># other handlers ...</span>
+<span class="p">])</span>
+
+<span class="n">app2</span> <span class="o">=</span> <span class="n">Application</span><span class="p">([</span>
+    <span class="p">(</span><span class="sa">r</span><span class="s2">&quot;/app2/handler&quot;</span><span class="p">,</span> <span class="n">Handler2</span><span class="p">),</span>
+    <span class="c1"># other handlers ...</span>
+<span class="p">])</span>
+
+<span class="n">router</span> <span class="o">=</span> <span class="n">RuleRouter</span><span class="p">([</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">PathMatches</span><span class="p">(</span><span class="s2">&quot;/app1.*&quot;</span><span class="p">),</span> <span class="n">app1</span><span class="p">),</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">PathMatches</span><span class="p">(</span><span class="s2">&quot;/app2.*&quot;</span><span class="p">),</span> <span class="n">app2</span><span class="p">)</span>
+<span class="p">])</span>
+
+<span class="n">server</span> <span class="o">=</span> <span class="n">HTTPServer</span><span class="p">(</span><span class="n">router</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For more information on application-level routing see docs for <a class="reference internal" href="web.html#tornado.web.Application" title="tornado.web.Application"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Application</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.5.</span></p>
+</div>
+<dl class="class">
+<dt id="tornado.routing.Router">
+<em class="property">class </em><code class="descclassname">tornado.routing.</code><code class="descname">Router</code><a class="reference internal" href="_modules/tornado/routing.html#Router"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.Router" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract router interface.</p>
+<dl class="method">
+<dt id="tornado.routing.Router.find_handler">
+<code class="descname">find_handler</code><span class="sig-paren">(</span><em>request: tornado.httputil.HTTPServerRequest</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[tornado.httputil.HTTPMessageDelegate]<a class="reference internal" href="_modules/tornado/routing.html#Router.find_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.Router.find_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Must be implemented to return an appropriate instance of <a class="reference internal" href="httputil.html#tornado.httputil.HTTPMessageDelegate" title="tornado.httputil.HTTPMessageDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPMessageDelegate</span></code></a>
+that can serve the request.
+Routing implementations may pass additional kwargs to extend the routing logic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request</strong> (<a class="reference internal" href="httputil.html#tornado.httputil.HTTPServerRequest" title="tornado.httputil.HTTPServerRequest"><em>httputil.HTTPServerRequest</em></a>) – current HTTP request.</p></li>
+<li><p><strong>kwargs</strong> – additional keyword arguments passed by routing implementation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>an instance of <a class="reference internal" href="httputil.html#tornado.httputil.HTTPMessageDelegate" title="tornado.httputil.HTTPMessageDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPMessageDelegate</span></code></a> that will be used to
+process the request.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.routing.ReversibleRouter">
+<em class="property">class </em><code class="descclassname">tornado.routing.</code><code class="descname">ReversibleRouter</code><a class="reference internal" href="_modules/tornado/routing.html#ReversibleRouter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.ReversibleRouter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract router interface for routers that can handle named routes
+and support reversing them to original urls.</p>
+<dl class="method">
+<dt id="tornado.routing.ReversibleRouter.reverse_url">
+<code class="descname">reverse_url</code><span class="sig-paren">(</span><em>name: str</em>, <em>*args</em><span class="sig-paren">)</span> &#x2192; Optional[str]<a class="reference internal" href="_modules/tornado/routing.html#ReversibleRouter.reverse_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.ReversibleRouter.reverse_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns url string for a given route name and arguments
+or <code class="docutils literal notranslate"><span class="pre">None</span></code> if no match is found.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – route name.</p></li>
+<li><p><strong>args</strong> – url parameters.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parametrized url string for a given route name (or <code class="docutils literal notranslate"><span class="pre">None</span></code>).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.routing.RuleRouter">
+<em class="property">class </em><code class="descclassname">tornado.routing.</code><code class="descname">RuleRouter</code><span class="sig-paren">(</span><em>rules: List[Union[Rule, List[Any], Tuple[Union[str, Matcher], Any], Tuple[Union[str, Matcher], Any, Dict[str, Any]], Tuple[Union[str, Matcher], Any, Dict[str, Any], str]]] = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/routing.html#RuleRouter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.RuleRouter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rule-based router implementation.</p>
+<p>Constructs a router from an ordered list of rules:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">RuleRouter</span><span class="p">([</span>
+    <span class="n">Rule</span><span class="p">(</span><span class="n">PathMatches</span><span class="p">(</span><span class="s2">&quot;/handler&quot;</span><span class="p">),</span> <span class="n">Target</span><span class="p">),</span>
+    <span class="c1"># ... more rules</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<p>You can also omit explicit <a class="reference internal" href="#tornado.routing.Rule" title="tornado.routing.Rule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Rule</span></code></a> constructor and use tuples of arguments:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">RuleRouter</span><span class="p">([</span>
+    <span class="p">(</span><span class="n">PathMatches</span><span class="p">(</span><span class="s2">&quot;/handler&quot;</span><span class="p">),</span> <span class="n">Target</span><span class="p">),</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#tornado.routing.PathMatches" title="tornado.routing.PathMatches"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PathMatches</span></code></a> is a default matcher, so the example above can be simplified:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">RuleRouter</span><span class="p">([</span>
+    <span class="p">(</span><span class="s2">&quot;/handler&quot;</span><span class="p">,</span> <span class="n">Target</span><span class="p">),</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<p>In the examples above, <code class="docutils literal notranslate"><span class="pre">Target</span></code> can be a nested <a class="reference internal" href="#tornado.routing.Router" title="tornado.routing.Router"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Router</span></code></a> instance, an instance of
+<a class="reference internal" href="httputil.html#tornado.httputil.HTTPServerConnectionDelegate" title="tornado.httputil.HTTPServerConnectionDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServerConnectionDelegate</span></code></a> or an old-style callable,
+accepting a request argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rules</strong> – a list of <a class="reference internal" href="#tornado.routing.Rule" title="tornado.routing.Rule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Rule</span></code></a> instances or tuples of <a class="reference internal" href="#tornado.routing.Rule" title="tornado.routing.Rule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Rule</span></code></a>
+constructor arguments.</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="tornado.routing.RuleRouter.add_rules">
+<code class="descname">add_rules</code><span class="sig-paren">(</span><em>rules: List[Union[Rule, List[Any], Tuple[Union[str, Matcher], Any], Tuple[Union[str, Matcher], Any, Dict[str, Any]], Tuple[Union[str, Matcher], Any, Dict[str, Any], str]]]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/routing.html#RuleRouter.add_rules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.RuleRouter.add_rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Appends new rules to the router.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rules</strong> – a list of Rule instances (or tuples of arguments, which are
+passed to Rule constructor).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.routing.RuleRouter.process_rule">
+<code class="descname">process_rule</code><span class="sig-paren">(</span><em>rule: tornado.routing.Rule</em><span class="sig-paren">)</span> &#x2192; tornado.routing.Rule<a class="reference internal" href="_modules/tornado/routing.html#RuleRouter.process_rule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.RuleRouter.process_rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this method for additional preprocessing of each rule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rule</strong> (<a class="reference internal" href="#tornado.routing.Rule" title="tornado.routing.Rule"><em>Rule</em></a>) – a rule to be processed.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the same or modified Rule instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.routing.RuleRouter.get_target_delegate">
+<code class="descname">get_target_delegate</code><span class="sig-paren">(</span><em>target: Any</em>, <em>request: tornado.httputil.HTTPServerRequest</em>, <em>**target_params</em><span class="sig-paren">)</span> &#x2192; Optional[tornado.httputil.HTTPMessageDelegate]<a class="reference internal" href="_modules/tornado/routing.html#RuleRouter.get_target_delegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.RuleRouter.get_target_delegate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an instance of <a class="reference internal" href="httputil.html#tornado.httputil.HTTPMessageDelegate" title="tornado.httputil.HTTPMessageDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPMessageDelegate</span></code></a> for a
+Rule’s target. This method is called by <a class="reference internal" href="#tornado.routing.Router.find_handler" title="tornado.routing.Router.find_handler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_handler</span></code></a> and can be
+extended to provide additional target types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target</strong> – a Rule’s target.</p></li>
+<li><p><strong>request</strong> (<a class="reference internal" href="httputil.html#tornado.httputil.HTTPServerRequest" title="tornado.httputil.HTTPServerRequest"><em>httputil.HTTPServerRequest</em></a>) – current request.</p></li>
+<li><p><strong>target_params</strong> – additional parameters that can be useful
+for <a class="reference internal" href="httputil.html#tornado.httputil.HTTPMessageDelegate" title="tornado.httputil.HTTPMessageDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPMessageDelegate</span></code></a> creation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.routing.ReversibleRuleRouter">
+<em class="property">class </em><code class="descclassname">tornado.routing.</code><code class="descname">ReversibleRuleRouter</code><span class="sig-paren">(</span><em>rules: List[Union[Rule, List[Any], Tuple[Union[str, Matcher], Any], Tuple[Union[str, Matcher], Any, Dict[str, Any]], Tuple[Union[str, Matcher], Any, Dict[str, Any], str]]] = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/routing.html#ReversibleRuleRouter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.ReversibleRuleRouter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A rule-based router that implements <code class="docutils literal notranslate"><span class="pre">reverse_url</span></code> method.</p>
+<p>Each rule added to this router may have a <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute that can be
+used to reconstruct an original uri. The actual reconstruction takes place
+in a rule’s matcher (see <a class="reference internal" href="#tornado.routing.Matcher.reverse" title="tornado.routing.Matcher.reverse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Matcher.reverse</span></code></a>).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.routing.Rule">
+<em class="property">class </em><code class="descclassname">tornado.routing.</code><code class="descname">Rule</code><span class="sig-paren">(</span><em>matcher: tornado.routing.Matcher</em>, <em>target: Any</em>, <em>target_kwargs: Dict[str</em>, <em>Any] = None</em>, <em>name: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/routing.html#Rule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.Rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>A routing rule.</p>
+<p>Constructs a Rule instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matcher</strong> (<a class="reference internal" href="#tornado.routing.Matcher" title="tornado.routing.Matcher"><em>Matcher</em></a>) – a <a class="reference internal" href="#tornado.routing.Matcher" title="tornado.routing.Matcher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Matcher</span></code></a> instance used for determining
+whether the rule should be considered a match for a specific
+request.</p></li>
+<li><p><strong>target</strong> – a Rule’s target (typically a <code class="docutils literal notranslate"><span class="pre">RequestHandler</span></code> or
+<a class="reference internal" href="httputil.html#tornado.httputil.HTTPServerConnectionDelegate" title="tornado.httputil.HTTPServerConnectionDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServerConnectionDelegate</span></code></a> subclass or even a nested <a class="reference internal" href="#tornado.routing.Router" title="tornado.routing.Router"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Router</span></code></a>,
+depending on routing implementation).</p></li>
+<li><p><strong>target_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a>) – a dict of parameters that can be useful
+at the moment of target instantiation (for example, <code class="docutils literal notranslate"><span class="pre">status_code</span></code>
+for a <code class="docutils literal notranslate"><span class="pre">RequestHandler</span></code> subclass). They end up in
+<code class="docutils literal notranslate"><span class="pre">target_params['target_kwargs']</span></code> of <a class="reference internal" href="#tornado.routing.RuleRouter.get_target_delegate" title="tornado.routing.RuleRouter.get_target_delegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RuleRouter.get_target_delegate</span></code></a>
+method.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – the name of the rule that can be used to find it
+in <a class="reference internal" href="#tornado.routing.ReversibleRouter.reverse_url" title="tornado.routing.ReversibleRouter.reverse_url"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReversibleRouter.reverse_url</span></code></a> implementation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.routing.Matcher">
+<em class="property">class </em><code class="descclassname">tornado.routing.</code><code class="descname">Matcher</code><a class="reference internal" href="_modules/tornado/routing.html#Matcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.Matcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents a matcher for request features.</p>
+<dl class="method">
+<dt id="tornado.routing.Matcher.match">
+<code class="descname">match</code><span class="sig-paren">(</span><em>request: tornado.httputil.HTTPServerRequest</em><span class="sig-paren">)</span> &#x2192; Optional[Dict[str, Any]]<a class="reference internal" href="_modules/tornado/routing.html#Matcher.match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.Matcher.match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches current instance against the request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>request</strong> (<a class="reference internal" href="httputil.html#tornado.httputil.HTTPServerRequest" title="tornado.httputil.HTTPServerRequest"><em>httputil.HTTPServerRequest</em></a>) – current HTTP request</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a dict of parameters to be passed to the target handler
+(for example, <code class="docutils literal notranslate"><span class="pre">handler_kwargs</span></code>, <code class="docutils literal notranslate"><span class="pre">path_args</span></code>, <code class="docutils literal notranslate"><span class="pre">path_kwargs</span></code>
+can be passed for proper <a class="reference internal" href="web.html#tornado.web.RequestHandler" title="tornado.web.RequestHandler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RequestHandler</span></code></a> instantiation).
+An empty dict is a valid (and common) return value to indicate a match
+when the argument-passing features are not used.
+<code class="docutils literal notranslate"><span class="pre">None</span></code> must be returned to indicate that there is no match.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.routing.Matcher.reverse">
+<code class="descname">reverse</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span> &#x2192; Optional[str]<a class="reference internal" href="_modules/tornado/routing.html#Matcher.reverse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.Matcher.reverse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reconstructs full url from matcher instance and additional arguments.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.routing.AnyMatches">
+<em class="property">class </em><code class="descclassname">tornado.routing.</code><code class="descname">AnyMatches</code><a class="reference internal" href="_modules/tornado/routing.html#AnyMatches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.AnyMatches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches any request.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.routing.HostMatches">
+<em class="property">class </em><code class="descclassname">tornado.routing.</code><code class="descname">HostMatches</code><span class="sig-paren">(</span><em>host_pattern: Union[str, Pattern[AnyStr]]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/routing.html#HostMatches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.HostMatches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches requests from hosts specified by <code class="docutils literal notranslate"><span class="pre">host_pattern</span></code> regex.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.routing.DefaultHostMatches">
+<em class="property">class </em><code class="descclassname">tornado.routing.</code><code class="descname">DefaultHostMatches</code><span class="sig-paren">(</span><em>application: Any, host_pattern: Pattern[AnyStr]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/routing.html#DefaultHostMatches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.DefaultHostMatches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches requests from host that is equal to application’s default_host.
+Always returns no match if <code class="docutils literal notranslate"><span class="pre">X-Real-Ip</span></code> header is present.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.routing.PathMatches">
+<em class="property">class </em><code class="descclassname">tornado.routing.</code><code class="descname">PathMatches</code><span class="sig-paren">(</span><em>path_pattern: Union[str, Pattern[AnyStr]]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/routing.html#PathMatches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.PathMatches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches requests with paths specified by <code class="docutils literal notranslate"><span class="pre">path_pattern</span></code> regex.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.routing.URLSpec">
+<em class="property">class </em><code class="descclassname">tornado.routing.</code><code class="descname">URLSpec</code><span class="sig-paren">(</span><em>pattern: Union[str, Pattern[AnyStr]], handler: Any, kwargs: Dict[str, Any] = None, name: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/routing.html#URLSpec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.routing.URLSpec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specifies mappings between URLs and handlers.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pattern</span></code>: Regular expression to be matched. Any capturing
+groups in the regex will be passed in to the handler’s
+get/post/etc methods as arguments (by keyword if named, by
+position if unnamed. Named and unnamed capturing groups
+may not be mixed in the same rule).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">handler</span></code>: <a class="reference internal" href="web.html#tornado.web.RequestHandler" title="tornado.web.RequestHandler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RequestHandler</span></code></a> subclass to be invoked.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kwargs</span></code> (optional): A dictionary of additional arguments
+to be passed to the handler’s constructor.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> (optional): A name for this handler.  Used by
+<a class="reference internal" href="web.html#tornado.web.Application.reverse_url" title="tornado.web.Application.reverse_url"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reverse_url</span></code></a>.</p></li>
+</ul>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="escape.html" class="btn btn-neutral float-right" title="tornado.escape — Escaping and string manipulation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="template.html" class="btn btn-neutral float-left" title="tornado.template — Flexible output generation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

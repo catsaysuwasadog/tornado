@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.wsgi &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tornado.wsgi</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tornado.wsgi</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2009 Facebook</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c1"># not use this file except in compliance with the License. You may obtain</span>
+<span class="c1"># a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c1"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c1"># License for the specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
+
+<span class="sd">&quot;&quot;&quot;WSGI support for the Tornado web framework.</span>
+
+<span class="sd">WSGI is the Python standard for web servers, and allows for interoperability</span>
+<span class="sd">between Tornado and other Python web frameworks and servers.</span>
+
+<span class="sd">This module provides WSGI support via the `WSGIContainer` class, which</span>
+<span class="sd">makes it possible to run applications using other WSGI frameworks on</span>
+<span class="sd">the Tornado HTTP server. The reverse is not supported; the Tornado</span>
+<span class="sd">`.Application` and `.RequestHandler` classes are designed for use with</span>
+<span class="sd">the Tornado `.HTTPServer` and cannot be used in a generic WSGI</span>
+<span class="sd">container.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">BytesIO</span>
+<span class="kn">import</span> <span class="nn">tornado</span>
+
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">escape</span>
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">httputil</span>
+<span class="kn">from</span> <span class="nn">tornado.log</span> <span class="k">import</span> <span class="n">access_log</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Text</span>
+<span class="kn">from</span> <span class="nn">types</span> <span class="k">import</span> <span class="n">TracebackType</span>
+<span class="kn">import</span> <span class="nn">typing</span>
+
+<span class="k">if</span> <span class="n">typing</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Type</span>  <span class="c1"># noqa: F401</span>
+    <span class="kn">from</span> <span class="nn">wsgiref.types</span> <span class="k">import</span> <span class="n">WSGIApplication</span> <span class="k">as</span> <span class="n">WSGIAppType</span>  <span class="c1"># noqa: F401</span>
+
+
+<span class="c1"># PEP 3333 specifies that WSGI on python 3 generally deals with byte strings</span>
+<span class="c1"># that are smuggled inside objects of type unicode (via the latin1 encoding).</span>
+<span class="c1"># This function is like those in the tornado.escape module, but defined</span>
+<span class="c1"># here to minimize the temptation to use it in non-wsgi contexts.</span>
+<span class="k">def</span> <span class="nf">to_wsgi_str</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;latin1&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="WSGIContainer"><a class="viewcode-back" href="../../wsgi.html#tornado.wsgi.WSGIContainer">[docs]</a><span class="k">class</span> <span class="nc">WSGIContainer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Makes a WSGI-compatible function runnable on Tornado&#39;s HTTP server.</span>
+
+<span class="sd">    .. warning::</span>
+
+<span class="sd">       WSGI is a *synchronous* interface, while Tornado&#39;s concurrency model</span>
+<span class="sd">       is based on single-threaded asynchronous execution.  This means that</span>
+<span class="sd">       running a WSGI app with Tornado&#39;s `WSGIContainer` is *less scalable*</span>
+<span class="sd">       than running the same app in a multi-threaded WSGI server like</span>
+<span class="sd">       ``gunicorn`` or ``uwsgi``.  Use `WSGIContainer` only when there are</span>
+<span class="sd">       benefits to combining Tornado and WSGI in the same process that</span>
+<span class="sd">       outweigh the reduced scalability.</span>
+
+<span class="sd">    Wrap a WSGI function in a `WSGIContainer` and pass it to `.HTTPServer` to</span>
+<span class="sd">    run it. For example::</span>
+
+<span class="sd">        def simple_app(environ, start_response):</span>
+<span class="sd">            status = &quot;200 OK&quot;</span>
+<span class="sd">            response_headers = [(&quot;Content-type&quot;, &quot;text/plain&quot;)]</span>
+<span class="sd">            start_response(status, response_headers)</span>
+<span class="sd">            return [&quot;Hello world!\n&quot;]</span>
+
+<span class="sd">        container = tornado.wsgi.WSGIContainer(simple_app)</span>
+<span class="sd">        http_server = tornado.httpserver.HTTPServer(container)</span>
+<span class="sd">        http_server.listen(8888)</span>
+<span class="sd">        tornado.ioloop.IOLoop.current().start()</span>
+
+<span class="sd">    This class is intended to let other frameworks (Django, web.py, etc)</span>
+<span class="sd">    run on the Tornado HTTP server and I/O loop.</span>
+
+<span class="sd">    The `tornado.web.FallbackHandler` class is often useful for mixing</span>
+<span class="sd">    Tornado and WSGI apps in the same server.  See</span>
+<span class="sd">    https://github.com/bdarnell/django-tornado-demo for a complete example.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wsgi_application</span><span class="p">:</span> <span class="s2">&quot;WSGIAppType&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wsgi_application</span> <span class="o">=</span> <span class="n">wsgi_application</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, Any]</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[bytes]</span>
+
+        <span class="k">def</span> <span class="nf">start_response</span><span class="p">(</span>
+            <span class="n">status</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">headers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
+            <span class="n">exc_info</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+                <span class="n">Tuple</span><span class="p">[</span>
+                    <span class="s2">&quot;Optional[Type[BaseException]]&quot;</span><span class="p">,</span>
+                    <span class="n">Optional</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">],</span>
+                    <span class="n">Optional</span><span class="p">[</span><span class="n">TracebackType</span><span class="p">],</span>
+                <span class="p">]</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">bytes</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">status</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;headers&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">headers</span>
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="n">app_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wsgi_application</span><span class="p">(</span>
+            <span class="n">WSGIContainer</span><span class="o">.</span><span class="n">environ</span><span class="p">(</span><span class="n">request</span><span class="p">),</span> <span class="n">start_response</span>
+        <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">app_response</span><span class="p">)</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">app_response</span><span class="p">,</span> <span class="s2">&quot;close&quot;</span><span class="p">):</span>
+                <span class="n">app_response</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;WSGI app did not call start_response&quot;</span><span class="p">)</span>
+
+        <span class="n">status_code_str</span><span class="p">,</span> <span class="n">reason</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">status_code</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">status_code_str</span><span class="p">)</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;headers&quot;</span><span class="p">]</span>  <span class="c1"># type: List[Tuple[str, str]]</span>
+        <span class="n">header_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">)</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">escape</span><span class="o">.</span><span class="n">utf8</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">status_code</span> <span class="o">!=</span> <span class="mi">304</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;content-length&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">header_set</span><span class="p">:</span>
+                <span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">body</span><span class="p">))))</span>
+            <span class="k">if</span> <span class="s2">&quot;content-type&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">header_set</span><span class="p">:</span>
+                <span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">,</span> <span class="s2">&quot;text/html; charset=UTF-8&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s2">&quot;server&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">header_set</span><span class="p">:</span>
+            <span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Server&quot;</span><span class="p">,</span> <span class="s2">&quot;TornadoServer/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tornado</span><span class="o">.</span><span class="n">version</span><span class="p">))</span>
+
+        <span class="n">start_line</span> <span class="o">=</span> <span class="n">httputil</span><span class="o">.</span><span class="n">ResponseStartLine</span><span class="p">(</span><span class="s2">&quot;HTTP/1.1&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="p">,</span> <span class="n">reason</span><span class="p">)</span>
+        <span class="n">header_obj</span> <span class="o">=</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">:</span>
+            <span class="n">header_obj</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">connection</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">write_headers</span><span class="p">(</span><span class="n">start_line</span><span class="p">,</span> <span class="n">header_obj</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="n">body</span><span class="p">)</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="p">(</span><span class="n">status_code</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WSGIContainer.environ"><a class="viewcode-back" href="../../wsgi.html#tornado.wsgi.WSGIContainer.environ">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">environ</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Text</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Converts a `tornado.httputil.HTTPServerRequest` to a WSGI environment.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hostport</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hostport</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">host</span> <span class="o">=</span> <span class="n">hostport</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">hostport</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">host</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">host</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="mi">443</span> <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">protocol</span> <span class="o">==</span> <span class="s2">&quot;https&quot;</span> <span class="k">else</span> <span class="mi">80</span>
+        <span class="n">environ</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;REQUEST_METHOD&quot;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="p">,</span>
+            <span class="s2">&quot;SCRIPT_NAME&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;PATH_INFO&quot;</span><span class="p">:</span> <span class="n">to_wsgi_str</span><span class="p">(</span>
+                <span class="n">escape</span><span class="o">.</span><span class="n">url_unescape</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plus</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;QUERY_STRING&quot;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">query</span><span class="p">,</span>
+            <span class="s2">&quot;REMOTE_ADDR&quot;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span><span class="p">,</span>
+            <span class="s2">&quot;SERVER_NAME&quot;</span><span class="p">:</span> <span class="n">host</span><span class="p">,</span>
+            <span class="s2">&quot;SERVER_PORT&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">port</span><span class="p">),</span>
+            <span class="s2">&quot;SERVER_PROTOCOL&quot;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+            <span class="s2">&quot;wsgi.version&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="s2">&quot;wsgi.url_scheme&quot;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span>
+            <span class="s2">&quot;wsgi.input&quot;</span><span class="p">:</span> <span class="n">BytesIO</span><span class="p">(</span><span class="n">escape</span><span class="o">.</span><span class="n">utf8</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="p">)),</span>
+            <span class="s2">&quot;wsgi.errors&quot;</span><span class="p">:</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span>
+            <span class="s2">&quot;wsgi.multithread&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;wsgi.multiprocess&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;wsgi.run_once&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="s2">&quot;Content-Type&quot;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">:</span>
+            <span class="n">environ</span><span class="p">[</span><span class="s2">&quot;CONTENT_TYPE&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;Content-Length&quot;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">:</span>
+            <span class="n">environ</span><span class="p">[</span><span class="s2">&quot;CONTENT_LENGTH&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">environ</span><span class="p">[</span><span class="s2">&quot;HTTP_&quot;</span> <span class="o">+</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">environ</span></div>
+
+    <span class="k">def</span> <span class="nf">_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">400</span><span class="p">:</span>
+            <span class="n">log_method</span> <span class="o">=</span> <span class="n">access_log</span><span class="o">.</span><span class="n">info</span>
+        <span class="k">elif</span> <span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">500</span><span class="p">:</span>
+            <span class="n">log_method</span> <span class="o">=</span> <span class="n">access_log</span><span class="o">.</span><span class="n">warning</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log_method</span> <span class="o">=</span> <span class="n">access_log</span><span class="o">.</span><span class="n">error</span>
+        <span class="n">request_time</span> <span class="o">=</span> <span class="mf">1000.0</span> <span class="o">*</span> <span class="n">request</span><span class="o">.</span><span class="n">request_time</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">uri</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">request</span><span class="o">.</span><span class="n">uri</span> <span class="o">+</span> <span class="s2">&quot; (&quot;</span> <span class="o">+</span> <span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+        <span class="n">log_method</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%.2f</span><span class="s2">ms&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="p">,</span> <span class="n">summary</span><span class="p">,</span> <span class="n">request_time</span><span class="p">)</span></div>
+
+
+<span class="n">HTTPRequest</span> <span class="o">=</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -4,7 +4,7 @@
 *.so
 *.class
 *~
-build/
+# build/
 /dist/
 MANIFEST
 /tornado.egg-info/

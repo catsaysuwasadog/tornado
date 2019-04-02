@@ -1,0 +1,531 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.tcpserver &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tornado.tcpserver</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tornado.tcpserver</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2011 Facebook</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c1"># not use this file except in compliance with the License. You may obtain</span>
+<span class="c1"># a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c1"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c1"># License for the specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
+
+<span class="sd">&quot;&quot;&quot;A non-blocking, single-threaded TCP server.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">errno</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">ssl</span>
+
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">gen</span>
+<span class="kn">from</span> <span class="nn">tornado.log</span> <span class="k">import</span> <span class="n">app_log</span>
+<span class="kn">from</span> <span class="nn">tornado.ioloop</span> <span class="k">import</span> <span class="n">IOLoop</span>
+<span class="kn">from</span> <span class="nn">tornado.iostream</span> <span class="k">import</span> <span class="n">IOStream</span><span class="p">,</span> <span class="n">SSLIOStream</span>
+<span class="kn">from</span> <span class="nn">tornado.netutil</span> <span class="k">import</span> <span class="n">bind_sockets</span><span class="p">,</span> <span class="n">add_accept_handler</span><span class="p">,</span> <span class="n">ssl_wrap_socket</span>
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">process</span>
+<span class="kn">from</span> <span class="nn">tornado.util</span> <span class="k">import</span> <span class="n">errno_from_exception</span>
+
+<span class="kn">import</span> <span class="nn">typing</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Awaitable</span>
+
+<span class="k">if</span> <span class="n">typing</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span>  <span class="c1"># noqa: F401</span>
+
+
+<div class="viewcode-block" id="TCPServer"><a class="viewcode-back" href="../../tcpserver.html#tornado.tcpserver.TCPServer">[docs]</a><span class="k">class</span> <span class="nc">TCPServer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A non-blocking, single-threaded TCP server.</span>
+
+<span class="sd">    To use `TCPServer`, define a subclass which overrides the `handle_stream`</span>
+<span class="sd">    method. For example, a simple echo server could be defined like this::</span>
+
+<span class="sd">      from tornado.tcpserver import TCPServer</span>
+<span class="sd">      from tornado.iostream import StreamClosedError</span>
+<span class="sd">      from tornado import gen</span>
+
+<span class="sd">      class EchoServer(TCPServer):</span>
+<span class="sd">          async def handle_stream(self, stream, address):</span>
+<span class="sd">              while True:</span>
+<span class="sd">                  try:</span>
+<span class="sd">                      data = await stream.read_until(b&quot;\n&quot;)</span>
+<span class="sd">                      await stream.write(data)</span>
+<span class="sd">                  except StreamClosedError:</span>
+<span class="sd">                      break</span>
+
+<span class="sd">    To make this server serve SSL traffic, send the ``ssl_options`` keyword</span>
+<span class="sd">    argument with an `ssl.SSLContext` object. For compatibility with older</span>
+<span class="sd">    versions of Python ``ssl_options`` may also be a dictionary of keyword</span>
+<span class="sd">    arguments for the `ssl.wrap_socket` method.::</span>
+
+<span class="sd">       ssl_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)</span>
+<span class="sd">       ssl_ctx.load_cert_chain(os.path.join(data_dir, &quot;mydomain.crt&quot;),</span>
+<span class="sd">                               os.path.join(data_dir, &quot;mydomain.key&quot;))</span>
+<span class="sd">       TCPServer(ssl_options=ssl_ctx)</span>
+
+<span class="sd">    `TCPServer` initialization follows one of three patterns:</span>
+
+<span class="sd">    1. `listen`: simple single-process::</span>
+
+<span class="sd">            server = TCPServer()</span>
+<span class="sd">            server.listen(8888)</span>
+<span class="sd">            IOLoop.current().start()</span>
+
+<span class="sd">    2. `bind`/`start`: simple multi-process::</span>
+
+<span class="sd">            server = TCPServer()</span>
+<span class="sd">            server.bind(8888)</span>
+<span class="sd">            server.start(0)  # Forks multiple sub-processes</span>
+<span class="sd">            IOLoop.current().start()</span>
+
+<span class="sd">       When using this interface, an `.IOLoop` must *not* be passed</span>
+<span class="sd">       to the `TCPServer` constructor.  `start` will always start</span>
+<span class="sd">       the server on the default singleton `.IOLoop`.</span>
+
+<span class="sd">    3. `add_sockets`: advanced multi-process::</span>
+
+<span class="sd">            sockets = bind_sockets(8888)</span>
+<span class="sd">            tornado.process.fork_processes(0)</span>
+<span class="sd">            server = TCPServer()</span>
+<span class="sd">            server.add_sockets(sockets)</span>
+<span class="sd">            IOLoop.current().start()</span>
+
+<span class="sd">       The `add_sockets` interface is more complicated, but it can be</span>
+<span class="sd">       used with `tornado.process.fork_processes` to give you more</span>
+<span class="sd">       flexibility in when the fork happens.  `add_sockets` can</span>
+<span class="sd">       also be used in single-process servers if you want to create</span>
+<span class="sd">       your listening sockets in some way other than</span>
+<span class="sd">       `~tornado.netutil.bind_sockets`.</span>
+
+<span class="sd">    .. versionadded:: 3.1</span>
+<span class="sd">       The ``max_buffer_size`` argument.</span>
+
+<span class="sd">    .. versionchanged:: 5.0</span>
+<span class="sd">       The ``io_loop`` argument has been removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">ssl_options</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">ssl</span><span class="o">.</span><span class="n">SSLContext</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_buffer_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">read_chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ssl_options</span> <span class="o">=</span> <span class="n">ssl_options</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sockets</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[int, socket.socket]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[int, Callable[[], None]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pending_sockets</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[socket.socket]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_started</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stopped</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_size</span> <span class="o">=</span> <span class="n">max_buffer_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_chunk_size</span> <span class="o">=</span> <span class="n">read_chunk_size</span>
+
+        <span class="c1"># Verify the SSL options. Otherwise we don&#39;t get errors until clients</span>
+        <span class="c1"># connect. This doesn&#39;t verify that the keys are legitimate, but</span>
+        <span class="c1"># the SSL module doesn&#39;t do that until there is a connected socket</span>
+        <span class="c1"># which seems like too much work</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssl_options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ssl_options</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c1"># Only certfile is required: it can contain both keys</span>
+            <span class="k">if</span> <span class="s2">&quot;certfile&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssl_options</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;missing key &quot;certfile&quot; in ssl_options&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ssl_options</span><span class="p">[</span><span class="s2">&quot;certfile&quot;</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;certfile &quot;</span><span class="si">%s</span><span class="s1">&quot; does not exist&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssl_options</span><span class="p">[</span><span class="s2">&quot;certfile&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;keyfile&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssl_options</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ssl_options</span><span class="p">[</span><span class="s2">&quot;keyfile&quot;</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;keyfile &quot;</span><span class="si">%s</span><span class="s1">&quot; does not exist&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssl_options</span><span class="p">[</span><span class="s2">&quot;keyfile&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+
+<div class="viewcode-block" id="TCPServer.listen"><a class="viewcode-back" href="../../tcpserver.html#tornado.tcpserver.TCPServer.listen">[docs]</a>    <span class="k">def</span> <span class="nf">listen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Starts accepting connections on the given port.</span>
+
+<span class="sd">        This method may be called more than once to listen on multiple ports.</span>
+<span class="sd">        `listen` takes effect immediately; it is not necessary to call</span>
+<span class="sd">        `TCPServer.start` afterwards.  It is, however, necessary to start</span>
+<span class="sd">        the `.IOLoop`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sockets</span> <span class="o">=</span> <span class="n">bind_sockets</span><span class="p">(</span><span class="n">port</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_sockets</span><span class="p">(</span><span class="n">sockets</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TCPServer.add_sockets"><a class="viewcode-back" href="../../tcpserver.html#tornado.tcpserver.TCPServer.add_sockets">[docs]</a>    <span class="k">def</span> <span class="nf">add_sockets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sockets</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Makes this server start accepting connections on the given sockets.</span>
+
+<span class="sd">        The ``sockets`` parameter is a list of socket objects such as</span>
+<span class="sd">        those returned by `~tornado.netutil.bind_sockets`.</span>
+<span class="sd">        `add_sockets` is typically used in combination with that</span>
+<span class="sd">        method and `tornado.process.fork_processes` to provide greater</span>
+<span class="sd">        control over the initialization of a multi-process server.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">sock</span> <span class="ow">in</span> <span class="n">sockets</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sockets</span><span class="p">[</span><span class="n">sock</span><span class="o">.</span><span class="n">fileno</span><span class="p">()]</span> <span class="o">=</span> <span class="n">sock</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="p">[</span><span class="n">sock</span><span class="o">.</span><span class="n">fileno</span><span class="p">()]</span> <span class="o">=</span> <span class="n">add_accept_handler</span><span class="p">(</span>
+                <span class="n">sock</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_connection</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="TCPServer.add_socket"><a class="viewcode-back" href="../../tcpserver.html#tornado.tcpserver.TCPServer.add_socket">[docs]</a>    <span class="k">def</span> <span class="nf">add_socket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">socket</span><span class="p">:</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Singular version of `add_sockets`.  Takes a single socket object.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_sockets</span><span class="p">([</span><span class="n">socket</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="TCPServer.bind"><a class="viewcode-back" href="../../tcpserver.html#tornado.tcpserver.TCPServer.bind">[docs]</a>    <span class="k">def</span> <span class="nf">bind</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">address</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">family</span><span class="p">:</span> <span class="n">socket</span><span class="o">.</span><span class="n">AddressFamily</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">AF_UNSPEC</span><span class="p">,</span>
+        <span class="n">backlog</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+        <span class="n">reuse_port</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Binds this server to the given port on the given address.</span>
+
+<span class="sd">        To start the server, call `start`. If you want to run this server</span>
+<span class="sd">        in a single process, you can call `listen` as a shortcut to the</span>
+<span class="sd">        sequence of `bind` and `start` calls.</span>
+
+<span class="sd">        Address may be either an IP address or hostname.  If it&#39;s a hostname,</span>
+<span class="sd">        the server will listen on all IP addresses associated with the</span>
+<span class="sd">        name.  Address may be an empty string or None to listen on all</span>
+<span class="sd">        available interfaces.  Family may be set to either `socket.AF_INET`</span>
+<span class="sd">        or `socket.AF_INET6` to restrict to IPv4 or IPv6 addresses, otherwise</span>
+<span class="sd">        both will be used if available.</span>
+
+<span class="sd">        The ``backlog`` argument has the same meaning as for</span>
+<span class="sd">        `socket.listen &lt;socket.socket.listen&gt;`. The ``reuse_port`` argument</span>
+<span class="sd">        has the same meaning as for `.bind_sockets`.</span>
+
+<span class="sd">        This method may be called multiple times prior to `start` to listen</span>
+<span class="sd">        on multiple ports or interfaces.</span>
+
+<span class="sd">        .. versionchanged:: 4.4</span>
+<span class="sd">           Added the ``reuse_port`` argument.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sockets</span> <span class="o">=</span> <span class="n">bind_sockets</span><span class="p">(</span>
+            <span class="n">port</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="n">family</span><span class="p">,</span> <span class="n">backlog</span><span class="o">=</span><span class="n">backlog</span><span class="p">,</span> <span class="n">reuse_port</span><span class="o">=</span><span class="n">reuse_port</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_started</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_sockets</span><span class="p">(</span><span class="n">sockets</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pending_sockets</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">sockets</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TCPServer.start"><a class="viewcode-back" href="../../tcpserver.html#tornado.tcpserver.TCPServer.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_processes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_restarts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Starts this server in the `.IOLoop`.</span>
+
+<span class="sd">        By default, we run the server in this process and do not fork any</span>
+<span class="sd">        additional child process.</span>
+
+<span class="sd">        If num_processes is ``None`` or &lt;= 0, we detect the number of cores</span>
+<span class="sd">        available on this machine and fork that number of child</span>
+<span class="sd">        processes. If num_processes is given and &gt; 1, we fork that</span>
+<span class="sd">        specific number of sub-processes.</span>
+
+<span class="sd">        Since we use processes and not threads, there is no shared memory</span>
+<span class="sd">        between any server code.</span>
+
+<span class="sd">        Note that multiple processes are not compatible with the autoreload</span>
+<span class="sd">        module (or the ``autoreload=True`` option to `tornado.web.Application`</span>
+<span class="sd">        which defaults to True when ``debug=True``).</span>
+<span class="sd">        When using multiple processes, no IOLoops can be created or</span>
+<span class="sd">        referenced until after the call to ``TCPServer.start(n)``.</span>
+
+<span class="sd">        The ``max_restarts`` argument is passed to `.fork_processes`.</span>
+
+<span class="sd">        .. versionchanged:: 6.0</span>
+
+<span class="sd">           Added ``max_restarts`` argument.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_started</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_started</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">num_processes</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">process</span><span class="o">.</span><span class="n">fork_processes</span><span class="p">(</span><span class="n">num_processes</span><span class="p">,</span> <span class="n">max_restarts</span><span class="p">)</span>
+        <span class="n">sockets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_sockets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pending_sockets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_sockets</span><span class="p">(</span><span class="n">sockets</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TCPServer.stop"><a class="viewcode-back" href="../../tcpserver.html#tornado.tcpserver.TCPServer.stop">[docs]</a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Stops listening for new connections.</span>
+
+<span class="sd">        Requests currently in progress may still continue after the</span>
+<span class="sd">        server is stopped.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stopped</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stopped</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">fd</span><span class="p">,</span> <span class="n">sock</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sockets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">assert</span> <span class="n">sock</span><span class="o">.</span><span class="n">fileno</span><span class="p">()</span> <span class="o">==</span> <span class="n">fd</span>
+            <span class="c1"># Unregister socket from IOLoop</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">fd</span><span class="p">)()</span>
+            <span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="TCPServer.handle_stream"><a class="viewcode-back" href="../../tcpserver.html#tornado.tcpserver.TCPServer.handle_stream">[docs]</a>    <span class="k">def</span> <span class="nf">handle_stream</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">:</span> <span class="n">IOStream</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">tuple</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;Override to handle a new `.IOStream` from an incoming connection.</span>
+
+<span class="sd">        This method may be a coroutine; if so any exceptions it raises</span>
+<span class="sd">        asynchronously will be logged. Accepting of incoming connections</span>
+<span class="sd">        will not be blocked by this coroutine.</span>
+
+<span class="sd">        If this `TCPServer` is configured for SSL, ``handle_stream``</span>
+<span class="sd">        may be called before the SSL handshake has completed. Use</span>
+<span class="sd">        `.SSLIOStream.wait_for_handshake` if you need to verify the client&#39;s</span>
+<span class="sd">        certificate or use NPN/ALPN.</span>
+
+<span class="sd">        .. versionchanged:: 4.2</span>
+<span class="sd">           Added the option for this method to be a coroutine.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_handle_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">:</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssl_options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">ssl</span><span class="p">,</span> <span class="s2">&quot;Python 2.6+ and OpenSSL required for SSL&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">connection</span> <span class="o">=</span> <span class="n">ssl_wrap_socket</span><span class="p">(</span>
+                    <span class="n">connection</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ssl_options</span><span class="p">,</span>
+                    <span class="n">server_side</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">do_handshake_on_connect</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="n">ssl</span><span class="o">.</span><span class="n">SSLError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">err</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">ssl</span><span class="o">.</span><span class="n">SSL_ERROR_EOF</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span>
+            <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="c1"># If the connection is closed immediately after it is created</span>
+                <span class="c1"># (as in a port scan), we can get one of several errors.</span>
+                <span class="c1"># wrap_socket makes an internal call to getpeername,</span>
+                <span class="c1"># which may return either EINVAL (Mac OS X) or ENOTCONN</span>
+                <span class="c1"># (Linux).  If it returns ENOTCONN, this error is</span>
+                <span class="c1"># silently swallowed by the ssl module, so we need to</span>
+                <span class="c1"># catch another error later on (AttributeError in</span>
+                <span class="c1"># SSLIOStream._do_ssl_handshake).</span>
+                <span class="c1"># To test this behavior, try nmap with the -sT flag.</span>
+                <span class="c1"># https://github.com/tornadoweb/tornado/pull/750</span>
+                <span class="k">if</span> <span class="n">errno_from_exception</span><span class="p">(</span><span class="n">err</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">errno</span><span class="o">.</span><span class="n">ECONNABORTED</span><span class="p">,</span> <span class="n">errno</span><span class="o">.</span><span class="n">EINVAL</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssl_options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">stream</span> <span class="o">=</span> <span class="n">SSLIOStream</span><span class="p">(</span>
+                    <span class="n">connection</span><span class="p">,</span>
+                    <span class="n">max_buffer_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_size</span><span class="p">,</span>
+                    <span class="n">read_chunk_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">read_chunk_size</span><span class="p">,</span>
+                <span class="p">)</span>  <span class="c1"># type: IOStream</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">stream</span> <span class="o">=</span> <span class="n">IOStream</span><span class="p">(</span>
+                    <span class="n">connection</span><span class="p">,</span>
+                    <span class="n">max_buffer_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_buffer_size</span><span class="p">,</span>
+                    <span class="n">read_chunk_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">read_chunk_size</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="n">future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_stream</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">address</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">future</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">.</span><span class="n">add_future</span><span class="p">(</span>
+                    <span class="n">gen</span><span class="o">.</span><span class="n">convert_yielded</span><span class="p">(</span><span class="n">future</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">app_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error in connection callback&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

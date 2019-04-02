@@ -1,0 +1,560 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.gen — Generator-based coroutines &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.locks – Synchronization primitives" href="locks.html" />
+    <link rel="prev" title="Coroutines and concurrency" href="coroutine.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.gen</span></code> — Generator-based coroutines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="locks.html"><code class="docutils literal notranslate"><span class="pre">tornado.locks</span></code> – Synchronization primitives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="queues.html"><code class="docutils literal notranslate"><span class="pre">tornado.queues</span></code> – Queues for coroutines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="process.html"><code class="docutils literal notranslate"><span class="pre">tornado.process</span></code> — Utilities for multiple processes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="coroutine.html">Coroutines and concurrency</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.gen</span></code> — Generator-based coroutines</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/gen.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tornado-gen-generator-based-coroutines">
+<h1><code class="docutils literal notranslate"><span class="pre">tornado.gen</span></code> — Generator-based coroutines<a class="headerlink" href="#tornado-gen-generator-based-coroutines" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-tornado.gen"></span><p><code class="docutils literal notranslate"><span class="pre">tornado.gen</span></code> implements generator-based coroutines.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The “decorator and generator” approach in this module is a
+precursor to native coroutines (using <code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">def</span></code> and <code class="docutils literal notranslate"><span class="pre">await</span></code>)
+which were introduced in Python 3.5. Applications that do not
+require compatibility with older versions of Python should use
+native coroutines instead. Some parts of this module are still
+useful with native coroutines, notably <a class="reference internal" href="#tornado.gen.multi" title="tornado.gen.multi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">multi</span></code></a>, <a class="reference internal" href="#tornado.gen.sleep" title="tornado.gen.sleep"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sleep</span></code></a>,
+<a class="reference internal" href="#tornado.gen.WaitIterator" title="tornado.gen.WaitIterator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WaitIterator</span></code></a>, and <a class="reference internal" href="#tornado.gen.with_timeout" title="tornado.gen.with_timeout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">with_timeout</span></code></a>. Some of these functions have
+counterparts in the <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> module which may be used as well,
+although the two may not necessarily be 100% compatible.</p>
+</div>
+<p>Coroutines provide an easier way to work in an asynchronous
+environment than chaining callbacks. Code using coroutines is
+technically asynchronous, but it is written as a single generator
+instead of a collection of separate functions.</p>
+<p>For example, here’s a coroutine-based handler:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">GenAsyncHandler</span><span class="p">(</span><span class="n">RequestHandler</span><span class="p">):</span>
+    <span class="nd">@gen</span><span class="o">.</span><span class="n">coroutine</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">http_client</span> <span class="o">=</span> <span class="n">AsyncHTTPClient</span><span class="p">()</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;http://example.com&quot;</span><span class="p">)</span>
+        <span class="n">do_something_with_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s2">&quot;template.html&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Asynchronous functions in Tornado return an <code class="docutils literal notranslate"><span class="pre">Awaitable</span></code> or <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>;
+yielding this object returns its result.</p>
+<p>You can also yield a list or dict of other yieldable objects, which
+will be started at the same time and run in parallel; a list or dict
+of results will be returned when they are all finished:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="nd">@gen</span><span class="o">.</span><span class="n">coroutine</span>
+<span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">http_client</span> <span class="o">=</span> <span class="n">AsyncHTTPClient</span><span class="p">()</span>
+    <span class="n">response1</span><span class="p">,</span> <span class="n">response2</span> <span class="o">=</span> <span class="k">yield</span> <span class="p">[</span><span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">url1</span><span class="p">),</span>
+                                  <span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">url2</span><span class="p">)]</span>
+    <span class="n">response_dict</span> <span class="o">=</span> <span class="k">yield</span> <span class="nb">dict</span><span class="p">(</span><span class="n">response3</span><span class="o">=</span><span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">url3</span><span class="p">),</span>
+                               <span class="n">response4</span><span class="o">=</span><span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">url4</span><span class="p">))</span>
+    <span class="n">response3</span> <span class="o">=</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;response3&#39;</span><span class="p">]</span>
+    <span class="n">response4</span> <span class="o">=</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;response4&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">tornado.platform.twisted</span></code> is imported, it is also possible to
+yield Twisted’s <code class="docutils literal notranslate"><span class="pre">Deferred</span></code> objects. See the <a class="reference internal" href="#tornado.gen.convert_yielded" title="tornado.gen.convert_yielded"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_yielded</span></code></a>
+function to extend this mechanism.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 3.2: </span>Dict support added.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.1: </span>Support added for yielding <code class="docutils literal notranslate"><span class="pre">asyncio</span></code> Futures and Twisted Deferreds
+via <code class="docutils literal notranslate"><span class="pre">singledispatch</span></code>.</p>
+</div>
+<div class="section" id="decorators">
+<h2>Decorators<a class="headerlink" href="#decorators" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="tornado.gen.coroutine">
+<code class="descclassname">tornado.gen.</code><code class="descname">coroutine</code><span class="sig-paren">(</span><em>func: Callable[[...], Generator[Any, Any, _T]]</em><span class="sig-paren">)</span> &#x2192; Callable[[...], Future[_T]]<a class="reference internal" href="_modules/tornado/gen.html#coroutine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.gen.coroutine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator for asynchronous generators.</p>
+<p>For compatibility with older versions of Python, coroutines may
+also “return” by raising the special exception <a class="reference internal" href="#tornado.gen.Return" title="tornado.gen.Return"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Return(value)</span></code></a>.</p>
+<p>Functions with this decorator return a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>When exceptions occur inside a coroutine, the exception
+information will be stored in the <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> object. You must
+examine the result of the <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> object, or the exception
+may go unnoticed by your code. This means yielding the function
+if called from another coroutine, using something like
+<a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.run_sync" title="tornado.ioloop.IOLoop.run_sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.run_sync</span></code></a> for top-level calls, or passing the <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>
+to <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.add_future" title="tornado.ioloop.IOLoop.add_future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.add_future</span></code></a>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument was removed. Use the returned
+awaitable object instead.</p>
+</div>
+</dd></dl>
+
+<dl class="exception">
+<dt id="tornado.gen.Return">
+<em class="property">exception </em><code class="descclassname">tornado.gen.</code><code class="descname">Return</code><span class="sig-paren">(</span><em>value: Any = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/gen.html#Return"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.gen.Return" title="Permalink to this definition">¶</a></dt>
+<dd><p>Special exception to return a value from a <a class="reference internal" href="#tornado.gen.coroutine" title="tornado.gen.coroutine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coroutine</span></code></a>.</p>
+<p>If this exception is raised, its value argument is used as the
+result of the coroutine:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@gen</span><span class="o">.</span><span class="n">coroutine</span>
+<span class="k">def</span> <span class="nf">fetch_json</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">AsyncHTTPClient</span><span class="p">()</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="n">gen</span><span class="o">.</span><span class="n">Return</span><span class="p">(</span><span class="n">json_decode</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>In Python 3.3, this exception is no longer necessary: the <code class="docutils literal notranslate"><span class="pre">return</span></code>
+statement can be used directly to return a value (previously
+<code class="docutils literal notranslate"><span class="pre">yield</span></code> and <code class="docutils literal notranslate"><span class="pre">return</span></code> with a value could not be combined in the
+same function).</p>
+<p>By analogy with the return statement, the value argument is optional,
+but it is never necessary to <code class="docutils literal notranslate"><span class="pre">raise</span> <span class="pre">gen.Return()</span></code>.  The <code class="docutils literal notranslate"><span class="pre">return</span></code>
+statement can be used with no arguments instead.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="utility-functions">
+<h2>Utility functions<a class="headerlink" href="#utility-functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="tornado.gen.with_timeout">
+<code class="descclassname">tornado.gen.</code><code class="descname">with_timeout</code><span class="sig-paren">(</span><em>timeout: Union[float, datetime.timedelta], future: Yieldable, quiet_exceptions: Union[Type[Exception], Tuple[Type[Exception], ...]] = ()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/gen.html#with_timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.gen.with_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wraps a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> (or other yieldable object) in a timeout.</p>
+<p>Raises <a class="reference internal" href="util.html#tornado.util.TimeoutError" title="tornado.util.TimeoutError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.util.TimeoutError</span></code></a> if the input future does not
+complete before <code class="docutils literal notranslate"><span class="pre">timeout</span></code>, which may be specified in any form
+allowed by <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.add_timeout" title="tornado.ioloop.IOLoop.add_timeout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.add_timeout</span></code></a> (i.e. a <a class="reference external" href="https://docs.python.org/3.6/library/datetime.html#datetime.timedelta" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.timedelta</span></code></a> or
+an absolute time relative to <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.time" title="tornado.ioloop.IOLoop.time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.time</span></code></a>)</p>
+<p>If the wrapped <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> fails after it has timed out, the exception
+will be logged unless it is of a type contained in <code class="docutils literal notranslate"><span class="pre">quiet_exceptions</span></code>
+(which may be an exception type or a sequence of types).</p>
+<p>The wrapped <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> is not canceled when the timeout expires,
+permitting it to be reused. <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-task.html#asyncio.wait_for" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.wait_for</span></code></a> is similar to this
+function but it does cancel the wrapped <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> on timeout.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0.</span></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.1: </span>Added the <code class="docutils literal notranslate"><span class="pre">quiet_exceptions</span></code> argument and the logging of unhandled
+exceptions.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.4: </span>Added support for yieldable objects other than <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.gen.sleep">
+<code class="descclassname">tornado.gen.</code><code class="descname">sleep</code><span class="sig-paren">(</span><em>duration: float</em><span class="sig-paren">)</span> &#x2192; Future[None]<a class="reference internal" href="_modules/tornado/gen.html#sleep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.gen.sleep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> that resolves after the given number of seconds.</p>
+<p>When used with <code class="docutils literal notranslate"><span class="pre">yield</span></code> in a coroutine, this is a non-blocking
+analogue to <a class="reference external" href="https://docs.python.org/3.6/library/time.html#time.sleep" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time.sleep</span></code></a> (which should not be used in coroutines
+because it is blocking):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">yield</span> <span class="n">gen</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that calling this function on its own does nothing; you must
+wait on the <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> it returns (usually by yielding it).</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.1.</span></p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.gen.WaitIterator">
+<em class="property">class </em><code class="descclassname">tornado.gen.</code><code class="descname">WaitIterator</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/gen.html#WaitIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.gen.WaitIterator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides an iterator to yield the results of awaitables as they finish.</p>
+<p>Yielding a set of awaitables like this:</p>
+<p><code class="docutils literal notranslate"><span class="pre">results</span> <span class="pre">=</span> <span class="pre">yield</span> <span class="pre">[awaitable1,</span> <span class="pre">awaitable2]</span></code></p>
+<p>pauses the coroutine until both <code class="docutils literal notranslate"><span class="pre">awaitable1</span></code> and <code class="docutils literal notranslate"><span class="pre">awaitable2</span></code>
+return, and then restarts the coroutine with the results of both
+awaitables. If either awaitable raises an exception, the
+expression will raise that exception and all the results will be
+lost.</p>
+<p>If you need to get the result of each awaitable as soon as possible,
+or if you need the result of some awaitables even if others produce
+errors, you can use <code class="docutils literal notranslate"><span class="pre">WaitIterator</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wait_iterator</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">WaitIterator</span><span class="p">(</span><span class="n">awaitable1</span><span class="p">,</span> <span class="n">awaitable2</span><span class="p">)</span>
+<span class="k">while</span> <span class="ow">not</span> <span class="n">wait_iterator</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">wait_iterator</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error </span><span class="si">{}</span><span class="s2"> from </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">wait_iterator</span><span class="o">.</span><span class="n">current_future</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Result </span><span class="si">{}</span><span class="s2"> received from </span><span class="si">{}</span><span class="s2"> at </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">result</span><span class="p">,</span> <span class="n">wait_iterator</span><span class="o">.</span><span class="n">current_future</span><span class="p">,</span>
+            <span class="n">wait_iterator</span><span class="o">.</span><span class="n">current_index</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Because results are returned as soon as they are available the
+output from the iterator <em>will not be in the same order as the
+input arguments</em>. If you need to know which future produced the
+current result, you can use the attributes
+<code class="docutils literal notranslate"><span class="pre">WaitIterator.current_future</span></code>, or <code class="docutils literal notranslate"><span class="pre">WaitIterator.current_index</span></code>
+to get the index of the awaitable from the input list. (if keyword
+arguments were used in the construction of the <a class="reference internal" href="#tornado.gen.WaitIterator" title="tornado.gen.WaitIterator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WaitIterator</span></code></a>,
+<code class="docutils literal notranslate"><span class="pre">current_index</span></code> will use the corresponding keyword).</p>
+<p>On Python 3.5, <a class="reference internal" href="#tornado.gen.WaitIterator" title="tornado.gen.WaitIterator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WaitIterator</span></code></a> implements the async iterator
+protocol, so it can be used with the <code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">for</span></code> statement (note
+that in this version the entire iteration is aborted if any value
+raises an exception, while the previous example can continue past
+individual errors):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">gen</span><span class="o">.</span><span class="n">WaitIterator</span><span class="p">(</span><span class="n">future1</span><span class="p">,</span> <span class="n">future2</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Result </span><span class="si">{}</span><span class="s2"> received from </span><span class="si">{}</span><span class="s2"> at </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">result</span><span class="p">,</span> <span class="n">wait_iterator</span><span class="o">.</span><span class="n">current_future</span><span class="p">,</span>
+        <span class="n">wait_iterator</span><span class="o">.</span><span class="n">current_index</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.1.</span></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.3: </span>Added <code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">for</span></code> support in Python 3.5.</p>
+</div>
+<dl class="method">
+<dt id="tornado.gen.WaitIterator.done">
+<code class="descname">done</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/tornado/gen.html#WaitIterator.done"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.gen.WaitIterator.done" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if this iterator has no more results.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.gen.WaitIterator.next">
+<code class="descname">next</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; _asyncio.Future<a class="reference internal" href="_modules/tornado/gen.html#WaitIterator.next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.gen.WaitIterator.next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> that will yield the next available result.</p>
+<p>Note that this <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> will not be the same object as any of
+the inputs.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.gen.multi">
+<code class="descclassname">tornado.gen.</code><code class="descname">multi</code><span class="sig-paren">(</span><em>Union[List[Yieldable], Dict[Any, Yieldable]], quiet_exceptions: Union[Type[Exception], Tuple[Type[Exception], ...]] = ()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/gen.html#multi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.gen.multi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs multiple asynchronous operations in parallel.</p>
+<p><code class="docutils literal notranslate"><span class="pre">children</span></code> may either be a list or a dict whose values are
+yieldable objects. <code class="docutils literal notranslate"><span class="pre">multi()</span></code> returns a new yieldable
+object that resolves to a parallel structure containing their
+results. If <code class="docutils literal notranslate"><span class="pre">children</span></code> is a list, the result is a list of
+results in the same order; if it is a dict, the result is a dict
+with the same keys.</p>
+<p>That is, <code class="docutils literal notranslate"><span class="pre">results</span> <span class="pre">=</span> <span class="pre">yield</span> <span class="pre">multi(list_of_futures)</span></code> is equivalent
+to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">list_of_futures</span><span class="p">:</span>
+    <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="k">yield</span> <span class="n">future</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If any children raise exceptions, <code class="docutils literal notranslate"><span class="pre">multi()</span></code> will raise the first
+one. All others will be logged, unless they are of types
+contained in the <code class="docutils literal notranslate"><span class="pre">quiet_exceptions</span></code> argument.</p>
+<p>In a <code class="docutils literal notranslate"><span class="pre">yield</span></code>-based coroutine, it is not normally necessary to
+call this function directly, since the coroutine runner will
+do it automatically when a list or dict is yielded. However,
+it is necessary in <code class="docutils literal notranslate"><span class="pre">await</span></code>-based coroutines, or to pass
+the <code class="docutils literal notranslate"><span class="pre">quiet_exceptions</span></code> argument.</p>
+<p>This function is available under the names <code class="docutils literal notranslate"><span class="pre">multi()</span></code> and <code class="docutils literal notranslate"><span class="pre">Multi()</span></code>
+for historical reasons.</p>
+<p>Cancelling a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> returned by <code class="docutils literal notranslate"><span class="pre">multi()</span></code> does not cancel its
+children. <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-task.html#asyncio.gather" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.gather</span></code></a> is similar to <code class="docutils literal notranslate"><span class="pre">multi()</span></code>, but it does
+cancel its children.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.2: </span>If multiple yieldables fail, any exceptions after the first
+(which is raised) will be logged. Added the <code class="docutils literal notranslate"><span class="pre">quiet_exceptions</span></code>
+argument to suppress this logging for selected exception types.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.3: </span>Replaced the class <code class="docutils literal notranslate"><span class="pre">Multi</span></code> and the function <code class="docutils literal notranslate"><span class="pre">multi_future</span></code>
+with a unified function <code class="docutils literal notranslate"><span class="pre">multi</span></code>. Added support for yieldables
+other than <code class="docutils literal notranslate"><span class="pre">YieldPoint</span></code> and <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.gen.multi_future">
+<code class="descclassname">tornado.gen.</code><code class="descname">multi_future</code><span class="sig-paren">(</span><em>Union[List[Yieldable], Dict[Any, Yieldable]], quiet_exceptions: Union[Type[Exception], Tuple[Type[Exception], ...]] = ()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/gen.html#multi_future"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.gen.multi_future" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait for multiple asynchronous futures in parallel.</p>
+<p>Since Tornado 6.0, this function is exactly the same as <a class="reference internal" href="#tornado.gen.multi" title="tornado.gen.multi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">multi</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0.</span></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.2: </span>If multiple <code class="docutils literal notranslate"><span class="pre">Futures</span></code> fail, any exceptions after the first (which is
+raised) will be logged. Added the <code class="docutils literal notranslate"><span class="pre">quiet_exceptions</span></code>
+argument to suppress this logging for selected exception types.</p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 4.3: </span>Use <a class="reference internal" href="#tornado.gen.multi" title="tornado.gen.multi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">multi</span></code></a> instead.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.gen.convert_yielded">
+<code class="descclassname">tornado.gen.</code><code class="descname">convert_yielded</code><span class="sig-paren">(</span><em>yielded: Union[None, Awaitable[T_co], List[Awaitable[T_co]], Dict[Any, Awaitable[T_co]], concurrent.futures._base.Future]</em><span class="sig-paren">)</span> &#x2192; _asyncio.Future<a class="reference internal" href="_modules/tornado/gen.html#convert_yielded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.gen.convert_yielded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a yielded object into a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>.</p>
+<p>The default implementation accepts lists, dictionaries, and
+Futures. This has the side effect of starting any coroutines that
+did not start themselves, similar to <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-task.html#asyncio.ensure_future" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.ensure_future</span></code></a>.</p>
+<p>If the <a class="reference external" href="https://docs.python.org/3.6/library/functools.html#functools.singledispatch" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">singledispatch</span></code></a> library is available, this function
+may be extended to support additional types. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@convert_yielded</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_</span><span class="p">(</span><span class="n">asyncio_future</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">tornado</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">asyncio</span><span class="o">.</span><span class="n">to_tornado_future</span><span class="p">(</span><span class="n">asyncio_future</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.1.</span></p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.gen.maybe_future">
+<code class="descclassname">tornado.gen.</code><code class="descname">maybe_future</code><span class="sig-paren">(</span><em>x: Any</em><span class="sig-paren">)</span> &#x2192; _asyncio.Future<a class="reference internal" href="_modules/tornado/gen.html#maybe_future"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.gen.maybe_future" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts <code class="docutils literal notranslate"><span class="pre">x</span></code> into a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">x</span></code> is already a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>, it is simply returned; otherwise
+it is wrapped in a new <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>.  This is suitable for use as
+<code class="docutils literal notranslate"><span class="pre">result</span> <span class="pre">=</span> <span class="pre">yield</span> <span class="pre">gen.maybe_future(f())</span></code> when you don’t know whether
+<code class="docutils literal notranslate"><span class="pre">f()</span></code> returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> or not.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 4.3: </span>This function only handles <code class="docutils literal notranslate"><span class="pre">Futures</span></code>, not other yieldable objects.
+Instead of <a class="reference internal" href="#tornado.gen.maybe_future" title="tornado.gen.maybe_future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maybe_future</span></code></a>, check for the non-future result types
+you expect (often just <code class="docutils literal notranslate"><span class="pre">None</span></code>), and <code class="docutils literal notranslate"><span class="pre">yield</span></code> anything unknown.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tornado.gen.is_coroutine_function">
+<code class="descclassname">tornado.gen.</code><code class="descname">is_coroutine_function</code><span class="sig-paren">(</span><em>func: Any</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/tornado/gen.html#is_coroutine_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.gen.is_coroutine_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether <em>func</em> is a coroutine function, i.e. a function
+wrapped with <a class="reference internal" href="#tornado.gen.coroutine" title="tornado.gen.coroutine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coroutine</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.5.</span></p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="tornado.gen.moment">
+<code class="descclassname">tornado.gen.</code><code class="descname">moment</code><a class="headerlink" href="#tornado.gen.moment" title="Permalink to this definition">¶</a></dt>
+<dd><p>A special object which may be yielded to allow the IOLoop to run for
+one iteration.</p>
+<p>This is not needed in normal use but it can be helpful in long-running
+coroutines that are likely to yield Futures that are ready instantly.</p>
+<p>Usage: <code class="docutils literal notranslate"><span class="pre">yield</span> <span class="pre">gen.moment</span></code></p>
+<p>In native coroutines, the equivalent of <code class="docutils literal notranslate"><span class="pre">yield</span> <span class="pre">gen.moment</span></code> is
+<code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">asyncio.sleep(0)</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0.</span></p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 4.5: </span><code class="docutils literal notranslate"><span class="pre">yield</span> <span class="pre">None</span></code> (or <code class="docutils literal notranslate"><span class="pre">yield</span></code> with no argument) is now equivalent to
+ <code class="docutils literal notranslate"><span class="pre">yield</span> <span class="pre">gen.moment</span></code>.</p>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="locks.html" class="btn btn-neutral float-right" title="tornado.locks – Synchronization primitives" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="coroutine.html" class="btn btn-neutral float-left" title="Coroutines and concurrency" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

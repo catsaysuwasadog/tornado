@@ -1,0 +1,676 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.httpclient — Asynchronous HTTP client &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.httputil — Manipulate HTTP headers and URLs" href="httputil.html" />
+    <link rel="prev" title="tornado.httpserver — Non-blocking HTTP server" href="httpserver.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="http.html">HTTP servers and clients</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="httpserver.html"><code class="docutils literal notranslate"><span class="pre">tornado.httpserver</span></code> — Non-blocking HTTP server</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.httpclient</span></code> — Asynchronous HTTP client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="httputil.html"><code class="docutils literal notranslate"><span class="pre">tornado.httputil</span></code> — Manipulate HTTP headers and URLs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="http1connection.html"><code class="docutils literal notranslate"><span class="pre">tornado.http1connection</span></code> – HTTP/1.x client/server implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="http.html">HTTP servers and clients</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.httpclient</span></code> — Asynchronous HTTP client</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/httpclient.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-tornado.httpclient">
+<span id="tornado-httpclient-asynchronous-http-client"></span><h1><code class="docutils literal notranslate"><span class="pre">tornado.httpclient</span></code> — Asynchronous HTTP client<a class="headerlink" href="#module-tornado.httpclient" title="Permalink to this headline">¶</a></h1>
+<p>Blocking and non-blocking HTTP client interfaces.</p>
+<p>This module defines a common interface shared by two implementations,
+<code class="docutils literal notranslate"><span class="pre">simple_httpclient</span></code> and <code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code>.  Applications may either
+instantiate their chosen implementation class directly or use the
+<a class="reference internal" href="#tornado.httpclient.AsyncHTTPClient" title="tornado.httpclient.AsyncHTTPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient</span></code></a> class from this module, which selects an implementation
+that can be overridden with the <a class="reference internal" href="#tornado.httpclient.AsyncHTTPClient.configure" title="tornado.httpclient.AsyncHTTPClient.configure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient.configure</span></code></a> method.</p>
+<p>The default implementation is <code class="docutils literal notranslate"><span class="pre">simple_httpclient</span></code>, and this is expected
+to be suitable for most users’ needs.  However, some applications may wish
+to switch to <code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code> for reasons such as the following:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code> has some features not found in <code class="docutils literal notranslate"><span class="pre">simple_httpclient</span></code>,
+including support for HTTP proxies and the ability to use a specified
+network interface.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code> is more likely to be compatible with sites that are
+not-quite-compliant with the HTTP spec, or sites that use little-exercised
+features of HTTP.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code> is faster.</p></li>
+</ul>
+<p>Note that if you are using <code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code>, it is highly
+recommended that you use a recent version of <code class="docutils literal notranslate"><span class="pre">libcurl</span></code> and
+<code class="docutils literal notranslate"><span class="pre">pycurl</span></code>.  Currently the minimum supported version of libcurl is
+7.22.0, and the minimum version of pycurl is 7.18.2.  It is highly
+recommended that your <code class="docutils literal notranslate"><span class="pre">libcurl</span></code> installation is built with
+asynchronous DNS resolver (threaded or c-ares), otherwise you may
+encounter various problems with request timeouts (for more
+information, see
+<a class="reference external" href="http://curl.haxx.se/libcurl/c/curl_easy_setopt.html#CURLOPTCONNECTTIMEOUTMS">http://curl.haxx.se/libcurl/c/curl_easy_setopt.html#CURLOPTCONNECTTIMEOUTMS</a>
+and comments in curl_httpclient.py).</p>
+<p>To select <code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code>, call <a class="reference internal" href="#tornado.httpclient.AsyncHTTPClient.configure" title="tornado.httpclient.AsyncHTTPClient.configure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient.configure</span></code></a> at startup:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">AsyncHTTPClient</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="s2">&quot;tornado.curl_httpclient.CurlAsyncHTTPClient&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="http-client-interfaces">
+<h2>HTTP client interfaces<a class="headerlink" href="#http-client-interfaces" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.httpclient.HTTPClient">
+<em class="property">class </em><code class="descclassname">tornado.httpclient.</code><code class="descname">HTTPClient</code><span class="sig-paren">(</span><em>async_client_class: Type[AsyncHTTPClient] = None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/httpclient.html#HTTPClient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httpclient.HTTPClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>A blocking HTTP client.</p>
+<p>This interface is provided to make it easier to share code between
+synchronous and asynchronous applications. Applications that are
+running an <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> must use <a class="reference internal" href="#tornado.httpclient.AsyncHTTPClient" title="tornado.httpclient.AsyncHTTPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient</span></code></a> instead.</p>
+<p>Typical usage looks like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http_client</span> <span class="o">=</span> <span class="n">httpclient</span><span class="o">.</span><span class="n">HTTPClient</span><span class="p">()</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;http://www.google.com/&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">httpclient</span><span class="o">.</span><span class="n">HTTPError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="c1"># HTTPError is raised for non-200 responses; the response</span>
+    <span class="c1"># can be found in e.response.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="c1"># Other errors are possible, such as IOError.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="n">http_client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Due to limitations in <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a>, it is no longer possible to
+use the synchronous <code class="docutils literal notranslate"><span class="pre">HTTPClient</span></code> while an <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> is running.
+Use <a class="reference internal" href="#tornado.httpclient.AsyncHTTPClient" title="tornado.httpclient.AsyncHTTPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient</span></code></a> instead.</p>
+</div>
+<dl class="method">
+<dt id="tornado.httpclient.HTTPClient.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/httpclient.html#HTTPClient.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httpclient.HTTPClient.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the HTTPClient, freeing any resources used.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.httpclient.HTTPClient.fetch">
+<code class="descname">fetch</code><span class="sig-paren">(</span><em>request: Union[HTTPRequest, str], **kwargs</em><span class="sig-paren">)</span> &#x2192; tornado.httpclient.HTTPResponse<a class="reference internal" href="_modules/tornado/httpclient.html#HTTPClient.fetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httpclient.HTTPClient.fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes a request, returning an <a class="reference internal" href="#tornado.httpclient.HTTPResponse" title="tornado.httpclient.HTTPResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPResponse</span></code></a>.</p>
+<p>The request may be either a string URL or an <a class="reference internal" href="#tornado.httpclient.HTTPRequest" title="tornado.httpclient.HTTPRequest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPRequest</span></code></a> object.
+If it is a string, we construct an <a class="reference internal" href="#tornado.httpclient.HTTPRequest" title="tornado.httpclient.HTTPRequest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPRequest</span></code></a> using any additional
+kwargs: <code class="docutils literal notranslate"><span class="pre">HTTPRequest(request,</span> <span class="pre">**kwargs)</span></code></p>
+<p>If an error occurs during the fetch, we raise an <a class="reference internal" href="#tornado.httpclient.HTTPError" title="tornado.httpclient.HTTPError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPError</span></code></a> unless
+the <code class="docutils literal notranslate"><span class="pre">raise_error</span></code> keyword argument is set to False.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.httpclient.AsyncHTTPClient">
+<em class="property">class </em><code class="descclassname">tornado.httpclient.</code><code class="descname">AsyncHTTPClient</code><a class="reference internal" href="_modules/tornado/httpclient.html#AsyncHTTPClient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httpclient.AsyncHTTPClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>An non-blocking HTTP client.</p>
+<p>Example usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span> <span class="nf">f</span><span class="p">():</span>
+    <span class="n">http_client</span> <span class="o">=</span> <span class="n">AsyncHTTPClient</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;http://www.google.com&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The constructor for this class is magic in several respects: It
+actually creates an instance of an implementation-specific
+subclass, and instances are reused as a kind of pseudo-singleton
+(one per <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>). The keyword argument <code class="docutils literal notranslate"><span class="pre">force_instance=True</span></code>
+can be used to suppress this singleton behavior. Unless
+<code class="docutils literal notranslate"><span class="pre">force_instance=True</span></code> is used, no arguments should be passed to
+the <a class="reference internal" href="#tornado.httpclient.AsyncHTTPClient" title="tornado.httpclient.AsyncHTTPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient</span></code></a> constructor. The implementation subclass as
+well as arguments to its constructor can be set with the static
+method <a class="reference internal" href="#tornado.httpclient.AsyncHTTPClient.configure" title="tornado.httpclient.AsyncHTTPClient.configure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configure()</span></code></a></p>
+<p>All <a class="reference internal" href="#tornado.httpclient.AsyncHTTPClient" title="tornado.httpclient.AsyncHTTPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient</span></code></a> implementations support a <code class="docutils literal notranslate"><span class="pre">defaults</span></code>
+keyword argument, which can be used to set default values for
+<a class="reference internal" href="#tornado.httpclient.HTTPRequest" title="tornado.httpclient.HTTPRequest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPRequest</span></code></a> attributes.  For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">AsyncHTTPClient</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span>
+    <span class="kc">None</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">user_agent</span><span class="o">=</span><span class="s2">&quot;MyUserAgent&quot;</span><span class="p">))</span>
+<span class="c1"># or with force_instance:</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">AsyncHTTPClient</span><span class="p">(</span><span class="n">force_instance</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">defaults</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">user_agent</span><span class="o">=</span><span class="s2">&quot;MyUserAgent&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>The <code class="docutils literal notranslate"><span class="pre">io_loop</span></code> argument (deprecated since version 4.1) has been removed.</p>
+</div>
+<dl class="method">
+<dt id="tornado.httpclient.AsyncHTTPClient.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/httpclient.html#AsyncHTTPClient.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httpclient.AsyncHTTPClient.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Destroys this HTTP client, freeing any file descriptors used.</p>
+<p>This method is <strong>not needed in normal use</strong> due to the way
+that <a class="reference internal" href="#tornado.httpclient.AsyncHTTPClient" title="tornado.httpclient.AsyncHTTPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient</span></code></a> objects are transparently reused.
+<code class="docutils literal notranslate"><span class="pre">close()</span></code> is generally only necessary when either the
+<a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> is also being closed, or the <code class="docutils literal notranslate"><span class="pre">force_instance=True</span></code>
+argument was used when creating the <a class="reference internal" href="#tornado.httpclient.AsyncHTTPClient" title="tornado.httpclient.AsyncHTTPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient</span></code></a>.</p>
+<p>No other methods may be called on the <a class="reference internal" href="#tornado.httpclient.AsyncHTTPClient" title="tornado.httpclient.AsyncHTTPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient</span></code></a> after
+<code class="docutils literal notranslate"><span class="pre">close()</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.httpclient.AsyncHTTPClient.fetch">
+<code class="descname">fetch</code><span class="sig-paren">(</span><em>request: Union[str, HTTPRequest], raise_error: bool = True, **kwargs</em><span class="sig-paren">)</span> &#x2192; Awaitable[tornado.httpclient.HTTPResponse]<a class="reference internal" href="_modules/tornado/httpclient.html#AsyncHTTPClient.fetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httpclient.AsyncHTTPClient.fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes a request, asynchronously returning an <a class="reference internal" href="#tornado.httpclient.HTTPResponse" title="tornado.httpclient.HTTPResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPResponse</span></code></a>.</p>
+<p>The request may be either a string URL or an <a class="reference internal" href="#tornado.httpclient.HTTPRequest" title="tornado.httpclient.HTTPRequest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPRequest</span></code></a> object.
+If it is a string, we construct an <a class="reference internal" href="#tornado.httpclient.HTTPRequest" title="tornado.httpclient.HTTPRequest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPRequest</span></code></a> using any additional
+kwargs: <code class="docutils literal notranslate"><span class="pre">HTTPRequest(request,</span> <span class="pre">**kwargs)</span></code></p>
+<p>This method returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> whose result is an
+<a class="reference internal" href="#tornado.httpclient.HTTPResponse" title="tornado.httpclient.HTTPResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPResponse</span></code></a>. By default, the <code class="docutils literal notranslate"><span class="pre">Future</span></code> will raise an
+<a class="reference internal" href="#tornado.httpclient.HTTPError" title="tornado.httpclient.HTTPError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPError</span></code></a> if the request returned a non-200 response code
+(other errors may also be raised if the server could not be
+contacted). Instead, if <code class="docutils literal notranslate"><span class="pre">raise_error</span></code> is set to False, the
+response will always be returned regardless of the response
+code.</p>
+<p>If a <code class="docutils literal notranslate"><span class="pre">callback</span></code> is given, it will be invoked with the <a class="reference internal" href="#tornado.httpclient.HTTPResponse" title="tornado.httpclient.HTTPResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPResponse</span></code></a>.
+In the callback interface, <a class="reference internal" href="#tornado.httpclient.HTTPError" title="tornado.httpclient.HTTPError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPError</span></code></a> is not automatically raised.
+Instead, you must check the response’s <code class="docutils literal notranslate"><span class="pre">error</span></code> attribute or
+call its <a class="reference internal" href="#tornado.httpclient.HTTPResponse.rethrow" title="tornado.httpclient.HTTPResponse.rethrow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rethrow</span></code></a> method.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 6.0: </span>The <code class="docutils literal notranslate"><span class="pre">callback</span></code> argument was removed. Use the returned
+<a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> instead.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">raise_error=False</span></code> argument only affects the
+<a class="reference internal" href="#tornado.httpclient.HTTPError" title="tornado.httpclient.HTTPError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPError</span></code></a> raised when a non-200 response code is used,
+instead of suppressing all errors.</p>
+</div>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="tornado.httpclient.AsyncHTTPClient.configure">
+<em class="property">classmethod </em><code class="descname">configure</code><span class="sig-paren">(</span><em>impl: Union[None, str, Type[tornado.util.Configurable]], **kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/httpclient.html#AsyncHTTPClient.configure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httpclient.AsyncHTTPClient.configure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configures the <a class="reference internal" href="#tornado.httpclient.AsyncHTTPClient" title="tornado.httpclient.AsyncHTTPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient</span></code></a> subclass to use.</p>
+<p><code class="docutils literal notranslate"><span class="pre">AsyncHTTPClient()</span></code> actually creates an instance of a subclass.
+This method may be called with either a class object or the
+fully-qualified name of such a class (or <code class="docutils literal notranslate"><span class="pre">None</span></code> to use the default,
+<code class="docutils literal notranslate"><span class="pre">SimpleAsyncHTTPClient</span></code>)</p>
+<p>If additional keyword arguments are given, they will be passed
+to the constructor of each subclass instance created.  The
+keyword argument <code class="docutils literal notranslate"><span class="pre">max_clients</span></code> determines the maximum number
+of simultaneous <a class="reference internal" href="#tornado.httpclient.AsyncHTTPClient.fetch" title="tornado.httpclient.AsyncHTTPClient.fetch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetch()</span></code></a> operations that can
+execute in parallel on each <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>.  Additional arguments
+may be supported depending on the implementation class in use.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">AsyncHTTPClient</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="s2">&quot;tornado.curl_httpclient.CurlAsyncHTTPClient&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="request-objects">
+<h2>Request objects<a class="headerlink" href="#request-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.httpclient.HTTPRequest">
+<em class="property">class </em><code class="descclassname">tornado.httpclient.</code><code class="descname">HTTPRequest</code><span class="sig-paren">(</span><em>url: str, method: str = 'GET', headers: Union[Dict[str, str], tornado.httputil.HTTPHeaders] = None, body: Union[bytes, str] = None, auth_username: str = None, auth_password: str = None, auth_mode: str = None, connect_timeout: float = None, request_timeout: float = None, if_modified_since: Union[float, datetime.datetime] = None, follow_redirects: bool = None, max_redirects: int = None, user_agent: str = None, use_gzip: bool = None, network_interface: str = None, streaming_callback: Callable[[bytes], None] = None, header_callback: Callable[[str], None] = None, prepare_curl_callback: Callable[[Any], None] = None, proxy_host: str = None, proxy_port: int = None, proxy_username: str = None, proxy_password: str = None, proxy_auth_mode: str = None, allow_nonstandard_methods: bool = None, validate_cert: bool = None, ca_certs: str = None, allow_ipv6: bool = None, client_key: str = None, client_cert: str = None, body_producer: Callable[[Callable[[bytes], None]], Future[None]] = None, expect_100_continue: bool = False, decompress_response: bool = None, ssl_options: Union[Dict[str, Any], ssl.SSLContext] = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/httpclient.html#HTTPRequest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httpclient.HTTPRequest" title="Permalink to this definition">¶</a></dt>
+<dd><p>HTTP client request object.</p>
+<p>All parameters except <code class="docutils literal notranslate"><span class="pre">url</span></code> are optional.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – URL to fetch</p></li>
+<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – HTTP method, e.g. “GET” or “POST”</p></li>
+<li><p><strong>headers</strong> (<a class="reference internal" href="httputil.html#tornado.httputil.HTTPHeaders" title="tornado.httputil.HTTPHeaders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPHeaders</span></code></a> or <a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#dict" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>) – Additional HTTP headers to pass on the request</p></li>
+<li><p><strong>body</strong> – HTTP request body as a string (byte or unicode; if unicode
+the utf-8 encoding will be used)</p></li>
+<li><p><strong>body_producer</strong> – Callable used for lazy/asynchronous request bodies.
+It is called with one argument, a <code class="docutils literal notranslate"><span class="pre">write</span></code> function, and should
+return a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>.  It should call the write function with new
+data as it becomes available.  The write function returns a
+<a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> which can be used for flow control.
+Only one of <code class="docutils literal notranslate"><span class="pre">body</span></code> and <code class="docutils literal notranslate"><span class="pre">body_producer</span></code> may
+be specified.  <code class="docutils literal notranslate"><span class="pre">body_producer</span></code> is not supported on
+<code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code>.  When using <code class="docutils literal notranslate"><span class="pre">body_producer</span></code> it is recommended
+to pass a <code class="docutils literal notranslate"><span class="pre">Content-Length</span></code> in the headers as otherwise chunked
+encoding will be used, and many servers do not support chunked
+encoding on requests.  New in Tornado 4.0</p></li>
+<li><p><strong>auth_username</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Username for HTTP authentication</p></li>
+<li><p><strong>auth_password</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Password for HTTP authentication</p></li>
+<li><p><strong>auth_mode</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Authentication mode; default is “basic”.
+Allowed values are implementation-defined; <code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code>
+supports “basic” and “digest”; <code class="docutils literal notranslate"><span class="pre">simple_httpclient</span></code> only supports
+“basic”</p></li>
+<li><p><strong>connect_timeout</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – Timeout for initial connection in seconds,
+default 20 seconds</p></li>
+<li><p><strong>request_timeout</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – Timeout for entire request in seconds,
+default 20 seconds</p></li>
+<li><p><strong>if_modified_since</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/datetime.html#module-datetime" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime</span></code></a> or <a class="reference external" href="https://docs.python.org/3.6/library/functions.html#float" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a>) – Timestamp for <code class="docutils literal notranslate"><span class="pre">If-Modified-Since</span></code> header</p></li>
+<li><p><strong>follow_redirects</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – Should redirects be followed automatically
+or return the 3xx response? Default True.</p></li>
+<li><p><strong>max_redirects</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – Limit for <code class="docutils literal notranslate"><span class="pre">follow_redirects</span></code>, default 5.</p></li>
+<li><p><strong>user_agent</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – String to send as <code class="docutils literal notranslate"><span class="pre">User-Agent</span></code> header</p></li>
+<li><p><strong>decompress_response</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – Request a compressed response from
+the server and decompress it after downloading.  Default is True.
+New in Tornado 4.0.</p></li>
+<li><p><strong>use_gzip</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – Deprecated alias for <code class="docutils literal notranslate"><span class="pre">decompress_response</span></code>
+since Tornado 4.0.</p></li>
+<li><p><strong>network_interface</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Network interface or source IP to use for request.
+See <code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code> note below.</p></li>
+<li><p><strong>streaming_callback</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.6)"><em>collections.abc.Callable</em></a>) – If set, <code class="docutils literal notranslate"><span class="pre">streaming_callback</span></code> will
+be run with each chunk of data as it is received, and
+<code class="docutils literal notranslate"><span class="pre">HTTPResponse.body</span></code> and <code class="docutils literal notranslate"><span class="pre">HTTPResponse.buffer</span></code> will be empty in
+the final response.</p></li>
+<li><p><strong>header_callback</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.6)"><em>collections.abc.Callable</em></a>) – If set, <code class="docutils literal notranslate"><span class="pre">header_callback</span></code> will
+be run with each header line as it is received (including the
+first line, e.g. <code class="docutils literal notranslate"><span class="pre">HTTP/1.0</span> <span class="pre">200</span> <span class="pre">OK\r\n</span></code>, and a final line
+containing only <code class="docutils literal notranslate"><span class="pre">\r\n</span></code>.  All lines include the trailing newline
+characters).  <code class="docutils literal notranslate"><span class="pre">HTTPResponse.headers</span></code> will be empty in the final
+response.  This is most useful in conjunction with
+<code class="docutils literal notranslate"><span class="pre">streaming_callback</span></code>, because it’s the only way to get access to
+header data while the request is in progress.</p></li>
+<li><p><strong>prepare_curl_callback</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.6)"><em>collections.abc.Callable</em></a>) – If set, will be called with
+a <code class="docutils literal notranslate"><span class="pre">pycurl.Curl</span></code> object to allow the application to make additional
+<code class="docutils literal notranslate"><span class="pre">setopt</span></code> calls.</p></li>
+<li><p><strong>proxy_host</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – HTTP proxy hostname.  To use proxies,
+<code class="docutils literal notranslate"><span class="pre">proxy_host</span></code> and <code class="docutils literal notranslate"><span class="pre">proxy_port</span></code> must be set; <code class="docutils literal notranslate"><span class="pre">proxy_username</span></code>,
+<code class="docutils literal notranslate"><span class="pre">proxy_pass</span></code> and <code class="docutils literal notranslate"><span class="pre">proxy_auth_mode</span></code> are optional.  Proxies are
+currently only supported with <code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code>.</p></li>
+<li><p><strong>proxy_port</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – HTTP proxy port</p></li>
+<li><p><strong>proxy_username</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – HTTP proxy username</p></li>
+<li><p><strong>proxy_password</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – HTTP proxy password</p></li>
+<li><p><strong>proxy_auth_mode</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – HTTP proxy Authentication mode;
+default is “basic”. supports “basic” and “digest”</p></li>
+<li><p><strong>allow_nonstandard_methods</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – Allow unknown values for <code class="docutils literal notranslate"><span class="pre">method</span></code>
+argument? Default is False.</p></li>
+<li><p><strong>validate_cert</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – For HTTPS requests, validate the server’s
+certificate? Default is True.</p></li>
+<li><p><strong>ca_certs</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – filename of CA certificates in PEM format,
+or None to use defaults.  See note below when used with
+<code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code>.</p></li>
+<li><p><strong>client_key</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Filename for client SSL key, if any.  See
+note below when used with <code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code>.</p></li>
+<li><p><strong>client_cert</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Filename for client SSL certificate, if any.
+See note below when used with <code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code>.</p></li>
+<li><p><strong>ssl_options</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.SSLContext" title="(in Python v3.6)"><em>ssl.SSLContext</em></a>) – <a class="reference external" href="https://docs.python.org/3.6/library/ssl.html#ssl.SSLContext" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssl.SSLContext</span></code></a> object for use in
+<code class="docutils literal notranslate"><span class="pre">simple_httpclient</span></code> (unsupported by <code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code>).
+Overrides <code class="docutils literal notranslate"><span class="pre">validate_cert</span></code>, <code class="docutils literal notranslate"><span class="pre">ca_certs</span></code>, <code class="docutils literal notranslate"><span class="pre">client_key</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">client_cert</span></code>.</p></li>
+<li><p><strong>allow_ipv6</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – Use IPv6 when available?  Default is True.</p></li>
+<li><p><strong>expect_100_continue</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – If true, send the
+<code class="docutils literal notranslate"><span class="pre">Expect:</span> <span class="pre">100-continue</span></code> header and wait for a continue response
+before sending the request body.  Only supported with
+<code class="docutils literal notranslate"><span class="pre">simple_httpclient</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When using <code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code> certain options may be
+inherited by subsequent fetches because <code class="docutils literal notranslate"><span class="pre">pycurl</span></code> does
+not allow them to be cleanly reset.  This applies to the
+<code class="docutils literal notranslate"><span class="pre">ca_certs</span></code>, <code class="docutils literal notranslate"><span class="pre">client_key</span></code>, <code class="docutils literal notranslate"><span class="pre">client_cert</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">network_interface</span></code> arguments.  If you use these
+options, you should pass them on every request (you don’t
+have to always use the same values, but it’s not possible
+to mix requests that specify these options with ones that
+use the defaults).</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.1: </span>The <code class="docutils literal notranslate"><span class="pre">auth_mode</span></code> argument.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0: </span>The <code class="docutils literal notranslate"><span class="pre">body_producer</span></code> and <code class="docutils literal notranslate"><span class="pre">expect_100_continue</span></code> arguments.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.2: </span>The <code class="docutils literal notranslate"><span class="pre">ssl_options</span></code> argument.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.5: </span>The <code class="docutils literal notranslate"><span class="pre">proxy_auth_mode</span></code> argument.</p>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="response-objects">
+<h2>Response objects<a class="headerlink" href="#response-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.httpclient.HTTPResponse">
+<em class="property">class </em><code class="descclassname">tornado.httpclient.</code><code class="descname">HTTPResponse</code><span class="sig-paren">(</span><em>request: tornado.httpclient.HTTPRequest</em>, <em>code: int</em>, <em>headers: tornado.httputil.HTTPHeaders = None</em>, <em>buffer: _io.BytesIO = None</em>, <em>effective_url: str = None</em>, <em>error: BaseException = None</em>, <em>request_time: float = None</em>, <em>time_info: Dict[str</em>, <em>float] = None</em>, <em>reason: str = None</em>, <em>start_time: float = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/httpclient.html#HTTPResponse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httpclient.HTTPResponse" title="Permalink to this definition">¶</a></dt>
+<dd><p>HTTP Response object.</p>
+<p>Attributes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">request</span></code>: HTTPRequest object</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">code</span></code>: numeric HTTP status code, e.g. 200 or 404</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reason</span></code>: human-readable reason phrase describing the status code</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">headers</span></code>: <a class="reference internal" href="httputil.html#tornado.httputil.HTTPHeaders" title="tornado.httputil.HTTPHeaders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.httputil.HTTPHeaders</span></code></a> object</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">effective_url</span></code>: final location of the resource after following any
+redirects</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">buffer</span></code>: <code class="docutils literal notranslate"><span class="pre">cStringIO</span></code> object for response body</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">body</span></code>: response body as bytes (created on demand from <code class="docutils literal notranslate"><span class="pre">self.buffer</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">error</span></code>: Exception object, if any</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">request_time</span></code>: seconds from request start to finish. Includes all
+network operations from DNS resolution to receiving the last byte of
+data. Does not include time spent in the queue (due to the
+<code class="docutils literal notranslate"><span class="pre">max_clients</span></code> option). If redirects were followed, only includes
+the final request.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">start_time</span></code>: Time at which the HTTP operation started, based on
+<a class="reference external" href="https://docs.python.org/3.6/library/time.html#time.time" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time.time</span></code></a> (not the monotonic clock used by <a class="reference internal" href="ioloop.html#tornado.ioloop.IOLoop.time" title="tornado.ioloop.IOLoop.time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.time</span></code></a>). May
+be <code class="docutils literal notranslate"><span class="pre">None</span></code> if the request timed out while in the queue.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time_info</span></code>: dictionary of diagnostic timing information from the
+request. Available data are subject to change, but currently uses timings
+available from <a class="reference external" href="http://curl.haxx.se/libcurl/c/curl_easy_getinfo.html">http://curl.haxx.se/libcurl/c/curl_easy_getinfo.html</a>,
+plus <code class="docutils literal notranslate"><span class="pre">queue</span></code>, which is the delay (if any) introduced by waiting for
+a slot under <a class="reference internal" href="#tornado.httpclient.AsyncHTTPClient" title="tornado.httpclient.AsyncHTTPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient</span></code></a>’s <code class="docutils literal notranslate"><span class="pre">max_clients</span></code> setting.</p></li>
+</ul>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 5.1: </span>Added the <code class="docutils literal notranslate"><span class="pre">start_time</span></code> attribute.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span>The <code class="docutils literal notranslate"><span class="pre">request_time</span></code> attribute previously included time spent in the queue
+for <code class="docutils literal notranslate"><span class="pre">simple_httpclient</span></code>, but not in <code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code>. Now queueing time
+is excluded in both implementations. <code class="docutils literal notranslate"><span class="pre">request_time</span></code> is now more accurate for
+<code class="docutils literal notranslate"><span class="pre">curl_httpclient</span></code> because it uses a monotonic clock when available.</p>
+</div>
+<dl class="method">
+<dt id="tornado.httpclient.HTTPResponse.rethrow">
+<code class="descname">rethrow</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/httpclient.html#HTTPResponse.rethrow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httpclient.HTTPResponse.rethrow" title="Permalink to this definition">¶</a></dt>
+<dd><p>If there was an error on the request, raise an <a class="reference internal" href="#tornado.httpclient.HTTPError" title="tornado.httpclient.HTTPError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPError</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="tornado.httpclient.HTTPClientError">
+<em class="property">exception </em><code class="descclassname">tornado.httpclient.</code><code class="descname">HTTPClientError</code><span class="sig-paren">(</span><em>code: int</em>, <em>message: str = None</em>, <em>response: tornado.httpclient.HTTPResponse = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/httpclient.html#HTTPClientError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.httpclient.HTTPClientError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception thrown for an unsuccessful HTTP request.</p>
+<p>Attributes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">code</span></code> - HTTP error integer error code, e.g. 404.  Error code 599 is
+used when no HTTP response was received, e.g. for a timeout.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">response</span></code> - <a class="reference internal" href="#tornado.httpclient.HTTPResponse" title="tornado.httpclient.HTTPResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPResponse</span></code></a> object, if any.</p></li>
+</ul>
+<p>Note that if <code class="docutils literal notranslate"><span class="pre">follow_redirects</span></code> is False, redirects become HTTPErrors,
+and you can look at <code class="docutils literal notranslate"><span class="pre">error.response.headers['Location']</span></code> to see the
+destination of the redirect.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span>Renamed from <code class="docutils literal notranslate"><span class="pre">HTTPError</span></code> to <code class="docutils literal notranslate"><span class="pre">HTTPClientError</span></code> to avoid collisions with
+<a class="reference internal" href="web.html#tornado.web.HTTPError" title="tornado.web.HTTPError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.web.HTTPError</span></code></a>. The name <code class="docutils literal notranslate"><span class="pre">tornado.httpclient.HTTPError</span></code> remains
+as an alias.</p>
+</div>
+</dd></dl>
+
+<dl class="exception">
+<dt id="tornado.httpclient.HTTPError">
+<em class="property">exception </em><code class="descclassname">tornado.httpclient.</code><code class="descname">HTTPError</code><a class="headerlink" href="#tornado.httpclient.HTTPError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="#tornado.httpclient.HTTPClientError" title="tornado.httpclient.HTTPClientError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPClientError</span></code></a>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="command-line-interface">
+<h2>Command-line interface<a class="headerlink" href="#command-line-interface" title="Permalink to this headline">¶</a></h2>
+<p>This module provides a simple command-line interface to fetch a url
+using Tornado’s HTTP client.  Example usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fetch the url and print its body</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpclient</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">google</span><span class="o">.</span><span class="n">com</span>
+
+<span class="c1"># Just print the headers</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpclient</span> <span class="o">--</span><span class="n">print_headers</span> <span class="o">--</span><span class="n">print_body</span><span class="o">=</span><span class="n">false</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">google</span><span class="o">.</span><span class="n">com</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="module-tornado.simple_httpclient">
+<span id="implementations"></span><h2>Implementations<a class="headerlink" href="#module-tornado.simple_httpclient" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.simple_httpclient.SimpleAsyncHTTPClient">
+<em class="property">class </em><code class="descclassname">tornado.simple_httpclient.</code><code class="descname">SimpleAsyncHTTPClient</code><a class="reference internal" href="_modules/tornado/simple_httpclient.html#SimpleAsyncHTTPClient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.simple_httpclient.SimpleAsyncHTTPClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Non-blocking HTTP client with no external dependencies.</p>
+<p>This class implements an HTTP 1.1 client on top of Tornado’s IOStreams.
+Some features found in the curl-based AsyncHTTPClient are not yet
+supported.  In particular, proxies are not supported, connections
+are not reused, and callers cannot select the network interface to be
+used.</p>
+<dl class="method">
+<dt id="tornado.simple_httpclient.SimpleAsyncHTTPClient.initialize">
+<code class="descname">initialize</code><span class="sig-paren">(</span><em>max_clients: int = 10</em>, <em>hostname_mapping: Dict[str</em>, <em>str] = None</em>, <em>max_buffer_size: int = 104857600</em>, <em>resolver: tornado.netutil.Resolver = None</em>, <em>defaults: Dict[str</em>, <em>Any] = None</em>, <em>max_header_size: int = None</em>, <em>max_body_size: int = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/simple_httpclient.html#SimpleAsyncHTTPClient.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.simple_httpclient.SimpleAsyncHTTPClient.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a AsyncHTTPClient.</p>
+<p>Only a single AsyncHTTPClient instance exists per IOLoop
+in order to provide limitations on the number of pending connections.
+<code class="docutils literal notranslate"><span class="pre">force_instance=True</span></code> may be used to suppress this behavior.</p>
+<p>Note that because of this implicit reuse, unless <code class="docutils literal notranslate"><span class="pre">force_instance</span></code>
+is used, only the first call to the constructor actually uses
+its arguments. It is recommended to use the <code class="docutils literal notranslate"><span class="pre">configure</span></code> method
+instead of the constructor to ensure that arguments take effect.</p>
+<p><code class="docutils literal notranslate"><span class="pre">max_clients</span></code> is the number of concurrent requests that can be
+in progress; when this limit is reached additional requests will be
+queued. Note that time spent waiting in this queue still counts
+against the <code class="docutils literal notranslate"><span class="pre">request_timeout</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">hostname_mapping</span></code> is a dictionary mapping hostnames to IP addresses.
+It can be used to make local DNS changes when modifying system-wide
+settings like <code class="docutils literal notranslate"><span class="pre">/etc/hosts</span></code> is not possible or desirable (e.g. in
+unittests).</p>
+<p><code class="docutils literal notranslate"><span class="pre">max_buffer_size</span></code> (default 100MB) is the number of bytes
+that can be read into memory at once. <code class="docutils literal notranslate"><span class="pre">max_body_size</span></code>
+(defaults to <code class="docutils literal notranslate"><span class="pre">max_buffer_size</span></code>) is the largest response body
+that the client will accept.  Without a
+<code class="docutils literal notranslate"><span class="pre">streaming_callback</span></code>, the smaller of these two limits
+applies; with a <code class="docutils literal notranslate"><span class="pre">streaming_callback</span></code> only <code class="docutils literal notranslate"><span class="pre">max_body_size</span></code>
+does.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.2: </span>Added the <code class="docutils literal notranslate"><span class="pre">max_body_size</span></code> argument.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-tornado.curl_httpclient"></span><dl class="class">
+<dt id="tornado.curl_httpclient.CurlAsyncHTTPClient">
+<em class="property">class </em><code class="descclassname">tornado.curl_httpclient.</code><code class="descname">CurlAsyncHTTPClient</code><span class="sig-paren">(</span><em>max_clients=10</em>, <em>defaults=None</em><span class="sig-paren">)</span><a class="headerlink" href="#tornado.curl_httpclient.CurlAsyncHTTPClient" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">libcurl</span></code>-based HTTP client.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="example-code">
+<h2>Example Code<a class="headerlink" href="#example-code" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/tornadoweb/tornado/blob/master/demos/webspider/webspider.py">A simple webspider</a>
+shows how to fetch URLs concurrently.</p></li>
+<li><p><a class="reference external" href="https://github.com/tornadoweb/tornado/tree/master/demos/file_upload/">The file uploader demo</a>
+uses either HTTP POST or HTTP PUT to upload files to a server.</p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="httputil.html" class="btn btn-neutral float-right" title="tornado.httputil — Manipulate HTTP headers and URLs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="httpserver.html" class="btn btn-neutral float-left" title="tornado.httpserver — Non-blocking HTTP server" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

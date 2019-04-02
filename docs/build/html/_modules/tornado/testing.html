@@ -1,0 +1,991 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.testing &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tornado.testing</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tornado.testing</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Support classes for automated testing.</span>
+
+<span class="sd">* `AsyncTestCase` and `AsyncHTTPTestCase`:  Subclasses of unittest.TestCase</span>
+<span class="sd">  with additional support for testing asynchronous (`.IOLoop`-based) code.</span>
+
+<span class="sd">* `ExpectLog`: Make test logs less spammy.</span>
+
+<span class="sd">* `main()`: A simple test runner (wrapper around unittest.main()) with support</span>
+<span class="sd">  for the tornado.autoreload module to rerun the tests when code changes.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="k">import</span> <span class="n">Generator</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">gen</span>
+<span class="kn">from</span> <span class="nn">tornado.httpclient</span> <span class="k">import</span> <span class="n">AsyncHTTPClient</span><span class="p">,</span> <span class="n">HTTPResponse</span>
+<span class="kn">from</span> <span class="nn">tornado.httpserver</span> <span class="k">import</span> <span class="n">HTTPServer</span>
+<span class="kn">from</span> <span class="nn">tornado.ioloop</span> <span class="k">import</span> <span class="n">IOLoop</span><span class="p">,</span> <span class="ne">TimeoutError</span>
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">netutil</span>
+<span class="kn">from</span> <span class="nn">tornado.platform.asyncio</span> <span class="k">import</span> <span class="n">AsyncIOMainLoop</span>
+<span class="kn">from</span> <span class="nn">tornado.process</span> <span class="k">import</span> <span class="n">Subprocess</span>
+<span class="kn">from</span> <span class="nn">tornado.log</span> <span class="k">import</span> <span class="n">app_log</span>
+<span class="kn">from</span> <span class="nn">tornado.util</span> <span class="k">import</span> <span class="n">raise_exc_info</span><span class="p">,</span> <span class="n">basestring_type</span>
+<span class="kn">from</span> <span class="nn">tornado.web</span> <span class="k">import</span> <span class="n">Application</span>
+
+<span class="kn">import</span> <span class="nn">typing</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">types</span> <span class="k">import</span> <span class="n">TracebackType</span>
+
+<span class="k">if</span> <span class="n">typing</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="c1"># Coroutine wasn&#39;t added to typing until 3.5.3, so only import it</span>
+    <span class="c1"># when mypy is running and use forward references.</span>
+    <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Coroutine</span>  <span class="c1"># noqa: F401</span>
+
+    <span class="n">_ExcInfoTuple</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">[</span>
+        <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">]],</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TracebackType</span><span class="p">]</span>
+    <span class="p">]</span>
+
+
+<span class="n">_NON_OWNED_IOLOOPS</span> <span class="o">=</span> <span class="n">AsyncIOMainLoop</span>
+
+
+<div class="viewcode-block" id="bind_unused_port"><a class="viewcode-back" href="../../testing.html#tornado.testing.bind_unused_port">[docs]</a><span class="k">def</span> <span class="nf">bind_unused_port</span><span class="p">(</span><span class="n">reuse_port</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Binds a server socket to an available port on localhost.</span>
+
+<span class="sd">    Returns a tuple (socket, port).</span>
+
+<span class="sd">    .. versionchanged:: 4.4</span>
+<span class="sd">       Always binds to ``127.0.0.1`` without resolving the name</span>
+<span class="sd">       ``localhost``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sock</span> <span class="o">=</span> <span class="n">netutil</span><span class="o">.</span><span class="n">bind_sockets</span><span class="p">(</span>
+        <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">reuse_port</span><span class="o">=</span><span class="n">reuse_port</span>
+    <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">port</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">getsockname</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">sock</span><span class="p">,</span> <span class="n">port</span></div>
+
+
+<div class="viewcode-block" id="get_async_test_timeout"><a class="viewcode-back" href="../../testing.html#tornado.testing.get_async_test_timeout">[docs]</a><span class="k">def</span> <span class="nf">get_async_test_timeout</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Get the global timeout setting for async tests.</span>
+
+<span class="sd">    Returns a float, the timeout in seconds.</span>
+
+<span class="sd">    .. versionadded:: 3.1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ASYNC_TEST_TIMEOUT&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">env</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">return</span> <span class="mi">5</span></div>
+
+
+<span class="k">class</span> <span class="nc">_TestMethodWrapper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wraps a test method to raise an error if it returns a value.</span>
+
+<span class="sd">    This is mainly used to detect undecorated generators (if a test</span>
+<span class="sd">    method yields it must use a decorator to consume the generator),</span>
+<span class="sd">    but will also detect other kinds of return values (these are not</span>
+<span class="sd">    necessarily errors, but we alert anyway since there is no good</span>
+<span class="sd">    reason to return a value from a test).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orig_method</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orig_method</span> <span class="o">=</span> <span class="n">orig_method</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig_method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">Generator</span><span class="p">)</span> <span class="ow">or</span> <span class="n">inspect</span><span class="o">.</span><span class="n">iscoroutine</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;Generator and coroutine test methods should be&quot;</span>
+                <span class="s2">&quot; decorated with tornado.testing.gen_test&quot;</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Return value from test method ignored: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">result</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Proxy all unknown attributes to the original method.</span>
+
+<span class="sd">        This is important for some of the decorators in the `unittest`</span>
+<span class="sd">        module, such as `unittest.skipIf`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orig_method</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="AsyncTestCase"><a class="viewcode-back" href="../../testing.html#tornado.testing.AsyncTestCase">[docs]</a><span class="k">class</span> <span class="nc">AsyncTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;`~unittest.TestCase` subclass for testing `.IOLoop`-based</span>
+<span class="sd">    asynchronous code.</span>
+
+<span class="sd">    The unittest framework is synchronous, so the test must be</span>
+<span class="sd">    complete by the time the test method returns. This means that</span>
+<span class="sd">    asynchronous code cannot be used in quite the same way as usual</span>
+<span class="sd">    and must be adapted to fit. To write your tests with coroutines,</span>
+<span class="sd">    decorate your test methods with `tornado.testing.gen_test` instead</span>
+<span class="sd">    of `tornado.gen.coroutine`.</span>
+
+<span class="sd">    This class also provides the (deprecated) `stop()` and `wait()`</span>
+<span class="sd">    methods for a more manual style of testing. The test method itself</span>
+<span class="sd">    must call ``self.wait()``, and asynchronous callbacks should call</span>
+<span class="sd">    ``self.stop()`` to signal completion.</span>
+
+<span class="sd">    By default, a new `.IOLoop` is constructed for each test and is available</span>
+<span class="sd">    as ``self.io_loop``.  If the code being tested requires a</span>
+<span class="sd">    global `.IOLoop`, subclasses should override `get_new_ioloop` to return it.</span>
+
+<span class="sd">    The `.IOLoop`&#39;s ``start`` and ``stop`` methods should not be</span>
+<span class="sd">    called directly.  Instead, use `self.stop &lt;stop&gt;` and `self.wait</span>
+<span class="sd">    &lt;wait&gt;`.  Arguments passed to ``self.stop`` are returned from</span>
+<span class="sd">    ``self.wait``.  It is possible to have multiple ``wait``/``stop``</span>
+<span class="sd">    cycles in the same test.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        # This test uses coroutine style.</span>
+<span class="sd">        class MyTestCase(AsyncTestCase):</span>
+<span class="sd">            @tornado.testing.gen_test</span>
+<span class="sd">            def test_http_fetch(self):</span>
+<span class="sd">                client = AsyncHTTPClient()</span>
+<span class="sd">                response = yield client.fetch(&quot;http://www.tornadoweb.org&quot;)</span>
+<span class="sd">                # Test contents of response</span>
+<span class="sd">                self.assertIn(&quot;FriendFeed&quot;, response.body)</span>
+
+<span class="sd">        # This test uses argument passing between self.stop and self.wait.</span>
+<span class="sd">        class MyTestCase2(AsyncTestCase):</span>
+<span class="sd">            def test_http_fetch(self):</span>
+<span class="sd">                client = AsyncHTTPClient()</span>
+<span class="sd">                client.fetch(&quot;http://www.tornadoweb.org/&quot;, self.stop)</span>
+<span class="sd">                response = self.wait()</span>
+<span class="sd">                # Test contents of response</span>
+<span class="sd">                self.assertIn(&quot;FriendFeed&quot;, response.body)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">methodName</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;runTest&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AsyncTestCase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">methodName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__stopped</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__running</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__failure</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[_ExcInfoTuple]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__stop_args</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Any</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__timeout</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[object]</span>
+
+        <span class="c1"># It&#39;s easy to forget the @gen_test decorator, but if you do</span>
+        <span class="c1"># the test will silently be ignored because nothing will consume</span>
+        <span class="c1"># the generator.  Replace the test method with a wrapper that will</span>
+        <span class="c1"># make sure it&#39;s not an undecorated generator.</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">methodName</span><span class="p">,</span> <span class="n">_TestMethodWrapper</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">methodName</span><span class="p">)))</span>
+
+        <span class="c1"># Not used in this class itself, but used by @gen_test</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test_generator</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[Union[Generator, Coroutine]]</span>
+
+    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AsyncTestCase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_new_ioloop</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">make_current</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Native coroutines tend to produce warnings if they&#39;re not</span>
+        <span class="c1"># allowed to run to completion. It&#39;s difficult to ensure that</span>
+        <span class="c1"># this always happens in tests, so cancel any tasks that are</span>
+        <span class="c1"># still pending by the time we get here.</span>
+        <span class="n">asyncio_loop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">asyncio_loop</span>  <span class="c1"># type: ignore</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">asyncio</span><span class="p">,</span> <span class="s2">&quot;all_tasks&quot;</span><span class="p">):</span>  <span class="c1"># py37</span>
+            <span class="n">tasks</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">all_tasks</span><span class="p">(</span><span class="n">asyncio_loop</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tasks</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="o">.</span><span class="n">all_tasks</span><span class="p">(</span><span class="n">asyncio_loop</span><span class="p">)</span>
+        <span class="c1"># Tasks that are done may still appear here and may contain</span>
+        <span class="c1"># non-cancellation exceptions, so filter them out.</span>
+        <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tasks</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">done</span><span class="p">()]</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+        <span class="c1"># Allow the tasks to run and finalize themselves (which means</span>
+        <span class="c1"># raising a CancelledError inside the coroutine). This may</span>
+        <span class="c1"># just transform the &quot;task was destroyed but it is pending&quot;</span>
+        <span class="c1"># warning into a &quot;uncaught CancelledError&quot; warning, but</span>
+        <span class="c1"># catching CancelledErrors in coroutines that may leak is</span>
+        <span class="c1"># simpler than ensuring that no coroutines leak.</span>
+        <span class="k">if</span> <span class="n">tasks</span><span class="p">:</span>
+            <span class="n">done</span><span class="p">,</span> <span class="n">pending</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">tasks</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="n">pending</span>
+            <span class="c1"># If any task failed with anything but a CancelledError, raise it.</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">done</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+                <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">CancelledError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+        <span class="c1"># Clean up Subprocess, so it can be used again with a new ioloop.</span>
+        <span class="n">Subprocess</span><span class="o">.</span><span class="n">uninitialize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">clear_current</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="p">,</span> <span class="n">_NON_OWNED_IOLOOPS</span><span class="p">):</span>
+            <span class="c1"># Try to clean up any file descriptors left open in the ioloop.</span>
+            <span class="c1"># This avoids leaks, especially when tests are run repeatedly</span>
+            <span class="c1"># in the same process with autoreload (because curl does not</span>
+            <span class="c1"># set FD_CLOEXEC on its file descriptors)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">all_fds</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AsyncTestCase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">tearDown</span><span class="p">()</span>
+        <span class="c1"># In case an exception escaped or the StackContext caught an exception</span>
+        <span class="c1"># when there wasn&#39;t a wait() to re-raise it, do so here.</span>
+        <span class="c1"># This is our last chance to raise an exception in a way that the</span>
+        <span class="c1"># unittest machinery understands.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__rethrow</span><span class="p">()</span>
+
+<div class="viewcode-block" id="AsyncTestCase.get_new_ioloop"><a class="viewcode-back" href="../../testing.html#tornado.testing.AsyncTestCase.get_new_ioloop">[docs]</a>    <span class="k">def</span> <span class="nf">get_new_ioloop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IOLoop</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the `.IOLoop` to use for this test.</span>
+
+<span class="sd">        By default, a new `.IOLoop` is created for each test.</span>
+<span class="sd">        Subclasses may override this method to return</span>
+<span class="sd">        `.IOLoop.current()` if it is not appropriate to use a new</span>
+<span class="sd">        `.IOLoop` in each tests (for example, if there are global</span>
+<span class="sd">        singletons using the default `.IOLoop`) or if a per-test event</span>
+<span class="sd">        loop is being provided by another system (such as</span>
+<span class="sd">        ``pytest-asyncio``).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">IOLoop</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_handle_exception</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">typ</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="ne">Exception</span><span class="p">],</span> <span class="n">value</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">tb</span><span class="p">:</span> <span class="n">TracebackType</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__failure</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__failure</span> <span class="o">=</span> <span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tb</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">app_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;multiple unhandled exceptions in test&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tb</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">__rethrow</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__failure</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">failure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__failure</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__failure</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">raise_exc_info</span><span class="p">(</span><span class="n">failure</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">unittest</span><span class="o">.</span><span class="n">TestResult</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">AsyncTestCase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="c1"># As a last resort, if an exception escaped super.run() and wasn&#39;t</span>
+        <span class="c1"># re-raised in tearDown, raise it here.  This will cause the</span>
+        <span class="c1"># unittest run to fail messily, but that&#39;s better than silently</span>
+        <span class="c1"># ignoring an error.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__rethrow</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+<div class="viewcode-block" id="AsyncTestCase.stop"><a class="viewcode-back" href="../../testing.html#tornado.testing.AsyncTestCase.stop">[docs]</a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_arg</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Stops the `.IOLoop`, causing one pending (or future) call to `wait()`</span>
+<span class="sd">        to return.</span>
+
+<span class="sd">        Keyword arguments or a single positional argument passed to `stop()` are</span>
+<span class="sd">        saved and will be returned by `wait()`.</span>
+
+<span class="sd">        .. deprecated:: 5.1</span>
+
+<span class="sd">           `stop` and `wait` are deprecated; use ``@gen_test`` instead.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">_arg</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">kwargs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__stop_args</span> <span class="o">=</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="n">_arg</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__running</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__running</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__stopped</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="AsyncTestCase.wait"><a class="viewcode-back" href="../../testing.html#tornado.testing.AsyncTestCase.wait">[docs]</a>    <span class="k">def</span> <span class="nf">wait</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">condition</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Runs the `.IOLoop` until stop is called or timeout has passed.</span>
+
+<span class="sd">        In the event of a timeout, an exception will be thrown. The</span>
+<span class="sd">        default timeout is 5 seconds; it may be overridden with a</span>
+<span class="sd">        ``timeout`` keyword argument or globally with the</span>
+<span class="sd">        ``ASYNC_TEST_TIMEOUT`` environment variable.</span>
+
+<span class="sd">        If ``condition`` is not ``None``, the `.IOLoop` will be restarted</span>
+<span class="sd">        after `stop()` until ``condition()`` returns ``True``.</span>
+
+<span class="sd">        .. versionchanged:: 3.1</span>
+<span class="sd">           Added the ``ASYNC_TEST_TIMEOUT`` environment variable.</span>
+
+<span class="sd">        .. deprecated:: 5.1</span>
+
+<span class="sd">           `stop` and `wait` are deprecated; use ``@gen_test`` instead.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">timeout</span> <span class="o">=</span> <span class="n">get_async_test_timeout</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stopped</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">timeout</span><span class="p">:</span>
+
+                <span class="k">def</span> <span class="nf">timeout_func</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">failureException</span><span class="p">(</span>
+                            <span class="s2">&quot;Async operation timed out after </span><span class="si">%s</span><span class="s2"> seconds&quot;</span> <span class="o">%</span> <span class="n">timeout</span>
+                        <span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__failure</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">__timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_timeout</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">timeout_func</span>
+                <span class="p">)</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__running</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__failure</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">condition</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">condition</span><span class="p">():</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__timeout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">remove_timeout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__timeout</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__timeout</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stopped</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__stopped</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__rethrow</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stop_args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__stop_args</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">result</span></div></div>
+
+
+<div class="viewcode-block" id="AsyncHTTPTestCase"><a class="viewcode-back" href="../../testing.html#tornado.testing.AsyncHTTPTestCase">[docs]</a><span class="k">class</span> <span class="nc">AsyncHTTPTestCase</span><span class="p">(</span><span class="n">AsyncTestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A test case that starts up an HTTP server.</span>
+
+<span class="sd">    Subclasses must override `get_app()`, which returns the</span>
+<span class="sd">    `tornado.web.Application` (or other `.HTTPServer` callback) to be tested.</span>
+<span class="sd">    Tests will typically use the provided ``self.http_client`` to fetch</span>
+<span class="sd">    URLs from this server.</span>
+
+<span class="sd">    Example, assuming the &quot;Hello, world&quot; example from the user guide is in</span>
+<span class="sd">    ``hello.py``::</span>
+
+<span class="sd">        import hello</span>
+
+<span class="sd">        class TestHelloApp(AsyncHTTPTestCase):</span>
+<span class="sd">            def get_app(self):</span>
+<span class="sd">                return hello.make_app()</span>
+
+<span class="sd">            def test_homepage(self):</span>
+<span class="sd">                response = self.fetch(&#39;/&#39;)</span>
+<span class="sd">                self.assertEqual(response.code, 200)</span>
+<span class="sd">                self.assertEqual(response.body, &#39;Hello, world&#39;)</span>
+
+<span class="sd">    That call to ``self.fetch()`` is equivalent to ::</span>
+
+<span class="sd">        self.http_client.fetch(self.get_url(&#39;/&#39;), self.stop)</span>
+<span class="sd">        response = self.wait()</span>
+
+<span class="sd">    which illustrates how AsyncTestCase can turn an asynchronous operation,</span>
+<span class="sd">    like ``http_client.fetch()``, into a synchronous operation. If you need</span>
+<span class="sd">    to do other asynchronous operations in tests, you&#39;ll probably need to use</span>
+<span class="sd">    ``stop()`` and ``wait()`` yourself.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AsyncHTTPTestCase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
+        <span class="n">sock</span><span class="p">,</span> <span class="n">port</span> <span class="o">=</span> <span class="n">bind_unused_port</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__port</span> <span class="o">=</span> <span class="n">port</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_http_client</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_app</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">http_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_http_server</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">http_server</span><span class="o">.</span><span class="n">add_sockets</span><span class="p">([</span><span class="n">sock</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">get_http_client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncHTTPClient</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">AsyncHTTPClient</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">get_http_server</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HTTPServer</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">HTTPServer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">get_httpserver_options</span><span class="p">())</span>
+
+<div class="viewcode-block" id="AsyncHTTPTestCase.get_app"><a class="viewcode-back" href="../../testing.html#tornado.testing.AsyncHTTPTestCase.get_app">[docs]</a>    <span class="k">def</span> <span class="nf">get_app</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Application</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Should be overridden by subclasses to return a</span>
+<span class="sd">        `tornado.web.Application` or other `.HTTPServer` callback.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AsyncHTTPTestCase.fetch"><a class="viewcode-back" href="../../testing.html#tornado.testing.AsyncHTTPTestCase.fetch">[docs]</a>    <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">raise_error</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HTTPResponse</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Convenience method to synchronously fetch a URL.</span>
+
+<span class="sd">        The given path will be appended to the local server&#39;s host and</span>
+<span class="sd">        port.  Any additional keyword arguments will be passed directly to</span>
+<span class="sd">        `.AsyncHTTPClient.fetch` (and so could be used to pass</span>
+<span class="sd">        ``method=&quot;POST&quot;``, ``body=&quot;...&quot;``, etc).</span>
+
+<span class="sd">        If the path begins with http:// or https://, it will be treated as a</span>
+<span class="sd">        full URL and will be fetched as-is.</span>
+
+<span class="sd">        If ``raise_error`` is ``True``, a `tornado.httpclient.HTTPError` will</span>
+<span class="sd">        be raised if the response code is not 200. This is the same behavior</span>
+<span class="sd">        as the ``raise_error`` argument to `.AsyncHTTPClient.fetch`, but</span>
+<span class="sd">        the default is ``False`` here (it&#39;s ``True`` in `.AsyncHTTPClient`)</span>
+<span class="sd">        because tests often need to deal with non-200 response codes.</span>
+
+<span class="sd">        .. versionchanged:: 5.0</span>
+<span class="sd">           Added support for absolute URLs.</span>
+
+<span class="sd">        .. versionchanged:: 5.1</span>
+
+<span class="sd">           Added the ``raise_error`` argument.</span>
+
+<span class="sd">        .. deprecated:: 5.1</span>
+
+<span class="sd">           This method currently turns any exception into an</span>
+<span class="sd">           `.HTTPResponse` with status code 599. In Tornado 6.0,</span>
+<span class="sd">           errors other than `tornado.httpclient.HTTPError` will be</span>
+<span class="sd">           passed through, and ``raise_error=False`` will only</span>
+<span class="sd">           suppress errors that would be raised due to non-200</span>
+<span class="sd">           response codes.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">&quot;http://&quot;</span><span class="p">,</span> <span class="s2">&quot;https://&quot;</span><span class="p">)):</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_url</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">raise_error</span><span class="o">=</span><span class="n">raise_error</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="n">get_async_test_timeout</span><span class="p">(),</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="AsyncHTTPTestCase.get_httpserver_options"><a class="viewcode-back" href="../../testing.html#tornado.testing.AsyncHTTPTestCase.get_httpserver_options">[docs]</a>    <span class="k">def</span> <span class="nf">get_httpserver_options</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;May be overridden by subclasses to return additional</span>
+<span class="sd">        keyword arguments for the server.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="AsyncHTTPTestCase.get_http_port"><a class="viewcode-back" href="../../testing.html#tornado.testing.AsyncHTTPTestCase.get_http_port">[docs]</a>    <span class="k">def</span> <span class="nf">get_http_port</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the port used by the server.</span>
+
+<span class="sd">        A new port is chosen for each test.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__port</span></div>
+
+    <span class="k">def</span> <span class="nf">get_protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;http&quot;</span>
+
+<div class="viewcode-block" id="AsyncHTTPTestCase.get_url"><a class="viewcode-back" href="../../testing.html#tornado.testing.AsyncHTTPTestCase.get_url">[docs]</a>    <span class="k">def</span> <span class="nf">get_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns an absolute url for the given path on the test server.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">://127.0.0.1:</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_protocol</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_http_port</span><span class="p">(),</span> <span class="n">path</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">http_server</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">http_server</span><span class="o">.</span><span class="n">close_all_connections</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">get_async_test_timeout</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_server</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AsyncHTTPTestCase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">tearDown</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="AsyncHTTPSTestCase"><a class="viewcode-back" href="../../testing.html#tornado.testing.AsyncHTTPSTestCase">[docs]</a><span class="k">class</span> <span class="nc">AsyncHTTPSTestCase</span><span class="p">(</span><span class="n">AsyncHTTPTestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A test case that starts an HTTPS server.</span>
+
+<span class="sd">    Interface is generally the same as `AsyncHTTPTestCase`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">get_http_client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncHTTPClient</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">AsyncHTTPClient</span><span class="p">(</span><span class="n">force_instance</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">validate_cert</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">get_httpserver_options</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ssl_options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_ssl_options</span><span class="p">())</span>
+
+<div class="viewcode-block" id="AsyncHTTPSTestCase.get_ssl_options"><a class="viewcode-back" href="../../testing.html#tornado.testing.AsyncHTTPSTestCase.get_ssl_options">[docs]</a>    <span class="k">def</span> <span class="nf">get_ssl_options</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;May be overridden by subclasses to select SSL options.</span>
+
+<span class="sd">        By default includes a self-signed testing certificate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">AsyncHTTPSTestCase</span><span class="o">.</span><span class="n">default_ssl_options</span><span class="p">()</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">default_ssl_options</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="c1"># Testing keys were generated with:</span>
+        <span class="c1"># openssl req -new -keyout tornado/test/test.key \</span>
+        <span class="c1">#                     -out tornado/test/test.crt -nodes -days 3650 -x509</span>
+        <span class="n">module_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">certfile</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module_dir</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="s2">&quot;test.crt&quot;</span><span class="p">),</span>
+            <span class="n">keyfile</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module_dir</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="s2">&quot;test.key&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;https&quot;</span></div>
+
+
+<span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>
+<span class="k">def</span> <span class="nf">gen_test</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">Generator</span><span class="p">,</span> <span class="s2">&quot;Coroutine&quot;</span><span class="p">]]],</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]]:</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>  <span class="c1"># noqa: F811</span>
+<span class="k">def</span> <span class="nf">gen_test</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">Generator</span><span class="p">,</span> <span class="s2">&quot;Coroutine&quot;</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="gen_test"><a class="viewcode-back" href="../../testing.html#tornado.testing.gen_test">[docs]</a><span class="k">def</span> <span class="nf">gen_test</span><span class="p">(</span>  <span class="c1"># noqa: F811</span>
+    <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">Generator</span><span class="p">,</span> <span class="s2">&quot;Coroutine&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span>
+    <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="n">Callable</span><span class="p">[[</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">Generator</span><span class="p">,</span> <span class="s2">&quot;Coroutine&quot;</span><span class="p">]]],</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]],</span>
+<span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Testing equivalent of ``@gen.coroutine``, to be applied to test methods.</span>
+
+<span class="sd">    ``@gen.coroutine`` cannot be used on tests because the `.IOLoop` is not</span>
+<span class="sd">    already running.  ``@gen_test`` should be applied to test methods</span>
+<span class="sd">    on subclasses of `AsyncTestCase`.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        class MyTest(AsyncHTTPTestCase):</span>
+<span class="sd">            @gen_test</span>
+<span class="sd">            def test_something(self):</span>
+<span class="sd">                response = yield self.http_client.fetch(self.get_url(&#39;/&#39;))</span>
+
+<span class="sd">    By default, ``@gen_test`` times out after 5 seconds. The timeout may be</span>
+<span class="sd">    overridden globally with the ``ASYNC_TEST_TIMEOUT`` environment variable,</span>
+<span class="sd">    or for each test with the ``timeout`` keyword argument::</span>
+
+<span class="sd">        class MyTest(AsyncHTTPTestCase):</span>
+<span class="sd">            @gen_test(timeout=10)</span>
+<span class="sd">            def test_something_slow(self):</span>
+<span class="sd">                response = yield self.http_client.fetch(self.get_url(&#39;/&#39;))</span>
+
+<span class="sd">    Note that ``@gen_test`` is incompatible with `AsyncTestCase.stop`,</span>
+<span class="sd">    `AsyncTestCase.wait`, and `AsyncHTTPTestCase.fetch`. Use ``yield</span>
+<span class="sd">    self.http_client.fetch(self.get_url())`` as shown above instead.</span>
+
+<span class="sd">    .. versionadded:: 3.1</span>
+<span class="sd">       The ``timeout`` argument and ``ASYNC_TEST_TIMEOUT`` environment</span>
+<span class="sd">       variable.</span>
+
+<span class="sd">    .. versionchanged:: 4.0</span>
+<span class="sd">       The wrapper now passes along ``*args, **kwargs`` so it can be used</span>
+<span class="sd">       on functions with arguments.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">timeout</span> <span class="o">=</span> <span class="n">get_async_test_timeout</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">Generator</span><span class="p">,</span> <span class="s2">&quot;Coroutine&quot;</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="c1"># Stack up several decorators to allow us to access the generator</span>
+        <span class="c1"># object itself.  In the innermost wrapper, we capture the generator</span>
+        <span class="c1"># and save it in an attribute of self.  Next, we run the wrapped</span>
+        <span class="c1"># function through @gen.coroutine.  Finally, the coroutine is</span>
+        <span class="c1"># wrapped again to make it synchronous with run_sync.</span>
+        <span class="c1">#</span>
+        <span class="c1"># This is a good case study arguing for either some sort of</span>
+        <span class="c1"># extensibility in the gen decorators or cancellation support.</span>
+        <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">pre_coroutine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="c1"># type: (AsyncTestCase, *Any, **Any) -&gt; Union[Generator, Coroutine]</span>
+            <span class="c1"># Type comments used to avoid pypy3 bug.</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">Generator</span><span class="p">)</span> <span class="ow">or</span> <span class="n">inspect</span><span class="o">.</span><span class="n">iscoroutine</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_test_generator</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_test_generator</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="n">result</span>
+
+        <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">iscoroutinefunction</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+            <span class="n">coro</span> <span class="o">=</span> <span class="n">pre_coroutine</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">coro</span> <span class="o">=</span> <span class="n">gen</span><span class="o">.</span><span class="n">coroutine</span><span class="p">(</span><span class="n">pre_coroutine</span><span class="p">)</span>
+
+        <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">coro</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">post_coroutine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="c1"># type: (AsyncTestCase, *Any, **Any) -&gt; None</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span>
+                    <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">coro</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">TimeoutError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c1"># run_sync raises an error with an unhelpful traceback.</span>
+                <span class="c1"># If the underlying generator is still running, we can throw the</span>
+                <span class="c1"># exception back into it so the stack trace is replaced by the</span>
+                <span class="c1"># point where the test is stopped. The only reason the generator</span>
+                <span class="c1"># would not be running would be if it were cancelled, which means</span>
+                <span class="c1"># a native coroutine, so we can rely on the cr_running attribute.</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_test_generator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_test_generator</span><span class="p">,</span> <span class="s2">&quot;cr_running&quot;</span><span class="p">,</span> <span class="kc">True</span>
+                <span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_test_generator</span><span class="o">.</span><span class="n">throw</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">e</span><span class="p">)</span>
+                    <span class="c1"># In case the test contains an overly broad except</span>
+                    <span class="c1"># clause, we may get back here.</span>
+                <span class="c1"># Coroutine was stopped or didn&#39;t raise a useful stack trace,</span>
+                <span class="c1"># so re-raise the original exception which is better than nothing.</span>
+                <span class="k">raise</span>
+
+        <span class="k">return</span> <span class="n">post_coroutine</span>
+
+    <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Used like:</span>
+        <span class="c1">#     @gen_test</span>
+        <span class="c1">#     def f(self):</span>
+        <span class="c1">#         pass</span>
+        <span class="k">return</span> <span class="n">wrap</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Used like @gen_test(timeout=10)</span>
+        <span class="k">return</span> <span class="n">wrap</span></div>
+
+
+<span class="c1"># Without this attribute, nosetests will try to run gen_test as a test</span>
+<span class="c1"># anywhere it is imported.</span>
+<span class="n">gen_test</span><span class="o">.</span><span class="n">__test__</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># type: ignore</span>
+
+
+<div class="viewcode-block" id="ExpectLog"><a class="viewcode-back" href="../../testing.html#tornado.testing.ExpectLog">[docs]</a><span class="k">class</span> <span class="nc">ExpectLog</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Context manager to capture and suppress expected log output.</span>
+
+<span class="sd">    Useful to make tests of error conditions less noisy, while still</span>
+<span class="sd">    leaving unexpected log entries visible.  *Not thread safe.*</span>
+
+<span class="sd">    The attribute ``logged_stack`` is set to ``True`` if any exception</span>
+<span class="sd">    stack trace was logged.</span>
+
+<span class="sd">    Usage::</span>
+
+<span class="sd">        with ExpectLog(&#39;tornado.application&#39;, &quot;Uncaught exception&quot;):</span>
+<span class="sd">            error_response = self.fetch(&quot;/some_page&quot;)</span>
+
+<span class="sd">    .. versionchanged:: 4.3</span>
+<span class="sd">       Added the ``logged_stack`` attribute.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">logger</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">,</span> <span class="n">basestring_type</span><span class="p">],</span>
+        <span class="n">regex</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Constructs an ExpectLog context manager.</span>
+
+<span class="sd">        :param logger: Logger object (or name of logger) to watch.  Pass</span>
+<span class="sd">            an empty string to watch the root logger.</span>
+<span class="sd">        :param regex: Regular expression to match.  Any log entries on</span>
+<span class="sd">            the specified logger that match this regex will be suppressed.</span>
+<span class="sd">        :param required: If true, an exception will be raised if the end of</span>
+<span class="sd">            the ``with`` statement is reached without matching any log entries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">basestring_type</span><span class="p">):</span>
+            <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">regex</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required</span> <span class="o">=</span> <span class="n">required</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matched</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logged_stack</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">LogRecord</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">exc_info</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logged_stack</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">getMessage</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">matched</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ExpectLog&quot;</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">typ</span><span class="p">:</span> <span class="s2">&quot;Optional[Type[BaseException]]&quot;</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">],</span>
+        <span class="n">tb</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TracebackType</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">removeFilter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">typ</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">required</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">matched</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;did not get expected log message&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../testing.html#tornado.testing.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;A simple test runner.</span>
+
+<span class="sd">    This test runner is essentially equivalent to `unittest.main` from</span>
+<span class="sd">    the standard library, but adds support for Tornado-style option</span>
+<span class="sd">    parsing and log formatting. It is *not* necessary to use this</span>
+<span class="sd">    `main` function to run tests using `AsyncTestCase`; these tests</span>
+<span class="sd">    are self-contained and can run with any test runner.</span>
+
+<span class="sd">    The easiest way to run a test is via the command line::</span>
+
+<span class="sd">        python -m tornado.testing tornado.test.web_test</span>
+
+<span class="sd">    See the standard library ``unittest`` module for ways in which</span>
+<span class="sd">    tests can be specified.</span>
+
+<span class="sd">    Projects with many tests may wish to define a test script like</span>
+<span class="sd">    ``tornado/test/runtests.py``.  This script should define a method</span>
+<span class="sd">    ``all()`` which returns a test suite and then call</span>
+<span class="sd">    `tornado.testing.main()`.  Note that even when a test script is</span>
+<span class="sd">    used, the ``all()`` test suite may be overridden by naming a</span>
+<span class="sd">    single test on the command line::</span>
+
+<span class="sd">        # Runs all tests</span>
+<span class="sd">        python -m tornado.test.runtests</span>
+<span class="sd">        # Runs one test</span>
+<span class="sd">        python -m tornado.test.runtests tornado.test.web_test</span>
+
+<span class="sd">    Additional keyword arguments passed through to ``unittest.main()``.</span>
+<span class="sd">    For example, use ``tornado.testing.main(verbosity=2)``</span>
+<span class="sd">    to show many test details as they are run.</span>
+<span class="sd">    See http://docs.python.org/library/unittest.html#unittest.main</span>
+<span class="sd">    for full argument list.</span>
+
+<span class="sd">    .. versionchanged:: 5.0</span>
+
+<span class="sd">       This function produces no output of its own; only that produced</span>
+<span class="sd">       by the `unittest` module (previously it would add a PASS or FAIL</span>
+<span class="sd">       log message).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">tornado.options</span> <span class="k">import</span> <span class="n">define</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">parse_command_line</span>
+
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s2">&quot;exception_on_interrupt&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;If true (default), ctrl-c raises a KeyboardInterrupt &quot;</span>
+            <span class="s2">&quot;exception.  This prints a stack trace but cannot interrupt &quot;</span>
+            <span class="s2">&quot;certain operations.  If false, the process is more reliably &quot;</span>
+            <span class="s2">&quot;killed, but does not print a stack trace.&quot;</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># support the same options as unittest&#39;s command-line interface</span>
+    <span class="n">define</span><span class="p">(</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span><span class="s2">&quot;quiet&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span><span class="s2">&quot;failfast&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span><span class="s2">&quot;catch&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span><span class="s2">&quot;buffer&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+
+    <span class="n">argv</span> <span class="o">=</span> <span class="p">[</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">parse_command_line</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">exception_on_interrupt</span><span class="p">:</span>
+        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIG_DFL</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">verbose</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;verbosity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">quiet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;verbosity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">failfast</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;failfast&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">catch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;catchbreak&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">buffer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;buffer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No tests specified&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># In order to be able to run tests by their fully-qualified name</span>
+    <span class="c1"># on the command line without importing all tests here,</span>
+    <span class="c1"># module must be set to None.  Python 3.2&#39;s unittest.main ignores</span>
+    <span class="c1"># defaultTest if no module is given (it tries to do its own</span>
+    <span class="c1"># test discovery, which is incompatible with auto2to3), so don&#39;t</span>
+    <span class="c1"># set module if we&#39;re not asking for a specific test.</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">module</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">argv</span><span class="o">=</span><span class="n">argv</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultTest</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">argv</span><span class="o">=</span><span class="n">argv</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

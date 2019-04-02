@@ -1,0 +1,661 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.websocket — Bidirectional communication to the browser &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="HTTP servers and clients" href="http.html" />
+    <link rel="prev" title="tornado.locale — Internationalization support" href="locale.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="webframework.html">Web framework</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="web.html"><code class="docutils literal notranslate"><span class="pre">tornado.web</span></code> — <code class="docutils literal notranslate"><span class="pre">RequestHandler</span></code> and <code class="docutils literal notranslate"><span class="pre">Application</span></code> classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="template.html"><code class="docutils literal notranslate"><span class="pre">tornado.template</span></code> — Flexible output generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="routing.html"><code class="docutils literal notranslate"><span class="pre">tornado.routing</span></code> — Basic routing implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="escape.html"><code class="docutils literal notranslate"><span class="pre">tornado.escape</span></code> — Escaping and string manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="locale.html"><code class="docutils literal notranslate"><span class="pre">tornado.locale</span></code> — Internationalization support</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.websocket</span></code> — Bidirectional communication to the browser</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="webframework.html">Web framework</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.websocket</span></code> — Bidirectional communication to the browser</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/websocket.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tornado-websocket-bidirectional-communication-to-the-browser">
+<h1><code class="docutils literal notranslate"><span class="pre">tornado.websocket</span></code> — Bidirectional communication to the browser<a class="headerlink" href="#tornado-websocket-bidirectional-communication-to-the-browser" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-tornado.websocket"></span><p>Implementation of the WebSocket protocol.</p>
+<p><a class="reference external" href="http://dev.w3.org/html5/websockets/">WebSockets</a> allow for bidirectional
+communication between the browser and server.</p>
+<p>WebSockets are supported in the current versions of all major browsers,
+although older versions that do not support WebSockets are still in use
+(refer to <a class="reference external" href="http://caniuse.com/websockets">http://caniuse.com/websockets</a> for details).</p>
+<p>This module implements the final version of the WebSocket protocol as
+defined in <a class="reference external" href="http://tools.ietf.org/html/rfc6455">RFC 6455</a>.  Certain
+browser versions (notably Safari 5.x) implemented an earlier draft of
+the protocol (known as “draft 76”) and are not compatible with this module.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Removed support for the draft 76 protocol version.</p>
+</div>
+<dl class="class">
+<dt id="tornado.websocket.WebSocketHandler">
+<em class="property">class </em><code class="descclassname">tornado.websocket.</code><code class="descname">WebSocketHandler</code><span class="sig-paren">(</span><em>application: tornado.web.Application</em>, <em>request: tornado.httputil.HTTPServerRequest</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/websocket.html#WebSocketHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclass this class to create a basic WebSocket handler.</p>
+<p>Override <a class="reference internal" href="#tornado.websocket.WebSocketHandler.on_message" title="tornado.websocket.WebSocketHandler.on_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_message</span></code></a> to handle incoming messages, and use
+<a class="reference internal" href="#tornado.websocket.WebSocketHandler.write_message" title="tornado.websocket.WebSocketHandler.write_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_message</span></code></a> to send messages to the client. You can also
+override <a class="reference internal" href="#tornado.websocket.WebSocketHandler.open" title="tornado.websocket.WebSocketHandler.open"><code class="xref py py-obj docutils literal notranslate"><span class="pre">open</span></code></a> and <a class="reference internal" href="#tornado.websocket.WebSocketHandler.on_close" title="tornado.websocket.WebSocketHandler.on_close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_close</span></code></a> to handle opened and closed
+connections.</p>
+<p>Custom upgrade response headers can be sent by overriding
+<a class="reference internal" href="web.html#tornado.web.RequestHandler.set_default_headers" title="tornado.web.RequestHandler.set_default_headers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_default_headers</span></code></a> or
+<a class="reference internal" href="web.html#tornado.web.RequestHandler.prepare" title="tornado.web.RequestHandler.prepare"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prepare</span></code></a>.</p>
+<p>See <a class="reference external" href="http://dev.w3.org/html5/websockets/">http://dev.w3.org/html5/websockets/</a> for details on the
+JavaScript interface.  The protocol is specified at
+<a class="reference external" href="http://tools.ietf.org/html/rfc6455">http://tools.ietf.org/html/rfc6455</a>.</p>
+<p>Here is an example WebSocket handler that echos back all received messages
+back to the client:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">EchoWebSocket</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">websocket</span><span class="o">.</span><span class="n">WebSocketHandler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WebSocket opened&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;You said: &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WebSocket closed&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>WebSockets are not standard HTTP connections. The “handshake” is
+HTTP, but after the handshake, the protocol is
+message-based. Consequently, most of the Tornado HTTP facilities
+are not available in handlers of this type. The only communication
+methods available to you are <a class="reference internal" href="#tornado.websocket.WebSocketHandler.write_message" title="tornado.websocket.WebSocketHandler.write_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_message()</span></code></a>, <a class="reference internal" href="#tornado.websocket.WebSocketHandler.ping" title="tornado.websocket.WebSocketHandler.ping"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ping()</span></code></a>, and
+<a class="reference internal" href="#tornado.websocket.WebSocketHandler.close" title="tornado.websocket.WebSocketHandler.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close()</span></code></a>. Likewise, your request handler class should implement
+<a class="reference internal" href="#tornado.websocket.WebSocketHandler.open" title="tornado.websocket.WebSocketHandler.open"><code class="xref py py-obj docutils literal notranslate"><span class="pre">open()</span></code></a> method rather than <code class="docutils literal notranslate"><span class="pre">get()</span></code> or <code class="docutils literal notranslate"><span class="pre">post()</span></code>.</p>
+<p>If you map the handler above to <code class="docutils literal notranslate"><span class="pre">/websocket</span></code> in your application, you can
+invoke it in JavaScript with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">var</span> <span class="n">ws</span> <span class="o">=</span> <span class="n">new</span> <span class="n">WebSocket</span><span class="p">(</span><span class="s2">&quot;ws://localhost:8888/websocket&quot;</span><span class="p">);</span>
+<span class="n">ws</span><span class="o">.</span><span class="n">onopen</span> <span class="o">=</span> <span class="n">function</span><span class="p">()</span> <span class="p">{</span>
+   <span class="n">ws</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;Hello, world&quot;</span><span class="p">);</span>
+<span class="p">};</span>
+<span class="n">ws</span><span class="o">.</span><span class="n">onmessage</span> <span class="o">=</span> <span class="n">function</span> <span class="p">(</span><span class="n">evt</span><span class="p">)</span> <span class="p">{</span>
+   <span class="n">alert</span><span class="p">(</span><span class="n">evt</span><span class="o">.</span><span class="n">data</span><span class="p">);</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>This script pops up an alert box that says “You said: Hello, world”.</p>
+<p>Web browsers allow any site to open a websocket connection to any other,
+instead of using the same-origin policy that governs other network
+access from javascript.  This can be surprising and is a potential
+security hole, so since Tornado 4.0 <a class="reference internal" href="#tornado.websocket.WebSocketHandler" title="tornado.websocket.WebSocketHandler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WebSocketHandler</span></code></a> requires
+applications that wish to receive cross-origin websockets to opt in
+by overriding the <a class="reference internal" href="#tornado.websocket.WebSocketHandler.check_origin" title="tornado.websocket.WebSocketHandler.check_origin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_origin</span></code></a> method (see that
+method’s docs for details).  Failure to do so is the most likely
+cause of 403 errors when making a websocket connection.</p>
+<p>When using a secure websocket connection (<code class="docutils literal notranslate"><span class="pre">wss://</span></code>) with a self-signed
+certificate, the connection from a browser may fail because it wants
+to show the “accept this certificate” dialog but has nowhere to show it.
+You must first visit a regular HTML page using the same certificate
+to accept it before the websocket connection will succeed.</p>
+<p>If the application setting <code class="docutils literal notranslate"><span class="pre">websocket_ping_interval</span></code> has a non-zero
+value, a ping will be sent periodically, and the connection will be
+closed if a response is not received before the <code class="docutils literal notranslate"><span class="pre">websocket_ping_timeout</span></code>.</p>
+<p>Messages larger than the <code class="docutils literal notranslate"><span class="pre">websocket_max_message_size</span></code> application setting
+(default 10MiB) will not be accepted.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.5: </span>Added <code class="docutils literal notranslate"><span class="pre">websocket_ping_interval</span></code>, <code class="docutils literal notranslate"><span class="pre">websocket_ping_timeout</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">websocket_max_message_size</span></code>.</p>
+</div>
+</dd></dl>
+
+<div class="section" id="event-handlers">
+<h2>Event handlers<a class="headerlink" href="#event-handlers" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="tornado.websocket.WebSocketHandler.open">
+<code class="descclassname">WebSocketHandler.</code><code class="descname">open</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; Optional[Awaitable[None]]<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketHandler.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketHandler.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoked when a new WebSocket is opened.</p>
+<p>The arguments to <a class="reference internal" href="#tornado.websocket.WebSocketHandler.open" title="tornado.websocket.WebSocketHandler.open"><code class="xref py py-obj docutils literal notranslate"><span class="pre">open</span></code></a> are extracted from the <a class="reference internal" href="web.html#tornado.web.URLSpec" title="tornado.web.URLSpec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.web.URLSpec</span></code></a>
+regular expression, just like the arguments to
+<a class="reference internal" href="web.html#tornado.web.RequestHandler.get" title="tornado.web.RequestHandler.get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.web.RequestHandler.get</span></code></a>.</p>
+<p><a class="reference internal" href="#tornado.websocket.WebSocketHandler.open" title="tornado.websocket.WebSocketHandler.open"><code class="xref py py-obj docutils literal notranslate"><span class="pre">open</span></code></a> may be a coroutine. <a class="reference internal" href="#tornado.websocket.WebSocketHandler.on_message" title="tornado.websocket.WebSocketHandler.on_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_message</span></code></a> will not be called until
+<a class="reference internal" href="#tornado.websocket.WebSocketHandler.open" title="tornado.websocket.WebSocketHandler.open"><code class="xref py py-obj docutils literal notranslate"><span class="pre">open</span></code></a> has returned.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span><code class="docutils literal notranslate"><span class="pre">open</span></code> may be a coroutine.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.websocket.WebSocketHandler.on_message">
+<code class="descclassname">WebSocketHandler.</code><code class="descname">on_message</code><span class="sig-paren">(</span><em>message: Union[str, bytes]</em><span class="sig-paren">)</span> &#x2192; Optional[Awaitable[None]]<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketHandler.on_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketHandler.on_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle incoming messages on the WebSocket</p>
+<p>This method must be overridden.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.5: </span><code class="docutils literal notranslate"><span class="pre">on_message</span></code> can be a coroutine.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.websocket.WebSocketHandler.on_close">
+<code class="descclassname">WebSocketHandler.</code><code class="descname">on_close</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketHandler.on_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketHandler.on_close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoked when the WebSocket is closed.</p>
+<p>If the connection was closed cleanly and a status code or reason
+phrase was supplied, these values will be available as the attributes
+<code class="docutils literal notranslate"><span class="pre">self.close_code</span></code> and <code class="docutils literal notranslate"><span class="pre">self.close_reason</span></code>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Added <code class="docutils literal notranslate"><span class="pre">close_code</span></code> and <code class="docutils literal notranslate"><span class="pre">close_reason</span></code> attributes.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.websocket.WebSocketHandler.select_subprotocol">
+<code class="descclassname">WebSocketHandler.</code><code class="descname">select_subprotocol</code><span class="sig-paren">(</span><em>subprotocols: List[str]</em><span class="sig-paren">)</span> &#x2192; Optional[str]<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketHandler.select_subprotocol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketHandler.select_subprotocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override to implement subprotocol negotiation.</p>
+<p><code class="docutils literal notranslate"><span class="pre">subprotocols</span></code> is a list of strings identifying the
+subprotocols proposed by the client.  This method may be
+overridden to return one of those strings to select it, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code> to not select a subprotocol.</p>
+<p>Failure to select a subprotocol does not automatically abort
+the connection, although clients may close the connection if
+none of their proposed subprotocols was selected.</p>
+<p>The list may be empty, in which case this method must return
+None. This method is always called exactly once even if no
+subprotocols were proposed so that the handler can be advised
+of this fact.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span>Previously, this method was called with a list containing
+an empty string instead of an empty list if no subprotocols
+were proposed by the client.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.websocket.WebSocketHandler.selected_subprotocol">
+<code class="descclassname">WebSocketHandler.</code><code class="descname">selected_subprotocol</code><a class="headerlink" href="#tornado.websocket.WebSocketHandler.selected_subprotocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>The subprotocol returned by <a class="reference internal" href="#tornado.websocket.WebSocketHandler.select_subprotocol" title="tornado.websocket.WebSocketHandler.select_subprotocol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">select_subprotocol</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 5.1.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.websocket.WebSocketHandler.on_ping">
+<code class="descclassname">WebSocketHandler.</code><code class="descname">on_ping</code><span class="sig-paren">(</span><em>data: bytes</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketHandler.on_ping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketHandler.on_ping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoked when the a ping frame is received.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="output">
+<h2>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="tornado.websocket.WebSocketHandler.write_message">
+<code class="descclassname">WebSocketHandler.</code><code class="descname">write_message</code><span class="sig-paren">(</span><em>message: Union[bytes, str, Dict[str, Any]], binary: bool = False</em><span class="sig-paren">)</span> &#x2192; Future[None]<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketHandler.write_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketHandler.write_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends the given message to the client of this Web Socket.</p>
+<p>The message may be either a string or a dict (which will be
+encoded as json).  If the <code class="docutils literal notranslate"><span class="pre">binary</span></code> argument is false, the
+message will be sent as utf8; in binary mode any byte string
+is allowed.</p>
+<p>If the connection is already closed, raises <a class="reference internal" href="#tornado.websocket.WebSocketClosedError" title="tornado.websocket.WebSocketClosedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WebSocketClosedError</span></code></a>.
+Returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> which can be used for flow control.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 3.2: </span><a class="reference internal" href="#tornado.websocket.WebSocketClosedError" title="tornado.websocket.WebSocketClosedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WebSocketClosedError</span></code></a> was added (previously a closed connection
+would raise an <a class="reference external" href="https://docs.python.org/3.6/library/exceptions.html#AttributeError" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AttributeError</span></code></a>)</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.3: </span>Returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> which can be used for flow control.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Consistently raises <a class="reference internal" href="#tornado.websocket.WebSocketClosedError" title="tornado.websocket.WebSocketClosedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WebSocketClosedError</span></code></a>. Previously could
+sometimes raise <a class="reference internal" href="iostream.html#tornado.iostream.StreamClosedError" title="tornado.iostream.StreamClosedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StreamClosedError</span></code></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.websocket.WebSocketHandler.close">
+<code class="descclassname">WebSocketHandler.</code><code class="descname">close</code><span class="sig-paren">(</span><em>code: int = None</em>, <em>reason: str = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketHandler.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketHandler.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes this Web Socket.</p>
+<p>Once the close handshake is successful the socket will be closed.</p>
+<p><code class="docutils literal notranslate"><span class="pre">code</span></code> may be a numeric status code, taken from the values
+defined in <a class="reference external" href="https://tools.ietf.org/html/rfc6455#section-7.4.1">RFC 6455 section 7.4.1</a>.
+<code class="docutils literal notranslate"><span class="pre">reason</span></code> may be a textual message about why the connection is
+closing.  These values are made available to the client, but are
+not otherwise interpreted by the websocket protocol.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Added the <code class="docutils literal notranslate"><span class="pre">code</span></code> and <code class="docutils literal notranslate"><span class="pre">reason</span></code> arguments.</p>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="tornado.websocket.WebSocketHandler.check_origin">
+<code class="descclassname">WebSocketHandler.</code><code class="descname">check_origin</code><span class="sig-paren">(</span><em>origin: str</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketHandler.check_origin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketHandler.check_origin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override to enable support for allowing alternate origins.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">origin</span></code> argument is the value of the <code class="docutils literal notranslate"><span class="pre">Origin</span></code> HTTP
+header, the url responsible for initiating this request.  This
+method is not called for clients that do not send this header;
+such requests are always allowed (because all browsers that
+implement WebSockets support this header, and non-browser
+clients do not have the same cross-site security concerns).</p>
+<p>Should return <code class="docutils literal notranslate"><span class="pre">True</span></code> to accept the request or <code class="docutils literal notranslate"><span class="pre">False</span></code> to
+reject it. By default, rejects all requests with an origin on
+a host other than this one.</p>
+<p>This is a security protection against cross site scripting attacks on
+browsers, since WebSockets are allowed to bypass the usual same-origin
+policies and don’t use CORS headers.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This is an important security measure; don’t disable it
+without understanding the security implications. In
+particular, if your authentication is cookie-based, you
+must either restrict the origins allowed by
+<code class="docutils literal notranslate"><span class="pre">check_origin()</span></code> or implement your own XSRF-like
+protection for websocket connections. See <a class="reference external" href="https://www.christian-schneider.net/CrossSiteWebSocketHijacking.html">these</a>
+<a class="reference external" href="https://devcenter.heroku.com/articles/websocket-security">articles</a>
+for more.</p>
+</div>
+<p>To accept all cross-origin traffic (which was the default prior to
+Tornado 4.0), simply override this method to always return <code class="docutils literal notranslate"><span class="pre">True</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">check_origin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">origin</span><span class="p">):</span>
+    <span class="k">return</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>To allow connections from any subdomain of your site, you might
+do something like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">check_origin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">origin</span><span class="p">):</span>
+    <span class="n">parsed_origin</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parsed_origin</span><span class="o">.</span><span class="n">netloc</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.mydomain.com&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.websocket.WebSocketHandler.get_compression_options">
+<code class="descclassname">WebSocketHandler.</code><code class="descname">get_compression_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Optional[Dict[str, Any]]<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketHandler.get_compression_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketHandler.get_compression_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override to return compression options for the connection.</p>
+<p>If this method returns None (the default), compression will
+be disabled.  If it returns a dict (even an empty one), it
+will be enabled.  The contents of the dict may be used to
+control the following compression options:</p>
+<p><code class="docutils literal notranslate"><span class="pre">compression_level</span></code> specifies the compression level.</p>
+<p><code class="docutils literal notranslate"><span class="pre">mem_level</span></code> specifies the amount of memory used for the internal compression state.</p>
+<blockquote>
+<div><p>These parameters are documented in details here:
+<a class="reference external" href="https://docs.python.org/3.6/library/zlib.html#zlib.compressobj">https://docs.python.org/3.6/library/zlib.html#zlib.compressobj</a></p>
+</div></blockquote>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.1.</span></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.5: </span>Added <code class="docutils literal notranslate"><span class="pre">compression_level</span></code> and <code class="docutils literal notranslate"><span class="pre">mem_level</span></code>.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.websocket.WebSocketHandler.set_nodelay">
+<code class="descclassname">WebSocketHandler.</code><code class="descname">set_nodelay</code><span class="sig-paren">(</span><em>value: bool</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketHandler.set_nodelay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketHandler.set_nodelay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the no-delay flag for this stream.</p>
+<p>By default, small messages may be delayed and/or combined to minimize
+the number of packets sent.  This can sometimes cause 200-500ms delays
+due to the interaction between Nagle’s algorithm and TCP delayed
+ACKs.  To reduce this delay (at the expense of possibly increasing
+bandwidth usage), call <code class="docutils literal notranslate"><span class="pre">self.set_nodelay(True)</span></code> once the websocket
+connection is established.</p>
+<p>See <a class="reference internal" href="iostream.html#tornado.iostream.BaseIOStream.set_nodelay" title="tornado.iostream.BaseIOStream.set_nodelay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseIOStream.set_nodelay</span></code></a> for additional details.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.1.</span></p>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="other">
+<h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="tornado.websocket.WebSocketHandler.ping">
+<code class="descclassname">WebSocketHandler.</code><code class="descname">ping</code><span class="sig-paren">(</span><em>data: Union[str</em>, <em>bytes] = b''</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketHandler.ping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketHandler.ping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send ping frame to the remote end.</p>
+<p>The data argument allows a small amount of data (up to 125
+bytes) to be sent as a part of the ping message. Note that not
+all websocket implementations expose this data to
+applications.</p>
+<p>Consider using the <code class="docutils literal notranslate"><span class="pre">websocket_ping_interval</span></code> application
+setting instead of sending pings manually.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span>The data argument is now optional.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.websocket.WebSocketHandler.on_pong">
+<code class="descclassname">WebSocketHandler.</code><code class="descname">on_pong</code><span class="sig-paren">(</span><em>data: bytes</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketHandler.on_pong"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketHandler.on_pong" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoked when the response to a ping frame is received.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="tornado.websocket.WebSocketClosedError">
+<em class="property">exception </em><code class="descclassname">tornado.websocket.</code><code class="descname">WebSocketClosedError</code><a class="reference internal" href="_modules/tornado/websocket.html#WebSocketClosedError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketClosedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised by operations on a closed connection.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.2.</span></p>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="client-side-support">
+<h2>Client-side support<a class="headerlink" href="#client-side-support" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="tornado.websocket.websocket_connect">
+<code class="descclassname">tornado.websocket.</code><code class="descname">websocket_connect</code><span class="sig-paren">(</span><em>url: Union[str, tornado.httpclient.HTTPRequest], callback: Callable[[Future[WebSocketClientConnection]], None] = None, connect_timeout: float = None, on_message_callback: Callable[[Union[None, str, bytes]], None] = None, compression_options: Dict[str, Any] = None, ping_interval: float = None, ping_timeout: float = None, max_message_size: int = 10485760, subprotocols: List[str] = None</em><span class="sig-paren">)</span> &#x2192; Awaitable[WebSocketClientConnection]<a class="reference internal" href="_modules/tornado/websocket.html#websocket_connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.websocket_connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Client-side websocket support.</p>
+<p>Takes a url and returns a Future whose result is a
+<a class="reference internal" href="#tornado.websocket.WebSocketClientConnection" title="tornado.websocket.WebSocketClientConnection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WebSocketClientConnection</span></code></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">compression_options</span></code> is interpreted in the same way as the
+return value of <a class="reference internal" href="#tornado.websocket.WebSocketHandler.get_compression_options" title="tornado.websocket.WebSocketHandler.get_compression_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WebSocketHandler.get_compression_options</span></code></a>.</p>
+<p>The connection supports two styles of operation. In the coroutine
+style, the application typically calls
+<a class="reference internal" href="#tornado.websocket.WebSocketClientConnection.read_message" title="tornado.websocket.WebSocketClientConnection.read_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_message</span></code></a> in a loop:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conn</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">websocket_connect</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">conn</span><span class="o">.</span><span class="n">read_message</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">msg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">break</span>
+    <span class="c1"># Do something with msg</span>
+</pre></div>
+</div>
+<p>In the callback style, pass an <code class="docutils literal notranslate"><span class="pre">on_message_callback</span></code> to
+<code class="docutils literal notranslate"><span class="pre">websocket_connect</span></code>. In both styles, a message of <code class="docutils literal notranslate"><span class="pre">None</span></code>
+indicates that the connection has been closed.</p>
+<p><code class="docutils literal notranslate"><span class="pre">subprotocols</span></code> may be a list of strings specifying proposed
+subprotocols. The selected protocol may be found on the
+<code class="docutils literal notranslate"><span class="pre">selected_subprotocol</span></code> attribute of the connection object
+when the connection is complete.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 3.2: </span>Also accepts <code class="docutils literal notranslate"><span class="pre">HTTPRequest</span></code> objects in place of urls.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.1: </span>Added <code class="docutils literal notranslate"><span class="pre">compression_options</span></code> and <code class="docutils literal notranslate"><span class="pre">on_message_callback</span></code>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.5: </span>Added the <code class="docutils literal notranslate"><span class="pre">ping_interval</span></code>, <code class="docutils literal notranslate"><span class="pre">ping_timeout</span></code>, and <code class="docutils literal notranslate"><span class="pre">max_message_size</span></code>
+arguments, which have the same meaning as in <a class="reference internal" href="#tornado.websocket.WebSocketHandler" title="tornado.websocket.WebSocketHandler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WebSocketHandler</span></code></a>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>The <code class="docutils literal notranslate"><span class="pre">io_loop</span></code> argument (deprecated since version 4.1) has been removed.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span>Added the <code class="docutils literal notranslate"><span class="pre">subprotocols</span></code> argument.</p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.websocket.WebSocketClientConnection">
+<em class="property">class </em><code class="descclassname">tornado.websocket.</code><code class="descname">WebSocketClientConnection</code><span class="sig-paren">(</span><em>request: tornado.httpclient.HTTPRequest, on_message_callback: Callable[[Union[None, str, bytes]], None] = None, compression_options: Dict[str, Any] = None, ping_interval: float = None, ping_timeout: float = None, max_message_size: int = 10485760, subprotocols: Optional[List[str]] = []</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/websocket.html#WebSocketClientConnection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketClientConnection" title="Permalink to this definition">¶</a></dt>
+<dd><p>WebSocket client connection.</p>
+<p>This class should not be instantiated directly; use the
+<a class="reference internal" href="#tornado.websocket.websocket_connect" title="tornado.websocket.websocket_connect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">websocket_connect</span></code></a> function instead.</p>
+<dl class="method">
+<dt id="tornado.websocket.WebSocketClientConnection.close">
+<code class="descname">close</code><span class="sig-paren">(</span><em>code: int = None</em>, <em>reason: str = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketClientConnection.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketClientConnection.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the websocket connection.</p>
+<p><code class="docutils literal notranslate"><span class="pre">code</span></code> and <code class="docutils literal notranslate"><span class="pre">reason</span></code> are documented under
+<a class="reference internal" href="#tornado.websocket.WebSocketHandler.close" title="tornado.websocket.WebSocketHandler.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WebSocketHandler.close</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.2.</span></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Added the <code class="docutils literal notranslate"><span class="pre">code</span></code> and <code class="docutils literal notranslate"><span class="pre">reason</span></code> arguments.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.websocket.WebSocketClientConnection.write_message">
+<code class="descname">write_message</code><span class="sig-paren">(</span><em>message: Union[str, bytes], binary: bool = False</em><span class="sig-paren">)</span> &#x2192; Future[None]<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketClientConnection.write_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketClientConnection.write_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends a message to the WebSocket server.</p>
+<p>If the stream is closed, raises <a class="reference internal" href="#tornado.websocket.WebSocketClosedError" title="tornado.websocket.WebSocketClosedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WebSocketClosedError</span></code></a>.
+Returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> which can be used for flow control.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Exception raised on a closed stream changed from <a class="reference internal" href="iostream.html#tornado.iostream.StreamClosedError" title="tornado.iostream.StreamClosedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StreamClosedError</span></code></a>
+to <a class="reference internal" href="#tornado.websocket.WebSocketClosedError" title="tornado.websocket.WebSocketClosedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WebSocketClosedError</span></code></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.websocket.WebSocketClientConnection.read_message">
+<code class="descname">read_message</code><span class="sig-paren">(</span><em>callback: Callable[[Future[Union[None, str, bytes]]], None] = None</em><span class="sig-paren">)</span> &#x2192; Awaitable[Union[None, str, bytes]]<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketClientConnection.read_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketClientConnection.read_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a message from the WebSocket server.</p>
+<p>If on_message_callback was specified at WebSocket
+initialization, this function will never return messages</p>
+<p>Returns a future whose result is the message, or None
+if the connection is closed.  If a callback argument
+is given it will be called with the future when it is
+ready.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.websocket.WebSocketClientConnection.ping">
+<code class="descname">ping</code><span class="sig-paren">(</span><em>data: bytes = b''</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/websocket.html#WebSocketClientConnection.ping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.websocket.WebSocketClientConnection.ping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send ping frame to the remote end.</p>
+<p>The data argument allows a small amount of data (up to 125
+bytes) to be sent as a part of the ping message. Note that not
+all websocket implementations expose this data to
+applications.</p>
+<p>Consider using the <code class="docutils literal notranslate"><span class="pre">ping_interval</span></code> argument to
+<a class="reference internal" href="#tornado.websocket.websocket_connect" title="tornado.websocket.websocket_connect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">websocket_connect</span></code></a> instead of sending pings manually.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 5.1.</span></p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tornado.websocket.WebSocketClientConnection.selected_subprotocol">
+<code class="descname">selected_subprotocol</code><a class="headerlink" href="#tornado.websocket.WebSocketClientConnection.selected_subprotocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>The subprotocol selected by the server.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 5.1.</span></p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="http.html" class="btn btn-neutral float-right" title="HTTP servers and clients" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="locale.html" class="btn btn-neutral float-left" title="tornado.locale — Internationalization support" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,376 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.http1connection – HTTP/1.x client/server implementation &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Asynchronous networking" href="networking.html" />
+    <link rel="prev" title="tornado.httputil — Manipulate HTTP headers and URLs" href="httputil.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="http.html">HTTP servers and clients</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="httpserver.html"><code class="docutils literal notranslate"><span class="pre">tornado.httpserver</span></code> — Non-blocking HTTP server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="httpclient.html"><code class="docutils literal notranslate"><span class="pre">tornado.httpclient</span></code> — Asynchronous HTTP client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="httputil.html"><code class="docutils literal notranslate"><span class="pre">tornado.httputil</span></code> — Manipulate HTTP headers and URLs</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.http1connection</span></code> – HTTP/1.x client/server implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="http.html">HTTP servers and clients</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.http1connection</span></code> – HTTP/1.x client/server implementation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/http1connection.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-tornado.http1connection">
+<span id="tornado-http1connection-http-1-x-client-server-implementation"></span><h1><code class="docutils literal notranslate"><span class="pre">tornado.http1connection</span></code> – HTTP/1.x client/server implementation<a class="headerlink" href="#module-tornado.http1connection" title="Permalink to this headline">¶</a></h1>
+<p>Client and server implementations of HTTP/1.x.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0.</span></p>
+</div>
+<dl class="class">
+<dt id="tornado.http1connection.HTTP1ConnectionParameters">
+<em class="property">class </em><code class="descclassname">tornado.http1connection.</code><code class="descname">HTTP1ConnectionParameters</code><span class="sig-paren">(</span><em>no_keep_alive: bool = False</em>, <em>chunk_size: int = None</em>, <em>max_header_size: int = None</em>, <em>header_timeout: float = None</em>, <em>max_body_size: int = None</em>, <em>body_timeout: float = None</em>, <em>decompress: bool = False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/http1connection.html#HTTP1ConnectionParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.http1connection.HTTP1ConnectionParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters for <a class="reference internal" href="#tornado.http1connection.HTTP1Connection" title="tornado.http1connection.HTTP1Connection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTP1Connection</span></code></a> and <a class="reference internal" href="#tornado.http1connection.HTTP1ServerConnection" title="tornado.http1connection.HTTP1ServerConnection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTP1ServerConnection</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>no_keep_alive</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – If true, always close the connection after
+one request.</p></li>
+<li><p><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – how much data to read into memory at once</p></li>
+<li><p><strong>max_header_size</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – maximum amount of data for HTTP headers</p></li>
+<li><p><strong>header_timeout</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – how long to wait for all headers (seconds)</p></li>
+<li><p><strong>max_body_size</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – maximum amount of data for body</p></li>
+<li><p><strong>body_timeout</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – how long to wait while reading body (seconds)</p></li>
+<li><p><strong>decompress</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – if true, decode incoming
+<code class="docutils literal notranslate"><span class="pre">Content-Encoding:</span> <span class="pre">gzip</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.http1connection.HTTP1Connection">
+<em class="property">class </em><code class="descclassname">tornado.http1connection.</code><code class="descname">HTTP1Connection</code><span class="sig-paren">(</span><em>stream: tornado.iostream.IOStream</em>, <em>is_client: bool</em>, <em>params: tornado.http1connection.HTTP1ConnectionParameters = None</em>, <em>context: object = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/http1connection.html#HTTP1Connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.http1connection.HTTP1Connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the HTTP/1.x protocol.</p>
+<p>This class can be on its own for clients, or via <a class="reference internal" href="#tornado.http1connection.HTTP1ServerConnection" title="tornado.http1connection.HTTP1ServerConnection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTP1ServerConnection</span></code></a>
+for servers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stream</strong> – an <a class="reference internal" href="iostream.html#tornado.iostream.IOStream" title="tornado.iostream.IOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code></a></p></li>
+<li><p><strong>is_client</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – client or server</p></li>
+<li><p><strong>params</strong> – a <a class="reference internal" href="#tornado.http1connection.HTTP1ConnectionParameters" title="tornado.http1connection.HTTP1ConnectionParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTP1ConnectionParameters</span></code></a> instance or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
+<li><p><strong>context</strong> – an opaque application-defined object that can be accessed
+as <code class="docutils literal notranslate"><span class="pre">connection.context</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="tornado.http1connection.HTTP1Connection.read_response">
+<code class="descname">read_response</code><span class="sig-paren">(</span><em>delegate: tornado.httputil.HTTPMessageDelegate</em><span class="sig-paren">)</span> &#x2192; Awaitable[bool]<a class="reference internal" href="_modules/tornado/http1connection.html#HTTP1Connection.read_response"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.http1connection.HTTP1Connection.read_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a single HTTP response.</p>
+<p>Typical client-mode usage is to write a request using <a class="reference internal" href="#tornado.http1connection.HTTP1Connection.write_headers" title="tornado.http1connection.HTTP1Connection.write_headers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_headers</span></code></a>,
+<a class="reference internal" href="#tornado.http1connection.HTTP1Connection.write" title="tornado.http1connection.HTTP1Connection.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write</span></code></a>, and <a class="reference internal" href="#tornado.http1connection.HTTP1Connection.finish" title="tornado.http1connection.HTTP1Connection.finish"><code class="xref py py-obj docutils literal notranslate"><span class="pre">finish</span></code></a>, and then call <code class="docutils literal notranslate"><span class="pre">read_response</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>delegate</strong> – a <a class="reference internal" href="httputil.html#tornado.httputil.HTTPMessageDelegate" title="tornado.httputil.HTTPMessageDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPMessageDelegate</span></code></a></p>
+</dd>
+</dl>
+<p>Returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> that resolves to a bool after the full response has
+been read. The result is true if the stream is still open.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.http1connection.HTTP1Connection.set_close_callback">
+<code class="descname">set_close_callback</code><span class="sig-paren">(</span><em>callback: Optional[Callable[[], None]]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/http1connection.html#HTTP1Connection.set_close_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.http1connection.HTTP1Connection.set_close_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a callback that will be run when the connection is closed.</p>
+<p>Note that this callback is slightly different from
+<a class="reference internal" href="httputil.html#tornado.httputil.HTTPMessageDelegate.on_connection_close" title="tornado.httputil.HTTPMessageDelegate.on_connection_close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPMessageDelegate.on_connection_close</span></code></a>: The
+<a class="reference internal" href="httputil.html#tornado.httputil.HTTPMessageDelegate" title="tornado.httputil.HTTPMessageDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPMessageDelegate</span></code></a> method is called when the connection is
+closed while recieving a message. This callback is used when
+there is not an active delegate (for example, on the server
+side this callback is used if the client closes the connection
+after sending its request but before receiving all the
+response.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.http1connection.HTTP1Connection.detach">
+<code class="descname">detach</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; tornado.iostream.IOStream<a class="reference internal" href="_modules/tornado/http1connection.html#HTTP1Connection.detach"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.http1connection.HTTP1Connection.detach" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take control of the underlying stream.</p>
+<p>Returns the underlying <a class="reference internal" href="iostream.html#tornado.iostream.IOStream" title="tornado.iostream.IOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code></a> object and stops all further
+HTTP processing.  May only be called during
+<a class="reference internal" href="httputil.html#tornado.httputil.HTTPMessageDelegate.headers_received" title="tornado.httputil.HTTPMessageDelegate.headers_received"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPMessageDelegate.headers_received</span></code></a>.  Intended for implementing
+protocols like websockets that tunnel over an HTTP handshake.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.http1connection.HTTP1Connection.set_body_timeout">
+<code class="descname">set_body_timeout</code><span class="sig-paren">(</span><em>timeout: float</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/http1connection.html#HTTP1Connection.set_body_timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.http1connection.HTTP1Connection.set_body_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the body timeout for a single request.</p>
+<p>Overrides the value from <a class="reference internal" href="#tornado.http1connection.HTTP1ConnectionParameters" title="tornado.http1connection.HTTP1ConnectionParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTP1ConnectionParameters</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.http1connection.HTTP1Connection.set_max_body_size">
+<code class="descname">set_max_body_size</code><span class="sig-paren">(</span><em>max_body_size: int</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/http1connection.html#HTTP1Connection.set_max_body_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.http1connection.HTTP1Connection.set_max_body_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the body size limit for a single request.</p>
+<p>Overrides the value from <a class="reference internal" href="#tornado.http1connection.HTTP1ConnectionParameters" title="tornado.http1connection.HTTP1ConnectionParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTP1ConnectionParameters</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.http1connection.HTTP1Connection.write_headers">
+<code class="descname">write_headers</code><span class="sig-paren">(</span><em>start_line: Union[tornado.httputil.RequestStartLine, tornado.httputil.ResponseStartLine], headers: tornado.httputil.HTTPHeaders, chunk: bytes = None</em><span class="sig-paren">)</span> &#x2192; Future[None]<a class="reference internal" href="_modules/tornado/http1connection.html#HTTP1Connection.write_headers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.http1connection.HTTP1Connection.write_headers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements <a class="reference internal" href="httputil.html#tornado.httputil.HTTPConnection.write_headers" title="tornado.httputil.HTTPConnection.write_headers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPConnection.write_headers</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.http1connection.HTTP1Connection.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>chunk: bytes</em><span class="sig-paren">)</span> &#x2192; Future[None]<a class="reference internal" href="_modules/tornado/http1connection.html#HTTP1Connection.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.http1connection.HTTP1Connection.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements <a class="reference internal" href="httputil.html#tornado.httputil.HTTPConnection.write" title="tornado.httputil.HTTPConnection.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPConnection.write</span></code></a>.</p>
+<p>For backwards compatibility it is allowed but deprecated to
+skip <a class="reference internal" href="#tornado.http1connection.HTTP1Connection.write_headers" title="tornado.http1connection.HTTP1Connection.write_headers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_headers</span></code></a> and instead call <a class="reference internal" href="#tornado.http1connection.HTTP1Connection.write" title="tornado.http1connection.HTTP1Connection.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write()</span></code></a> with a
+pre-encoded header block.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.http1connection.HTTP1Connection.finish">
+<code class="descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/http1connection.html#HTTP1Connection.finish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.http1connection.HTTP1Connection.finish" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements <a class="reference internal" href="httputil.html#tornado.httputil.HTTPConnection.finish" title="tornado.httputil.HTTPConnection.finish"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPConnection.finish</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.http1connection.HTTP1ServerConnection">
+<em class="property">class </em><code class="descclassname">tornado.http1connection.</code><code class="descname">HTTP1ServerConnection</code><span class="sig-paren">(</span><em>stream: tornado.iostream.IOStream</em>, <em>params: tornado.http1connection.HTTP1ConnectionParameters = None</em>, <em>context: object = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/http1connection.html#HTTP1ServerConnection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.http1connection.HTTP1ServerConnection" title="Permalink to this definition">¶</a></dt>
+<dd><p>An HTTP/1.x server.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stream</strong> – an <a class="reference internal" href="iostream.html#tornado.iostream.IOStream" title="tornado.iostream.IOStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code></a></p></li>
+<li><p><strong>params</strong> – a <a class="reference internal" href="#tornado.http1connection.HTTP1ConnectionParameters" title="tornado.http1connection.HTTP1ConnectionParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTP1ConnectionParameters</span></code></a> or None</p></li>
+<li><p><strong>context</strong> – an opaque application-defined object that is accessible
+as <code class="docutils literal notranslate"><span class="pre">connection.context</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="tornado.http1connection.HTTP1ServerConnection.close">
+<em class="property">coroutine </em><code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/http1connection.html#HTTP1ServerConnection.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.http1connection.HTTP1ServerConnection.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the connection.</p>
+<p>Returns a <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> that resolves after the serving loop has exited.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.http1connection.HTTP1ServerConnection.start_serving">
+<code class="descname">start_serving</code><span class="sig-paren">(</span><em>delegate: tornado.httputil.HTTPServerConnectionDelegate</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/http1connection.html#HTTP1ServerConnection.start_serving"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.http1connection.HTTP1ServerConnection.start_serving" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts serving requests on this connection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>delegate</strong> – a <a class="reference internal" href="httputil.html#tornado.httputil.HTTPServerConnectionDelegate" title="tornado.httputil.HTTPServerConnectionDelegate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTTPServerConnectionDelegate</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="networking.html" class="btn btn-neutral float-right" title="Asynchronous networking" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="httputil.html" class="btn btn-neutral float-left" title="tornado.httputil — Manipulate HTTP headers and URLs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

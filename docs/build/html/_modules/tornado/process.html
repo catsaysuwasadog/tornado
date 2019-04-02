@@ -1,0 +1,574 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.process &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tornado.process</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tornado.process</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2011 Facebook</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c1"># not use this file except in compliance with the License. You may obtain</span>
+<span class="c1"># a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c1"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c1"># License for the specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
+
+<span class="sd">&quot;&quot;&quot;Utilities for working with multiple processes, including both forking</span>
+<span class="sd">the server into multiple processes and managing subprocesses.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">errno</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">binascii</span> <span class="k">import</span> <span class="n">hexlify</span>
+
+<span class="kn">from</span> <span class="nn">tornado.concurrent</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">Future</span><span class="p">,</span>
+    <span class="n">future_set_result_unless_cancelled</span><span class="p">,</span>
+    <span class="n">future_set_exception_unless_cancelled</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">ioloop</span>
+<span class="kn">from</span> <span class="nn">tornado.iostream</span> <span class="k">import</span> <span class="n">PipeIOStream</span>
+<span class="kn">from</span> <span class="nn">tornado.log</span> <span class="k">import</span> <span class="n">gen_log</span>
+<span class="kn">from</span> <span class="nn">tornado.platform.auto</span> <span class="k">import</span> <span class="n">set_close_exec</span>
+<span class="kn">from</span> <span class="nn">tornado.util</span> <span class="k">import</span> <span class="n">errno_from_exception</span>
+
+<span class="kn">import</span> <span class="nn">typing</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
+
+<span class="k">if</span> <span class="n">typing</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>  <span class="c1"># noqa: F401</span>
+
+<span class="c1"># Re-export this exception for convenience.</span>
+<span class="n">CalledProcessError</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span>
+
+
+<div class="viewcode-block" id="cpu_count"><a class="viewcode-back" href="../../process.html#tornado.process.cpu_count">[docs]</a><span class="k">def</span> <span class="nf">cpu_count</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Returns the number of processors on this machine.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">multiprocessing</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">sysconf</span><span class="p">(</span><span class="s2">&quot;SC_NPROCESSORS_CONF&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">pass</span>
+    <span class="n">gen_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Could not detect number of processors; assuming 1&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">1</span></div>
+
+
+<span class="k">def</span> <span class="nf">_reseed_random</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s2">&quot;random&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+
+    <span class="c1"># If os.urandom is available, this method does the same thing as</span>
+    <span class="c1"># random.seed (at least as of python 2.6).  If os.urandom is not</span>
+    <span class="c1"># available, we mix in the pid in addition to a timestamp.</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">hexlify</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">16</span><span class="p">)),</span> <span class="mi">16</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">^</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_pipe_cloexec</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">pipe</span><span class="p">()</span>
+    <span class="n">set_close_exec</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+    <span class="n">set_close_exec</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">r</span><span class="p">,</span> <span class="n">w</span>
+
+
+<span class="n">_task_id</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="fork_processes"><a class="viewcode-back" href="../../process.html#tornado.process.fork_processes">[docs]</a><span class="k">def</span> <span class="nf">fork_processes</span><span class="p">(</span><span class="n">num_processes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">max_restarts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Starts multiple worker processes.</span>
+
+<span class="sd">    If ``num_processes`` is None or &lt;= 0, we detect the number of cores</span>
+<span class="sd">    available on this machine and fork that number of child</span>
+<span class="sd">    processes. If ``num_processes`` is given and &gt; 0, we fork that</span>
+<span class="sd">    specific number of sub-processes.</span>
+
+<span class="sd">    Since we use processes and not threads, there is no shared memory</span>
+<span class="sd">    between any server code.</span>
+
+<span class="sd">    Note that multiple processes are not compatible with the autoreload</span>
+<span class="sd">    module (or the ``autoreload=True`` option to `tornado.web.Application`</span>
+<span class="sd">    which defaults to True when ``debug=True``).</span>
+<span class="sd">    When using multiple processes, no IOLoops can be created or</span>
+<span class="sd">    referenced until after the call to ``fork_processes``.</span>
+
+<span class="sd">    In each child process, ``fork_processes`` returns its *task id*, a</span>
+<span class="sd">    number between 0 and ``num_processes``.  Processes that exit</span>
+<span class="sd">    abnormally (due to a signal or non-zero exit status) are restarted</span>
+<span class="sd">    with the same id (up to ``max_restarts`` times).  In the parent</span>
+<span class="sd">    process, ``fork_processes`` returns None if all child processes</span>
+<span class="sd">    have exited normally, but will otherwise only exit by throwing an</span>
+<span class="sd">    exception.</span>
+
+<span class="sd">    max_restarts defaults to 100.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">max_restarts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">max_restarts</span> <span class="o">=</span> <span class="mi">100</span>
+
+    <span class="k">global</span> <span class="n">_task_id</span>
+    <span class="k">assert</span> <span class="n">_task_id</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">num_processes</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">num_processes</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">num_processes</span> <span class="o">=</span> <span class="n">cpu_count</span><span class="p">()</span>
+    <span class="n">gen_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting </span><span class="si">%d</span><span class="s2"> processes&quot;</span><span class="p">,</span> <span class="n">num_processes</span><span class="p">)</span>
+    <span class="n">children</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">start_child</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="n">pid</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">fork</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># child process</span>
+            <span class="n">_reseed_random</span><span class="p">()</span>
+            <span class="k">global</span> <span class="n">_task_id</span>
+            <span class="n">_task_id</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="k">return</span> <span class="n">i</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">children</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_processes</span><span class="p">):</span>
+        <span class="nb">id</span> <span class="o">=</span> <span class="n">start_child</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">id</span>
+    <span class="n">num_restarts</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">children</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">pid</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">errno_from_exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EINTR</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">raise</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="nb">id</span> <span class="o">=</span> <span class="n">children</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">WIFSIGNALED</span><span class="p">(</span><span class="n">status</span><span class="p">):</span>
+            <span class="n">gen_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;child </span><span class="si">%d</span><span class="s2"> (pid </span><span class="si">%d</span><span class="s2">) killed by signal </span><span class="si">%d</span><span class="s2">, restarting&quot;</span><span class="p">,</span>
+                <span class="nb">id</span><span class="p">,</span>
+                <span class="n">pid</span><span class="p">,</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">WTERMSIG</span><span class="p">(</span><span class="n">status</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">WEXITSTATUS</span><span class="p">(</span><span class="n">status</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">gen_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;child </span><span class="si">%d</span><span class="s2"> (pid </span><span class="si">%d</span><span class="s2">) exited with status </span><span class="si">%d</span><span class="s2">, restarting&quot;</span><span class="p">,</span>
+                <span class="nb">id</span><span class="p">,</span>
+                <span class="n">pid</span><span class="p">,</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">WEXITSTATUS</span><span class="p">(</span><span class="n">status</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gen_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;child </span><span class="si">%d</span><span class="s2"> (pid </span><span class="si">%d</span><span class="s2">) exited normally&quot;</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">pid</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">num_restarts</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">num_restarts</span> <span class="o">&gt;</span> <span class="n">max_restarts</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Too many child restarts, giving up&quot;</span><span class="p">)</span>
+        <span class="n">new_id</span> <span class="o">=</span> <span class="n">start_child</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">new_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">new_id</span>
+    <span class="c1"># All child processes exited cleanly, so exit the master process</span>
+    <span class="c1"># instead of just returning to right after the call to</span>
+    <span class="c1"># fork_processes (which will probably just start up another IOLoop</span>
+    <span class="c1"># unless the caller checks the return value).</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="task_id"><a class="viewcode-back" href="../../process.html#tornado.process.task_id">[docs]</a><span class="k">def</span> <span class="nf">task_id</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Returns the current task id, if any.</span>
+
+<span class="sd">    Returns None if this process was not created by `fork_processes`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">_task_id</span>
+    <span class="k">return</span> <span class="n">_task_id</span></div>
+
+
+<div class="viewcode-block" id="Subprocess"><a class="viewcode-back" href="../../process.html#tornado.process.Subprocess">[docs]</a><span class="k">class</span> <span class="nc">Subprocess</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wraps ``subprocess.Popen`` with IOStream support.</span>
+
+<span class="sd">    The constructor is the same as ``subprocess.Popen`` with the following</span>
+<span class="sd">    additions:</span>
+
+<span class="sd">    * ``stdin``, ``stdout``, and ``stderr`` may have the value</span>
+<span class="sd">      ``tornado.process.Subprocess.STREAM``, which will make the corresponding</span>
+<span class="sd">      attribute of the resulting Subprocess a `.PipeIOStream`. If this option</span>
+<span class="sd">      is used, the caller is responsible for closing the streams when done</span>
+<span class="sd">      with them.</span>
+
+<span class="sd">    The ``Subprocess.STREAM`` option and the ``set_exit_callback`` and</span>
+<span class="sd">    ``wait_for_exit`` methods do not work on Windows. There is</span>
+<span class="sd">    therefore no reason to use this class instead of</span>
+<span class="sd">    ``subprocess.Popen`` on that platform.</span>
+
+<span class="sd">    .. versionchanged:: 5.0</span>
+<span class="sd">       The ``io_loop`` argument (deprecated since version 4.1) has been removed.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">STREAM</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+
+    <span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">_waiting</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: ignore</span>
+    <span class="n">_old_sigchld</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span> <span class="o">=</span> <span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+        <span class="c1"># All FDs we create should be closed on error; those in to_close</span>
+        <span class="c1"># should be closed in the parent process on success.</span>
+        <span class="n">pipe_fds</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[int]</span>
+        <span class="n">to_close</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[int]</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;stdin&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">Subprocess</span><span class="o">.</span><span class="n">STREAM</span><span class="p">:</span>
+            <span class="n">in_r</span><span class="p">,</span> <span class="n">in_w</span> <span class="o">=</span> <span class="n">_pipe_cloexec</span><span class="p">()</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;stdin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">in_r</span>
+            <span class="n">pipe_fds</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">in_r</span><span class="p">,</span> <span class="n">in_w</span><span class="p">))</span>
+            <span class="n">to_close</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">in_r</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stdin</span> <span class="o">=</span> <span class="n">PipeIOStream</span><span class="p">(</span><span class="n">in_w</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;stdout&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">Subprocess</span><span class="o">.</span><span class="n">STREAM</span><span class="p">:</span>
+            <span class="n">out_r</span><span class="p">,</span> <span class="n">out_w</span> <span class="o">=</span> <span class="n">_pipe_cloexec</span><span class="p">()</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;stdout&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">out_w</span>
+            <span class="n">pipe_fds</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">out_r</span><span class="p">,</span> <span class="n">out_w</span><span class="p">))</span>
+            <span class="n">to_close</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_w</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">PipeIOStream</span><span class="p">(</span><span class="n">out_r</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;stderr&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">Subprocess</span><span class="o">.</span><span class="n">STREAM</span><span class="p">:</span>
+            <span class="n">err_r</span><span class="p">,</span> <span class="n">err_w</span> <span class="o">=</span> <span class="n">_pipe_cloexec</span><span class="p">()</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;stderr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">err_w</span>
+            <span class="n">pipe_fds</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">err_r</span><span class="p">,</span> <span class="n">err_w</span><span class="p">))</span>
+            <span class="n">to_close</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">err_w</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stderr</span> <span class="o">=</span> <span class="n">PipeIOStream</span><span class="p">(</span><span class="n">err_r</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">pipe_fds</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+            <span class="k">raise</span>
+        <span class="k">for</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">to_close</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proc</span><span class="o">.</span><span class="n">pid</span>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;stdin&quot;</span><span class="p">,</span> <span class="s2">&quot;stdout&quot;</span><span class="p">,</span> <span class="s2">&quot;stderr&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>  <span class="c1"># don&#39;t clobber streams set above</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">proc</span><span class="p">,</span> <span class="n">attr</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_exit_callback</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[Callable[[int], None]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">returncode</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[int]</span>
+
+<div class="viewcode-block" id="Subprocess.set_exit_callback"><a class="viewcode-back" href="../../process.html#tornado.process.Subprocess.set_exit_callback">[docs]</a>    <span class="k">def</span> <span class="nf">set_exit_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Runs ``callback`` when this process exits.</span>
+
+<span class="sd">        The callback takes one argument, the return code of the process.</span>
+
+<span class="sd">        This method uses a ``SIGCHLD`` handler, which is a global setting</span>
+<span class="sd">        and may conflict if you have other libraries trying to handle the</span>
+<span class="sd">        same signal.  If you are using more than one ``IOLoop`` it may</span>
+<span class="sd">        be necessary to call `Subprocess.initialize` first to designate</span>
+<span class="sd">        one ``IOLoop`` to run the signal handlers.</span>
+
+<span class="sd">        In many cases a close callback on the stdout or stderr streams</span>
+<span class="sd">        can be used as an alternative to an exit callback if the</span>
+<span class="sd">        signal handler is causing a problem.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_exit_callback</span> <span class="o">=</span> <span class="n">callback</span>
+        <span class="n">Subprocess</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+        <span class="n">Subprocess</span><span class="o">.</span><span class="n">_waiting</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">Subprocess</span><span class="o">.</span><span class="n">_try_cleanup_process</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Subprocess.wait_for_exit"><a class="viewcode-back" href="../../process.html#tornado.process.Subprocess.wait_for_exit">[docs]</a>    <span class="k">def</span> <span class="nf">wait_for_exit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raise_error</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Future[int]&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns a `.Future` which resolves when the process exits.</span>
+
+<span class="sd">        Usage::</span>
+
+<span class="sd">            ret = yield proc.wait_for_exit()</span>
+
+<span class="sd">        This is a coroutine-friendly alternative to `set_exit_callback`</span>
+<span class="sd">        (and a replacement for the blocking `subprocess.Popen.wait`).</span>
+
+<span class="sd">        By default, raises `subprocess.CalledProcessError` if the process</span>
+<span class="sd">        has a non-zero exit status. Use ``wait_for_exit(raise_error=False)``</span>
+<span class="sd">        to suppress this behavior and return the exit status without raising.</span>
+
+<span class="sd">        .. versionadded:: 4.2</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">future</span> <span class="o">=</span> <span class="n">Future</span><span class="p">()</span>  <span class="c1"># type: Future[int]</span>
+
+        <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">ret</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">raise_error</span><span class="p">:</span>
+                <span class="c1"># Unfortunately we don&#39;t have the original args any more.</span>
+                <span class="n">future_set_exception_unless_cancelled</span><span class="p">(</span>
+                    <span class="n">future</span><span class="p">,</span> <span class="n">CalledProcessError</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="n">ret</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_exit_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">future</span></div>
+
+<div class="viewcode-block" id="Subprocess.initialize"><a class="viewcode-back" href="../../process.html#tornado.process.Subprocess.initialize">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initializes the ``SIGCHLD`` handler.</span>
+
+<span class="sd">        The signal handler is run on an `.IOLoop` to avoid locking issues.</span>
+<span class="sd">        Note that the `.IOLoop` used for signal handling need not be the</span>
+<span class="sd">        same one used by individual Subprocess objects (as long as the</span>
+<span class="sd">        ``IOLoops`` are each running in separate threads).</span>
+
+<span class="sd">        .. versionchanged:: 5.0</span>
+<span class="sd">           The ``io_loop`` argument (deprecated since version 4.1) has been</span>
+<span class="sd">           removed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_initialized</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">io_loop</span> <span class="o">=</span> <span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_old_sigchld</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span>
+            <span class="n">signal</span><span class="o">.</span><span class="n">SIGCHLD</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">sig</span><span class="p">,</span> <span class="n">frame</span><span class="p">:</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">add_callback_from_signal</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_cleanup</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Subprocess.uninitialize"><a class="viewcode-back" href="../../process.html#tornado.process.Subprocess.uninitialize">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">uninitialize</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Removes the ``SIGCHLD`` handler.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_initialized</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGCHLD</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_old_sigchld</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_cleanup</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_waiting</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>  <span class="c1"># make a copy</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_try_cleanup_process</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_try_cleanup_process</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pid</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ret_pid</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">waitpid</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">WNOHANG</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">errno_from_exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">ECHILD</span><span class="p">:</span>
+                <span class="k">return</span>
+        <span class="k">if</span> <span class="n">ret_pid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">assert</span> <span class="n">ret_pid</span> <span class="o">==</span> <span class="n">pid</span>
+        <span class="n">subproc</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_waiting</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+        <span class="n">subproc</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_callback_from_signal</span><span class="p">(</span><span class="n">subproc</span><span class="o">.</span><span class="n">_set_returncode</span><span class="p">,</span> <span class="n">status</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_returncode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">WIFSIGNALED</span><span class="p">(</span><span class="n">status</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">returncode</span> <span class="o">=</span> <span class="o">-</span><span class="n">os</span><span class="o">.</span><span class="n">WTERMSIG</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">WIFEXITED</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">returncode</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">WEXITSTATUS</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+        <span class="c1"># We&#39;ve taken over wait() duty from the subprocess.Popen</span>
+        <span class="c1"># object. If we don&#39;t inform it of the process&#39;s return code,</span>
+        <span class="c1"># it will log a warning at destruction in python 3.6+.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proc</span><span class="o">.</span><span class="n">returncode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">returncode</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exit_callback</span><span class="p">:</span>
+            <span class="n">callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exit_callback</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_exit_callback</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">returncode</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

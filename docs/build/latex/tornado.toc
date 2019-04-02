@@ -1,0 +1,553 @@
+\babel@toc {english}{}
+\contentsline {chapter}{\numberline {1}Quick links}{3}{chapter.1}
+\contentsline {chapter}{\numberline {2}Hello, world}{5}{chapter.2}
+\contentsline {chapter}{\numberline {3}Threads and WSGI}{7}{chapter.3}
+\contentsline {chapter}{\numberline {4}\sphinxstyleliteralintitle {\sphinxupquote {asyncio}} Integration}{9}{chapter.4}
+\contentsline {chapter}{\numberline {5}Installation}{11}{chapter.5}
+\contentsline {chapter}{\numberline {6}Documentation}{13}{chapter.6}
+\contentsline {section}{\numberline {6.1}User\IeC {\textquoteright }s guide}{13}{section.6.1}
+\contentsline {subsection}{\numberline {6.1.1}Introduction}{13}{subsection.6.1.1}
+\contentsline {subsection}{\numberline {6.1.2}Asynchronous and non-Blocking I/O}{13}{subsection.6.1.2}
+\contentsline {subsubsection}{Blocking}{14}{subsubsection*.3}
+\contentsline {subsubsection}{Asynchronous}{14}{subsubsection*.4}
+\contentsline {subsubsection}{Examples}{14}{subsubsection*.5}
+\contentsline {subsection}{\numberline {6.1.3}Coroutines}{15}{subsection.6.1.3}
+\contentsline {subsubsection}{Native vs decorated coroutines}{15}{subsubsection*.6}
+\contentsline {subsubsection}{How it works}{16}{subsubsection*.7}
+\contentsline {subsubsection}{How to call a coroutine}{17}{subsubsection*.8}
+\contentsline {subsubsection}{Coroutine patterns}{17}{subsubsection*.9}
+\contentsline {paragraph}{Calling blocking functions}{18}{paragraph*.10}
+\contentsline {paragraph}{Parallelism}{18}{paragraph*.11}
+\contentsline {paragraph}{Interleaving}{18}{paragraph*.12}
+\contentsline {paragraph}{Looping}{19}{paragraph*.13}
+\contentsline {paragraph}{Running in the background}{19}{paragraph*.14}
+\contentsline {subsection}{\numberline {6.1.4}\sphinxstyleliteralintitle {\sphinxupquote {Queue}} example - a concurrent web spider}{20}{subsection.6.1.4}
+\contentsline {subsection}{\numberline {6.1.5}Structure of a Tornado web application}{22}{subsection.6.1.5}
+\contentsline {subsubsection}{The \sphinxstyleliteralintitle {\sphinxupquote {Application}} object}{22}{subsubsection*.15}
+\contentsline {subsubsection}{Subclassing \sphinxstyleliteralintitle {\sphinxupquote {RequestHandler}}}{23}{subsubsection*.16}
+\contentsline {subsubsection}{Handling request input}{23}{subsubsection*.17}
+\contentsline {subsubsection}{Overriding RequestHandler methods}{24}{subsubsection*.18}
+\contentsline {subsubsection}{Error Handling}{24}{subsubsection*.19}
+\contentsline {subsubsection}{Redirection}{25}{subsubsection*.20}
+\contentsline {subsubsection}{Asynchronous handlers}{25}{subsubsection*.21}
+\contentsline {subsection}{\numberline {6.1.6}Templates and UI}{26}{subsection.6.1.6}
+\contentsline {subsubsection}{Configuring templates}{26}{subsubsection*.22}
+\contentsline {subsubsection}{Template syntax}{26}{subsubsection*.23}
+\contentsline {subsubsection}{Internationalization}{28}{subsubsection*.24}
+\contentsline {subsubsection}{UI modules}{29}{subsubsection*.25}
+\contentsline {subsection}{\numberline {6.1.7}Authentication and security}{30}{subsection.6.1.7}
+\contentsline {subsubsection}{Cookies and secure cookies}{30}{subsubsection*.26}
+\contentsline {subsubsection}{User authentication}{31}{subsubsection*.27}
+\contentsline {subsubsection}{Third party authentication}{32}{subsubsection*.28}
+\contentsline {subsubsection}{Cross-site request forgery protection}{33}{subsubsection*.29}
+\contentsline {subsubsection}{DNS Rebinding}{34}{subsubsection*.30}
+\contentsline {subsection}{\numberline {6.1.8}Running and deploying}{34}{subsection.6.1.8}
+\contentsline {subsubsection}{Processes and ports}{35}{subsubsection*.31}
+\contentsline {subsubsection}{Running behind a load balancer}{35}{subsubsection*.32}
+\contentsline {subsubsection}{Static files and aggressive file caching}{36}{subsubsection*.33}
+\contentsline {subsubsection}{Debug mode and automatic reloading}{38}{subsubsection*.34}
+\contentsline {section}{\numberline {6.2}Web framework}{38}{section.6.2}
+\contentsline {subsection}{\numberline {6.2.1}\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}} \IeC {\textemdash } \sphinxstyleliteralintitle {\sphinxupquote {RequestHandler}} and \sphinxstyleliteralintitle {\sphinxupquote {Application}} classes}{38}{subsection.6.2.1}
+\contentsline {subsubsection}{Thread-safety notes}{39}{subsubsection*.36}
+\contentsline {subsubsection}{Request handlers}{39}{subsubsection*.37}
+\contentsline {paragraph}{Entry points}{39}{paragraph*.39}
+\contentsline {paragraph}{Input}{40}{paragraph*.51}
+\contentsline {paragraph}{Output}{42}{paragraph*.63}
+\contentsline {paragraph}{Cookies}{44}{paragraph*.83}
+\contentsline {paragraph}{Other}{46}{paragraph*.97}
+\contentsline {subsubsection}{Application configuration}{49}{subsubsection*.121}
+\contentsline {subsubsection}{Decorators}{53}{subsubsection*.130}
+\contentsline {subsubsection}{Everything else}{54}{subsubsection*.135}
+\contentsline {subsection}{\numberline {6.2.2}\sphinxstyleliteralintitle {\sphinxupquote {tornado.template}} \IeC {\textemdash } Flexible output generation}{59}{subsection.6.2.2}
+\contentsline {subsubsection}{Syntax Reference}{60}{subsubsection*.167}
+\contentsline {subsubsection}{Class reference}{61}{subsubsection*.168}
+\contentsline {subsection}{\numberline {6.2.3}\sphinxstyleliteralintitle {\sphinxupquote {tornado.routing}} \IeC {\textemdash } Basic routing implementation}{63}{subsection.6.2.3}
+\contentsline {subsection}{\numberline {6.2.4}\sphinxstyleliteralintitle {\sphinxupquote {tornado.escape}} \IeC {\textemdash } Escaping and string manipulation}{68}{subsection.6.2.4}
+\contentsline {subsubsection}{Escaping functions}{68}{subsubsection*.197}
+\contentsline {subsubsection}{Byte/unicode conversions}{69}{subsubsection*.204}
+\contentsline {subsubsection}{Miscellaneous functions}{69}{subsubsection*.210}
+\contentsline {subsection}{\numberline {6.2.5}\sphinxstyleliteralintitle {\sphinxupquote {tornado.locale}} \IeC {\textemdash } Internationalization support}{70}{subsection.6.2.5}
+\contentsline {subsection}{\numberline {6.2.6}\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}} \IeC {\textemdash } Bidirectional communication to the browser}{72}{subsection.6.2.6}
+\contentsline {subsubsection}{Event handlers}{74}{subsubsection*.231}
+\contentsline {subsubsection}{Output}{74}{subsubsection*.238}
+\contentsline {subsubsection}{Configuration}{75}{subsubsection*.241}
+\contentsline {subsubsection}{Other}{76}{subsubsection*.245}
+\contentsline {subsubsection}{Client-side support}{76}{subsubsection*.249}
+\contentsline {section}{\numberline {6.3}HTTP servers and clients}{78}{section.6.3}
+\contentsline {subsection}{\numberline {6.3.1}\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpserver}} \IeC {\textemdash } Non-blocking HTTP server}{78}{subsection.6.3.1}
+\contentsline {subsubsection}{HTTP Server}{78}{subsubsection*.257}
+\contentsline {subsection}{\numberline {6.3.2}\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpclient}} \IeC {\textemdash } Asynchronous HTTP client}{80}{subsection.6.3.2}
+\contentsline {subsubsection}{HTTP client interfaces}{80}{subsubsection*.260}
+\contentsline {subsubsection}{Request objects}{83}{subsubsection*.268}
+\contentsline {subsubsection}{Response objects}{85}{subsubsection*.270}
+\contentsline {subsubsection}{Exceptions}{86}{subsubsection*.273}
+\contentsline {subsubsection}{Command-line interface}{86}{subsubsection*.276}
+\contentsline {subsubsection}{Implementations}{86}{subsubsection*.277}
+\contentsline {subsubsection}{Example Code}{87}{subsubsection*.282}
+\contentsline {subsection}{\numberline {6.3.3}\sphinxstyleliteralintitle {\sphinxupquote {tornado.httputil}} \IeC {\textemdash } Manipulate HTTP headers and URLs}{87}{subsection.6.3.3}
+\contentsline {subsection}{\numberline {6.3.4}\sphinxstyleliteralintitle {\sphinxupquote {tornado.http1connection}} \textendash {} HTTP/1.x client/server implementation}{93}{subsection.6.3.4}
+\contentsline {section}{\numberline {6.4}Asynchronous networking}{96}{section.6.4}
+\contentsline {subsection}{\numberline {6.4.1}\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}} \IeC {\textemdash } Main event loop}{96}{subsection.6.4.1}
+\contentsline {subsubsection}{IOLoop objects}{96}{subsubsection*.356}
+\contentsline {paragraph}{Running an IOLoop}{97}{paragraph*.358}
+\contentsline {paragraph}{I/O events}{99}{paragraph*.369}
+\contentsline {paragraph}{Callbacks and timeouts}{99}{paragraph*.373}
+\contentsline {subsection}{\numberline {6.4.2}\sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}} \IeC {\textemdash } Convenient wrappers for non-blocking sockets}{101}{subsection.6.4.2}
+\contentsline {subsubsection}{Base class}{102}{subsubsection*.389}
+\contentsline {paragraph}{Main interface}{102}{paragraph*.391}
+\contentsline {paragraph}{Methods for subclasses}{104}{paragraph*.404}
+\contentsline {subsubsection}{Implementations}{104}{subsubsection*.410}
+\contentsline {subsubsection}{Exceptions}{107}{subsubsection*.417}
+\contentsline {subsection}{\numberline {6.4.3}\sphinxstyleliteralintitle {\sphinxupquote {tornado.netutil}} \IeC {\textemdash } Miscellaneous network utilities}{107}{subsection.6.4.3}
+\contentsline {subsection}{\numberline {6.4.4}\sphinxstyleliteralintitle {\sphinxupquote {tornado.tcpclient}} \IeC {\textemdash } \sphinxstyleliteralintitle {\sphinxupquote {IOStream}} connection factory}{110}{subsection.6.4.4}
+\contentsline {subsection}{\numberline {6.4.5}\sphinxstyleliteralintitle {\sphinxupquote {tornado.tcpserver}} \IeC {\textemdash } Basic \sphinxstyleliteralintitle {\sphinxupquote {IOStream}}-based TCP server}{110}{subsection.6.4.5}
+\contentsline {section}{\numberline {6.5}Coroutines and concurrency}{113}{section.6.5}
+\contentsline {subsection}{\numberline {6.5.1}\sphinxstyleliteralintitle {\sphinxupquote {tornado.gen}} \IeC {\textemdash } Generator-based coroutines}{113}{subsection.6.5.1}
+\contentsline {subsubsection}{Decorators}{113}{subsubsection*.446}
+\contentsline {subsubsection}{Utility functions}{114}{subsubsection*.449}
+\contentsline {subsection}{\numberline {6.5.2}\sphinxstyleliteralintitle {\sphinxupquote {tornado.locks}} \textendash {} Synchronization primitives}{117}{subsection.6.5.2}
+\contentsline {subsubsection}{Condition}{117}{subsubsection*.462}
+\contentsline {subsubsection}{Event}{118}{subsubsection*.467}
+\contentsline {subsubsection}{Semaphore}{119}{subsubsection*.473}
+\contentsline {subsubsection}{BoundedSemaphore}{121}{subsubsection*.477}
+\contentsline {subsubsection}{Lock}{121}{subsubsection*.481}
+\contentsline {subsection}{\numberline {6.5.3}\sphinxstyleliteralintitle {\sphinxupquote {tornado.queues}} \textendash {} Queues for coroutines}{122}{subsection.6.5.3}
+\contentsline {subsubsection}{Classes}{122}{subsubsection*.486}
+\contentsline {paragraph}{Queue}{122}{paragraph*.487}
+\contentsline {paragraph}{PriorityQueue}{124}{paragraph*.497}
+\contentsline {paragraph}{LifoQueue}{124}{paragraph*.499}
+\contentsline {subsubsection}{Exceptions}{125}{subsubsection*.501}
+\contentsline {paragraph}{QueueEmpty}{125}{paragraph*.502}
+\contentsline {paragraph}{QueueFull}{125}{paragraph*.504}
+\contentsline {subsection}{\numberline {6.5.4}\sphinxstyleliteralintitle {\sphinxupquote {tornado.process}} \IeC {\textemdash } Utilities for multiple processes}{125}{subsection.6.5.4}
+\contentsline {section}{\numberline {6.6}Integration with other services}{126}{section.6.6}
+\contentsline {subsection}{\numberline {6.6.1}\sphinxstyleliteralintitle {\sphinxupquote {tornado.auth}} \IeC {\textemdash } Third-party login with OpenID and OAuth}{126}{subsection.6.6.1}
+\contentsline {subsubsection}{Common protocols}{127}{subsubsection*.516}
+\contentsline {subsubsection}{Google}{130}{subsubsection*.531}
+\contentsline {subsubsection}{Facebook}{131}{subsubsection*.534}
+\contentsline {subsubsection}{Twitter}{132}{subsubsection*.538}
+\contentsline {subsection}{\numberline {6.6.2}\sphinxstyleliteralintitle {\sphinxupquote {tornado.wsgi}} \IeC {\textemdash } Interoperability with other Python frameworks and servers}{134}{subsection.6.6.2}
+\contentsline {subsection}{\numberline {6.6.3}\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.caresresolver}} \IeC {\textemdash } Asynchronous DNS Resolver using C-Ares}{134}{subsection.6.6.3}
+\contentsline {subsection}{\numberline {6.6.4}\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.twisted}} \IeC {\textemdash } Bridges between Twisted and Tornado}{135}{subsection.6.6.4}
+\contentsline {subsubsection}{Twisted DNS resolver}{135}{subsubsection*.545}
+\contentsline {subsection}{\numberline {6.6.5}\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.asyncio}} \IeC {\textemdash } Bridge between \sphinxstyleliteralintitle {\sphinxupquote {asyncio}} and Tornado}{135}{subsection.6.6.5}
+\contentsline {section}{\numberline {6.7}Utilities}{136}{section.6.7}
+\contentsline {subsection}{\numberline {6.7.1}\sphinxstyleliteralintitle {\sphinxupquote {tornado.autoreload}} \IeC {\textemdash } Automatically detect code changes in development}{136}{subsection.6.7.1}
+\contentsline {subsection}{\numberline {6.7.2}\sphinxstyleliteralintitle {\sphinxupquote {tornado.concurrent}} \IeC {\textemdash } Work with \sphinxstyleliteralintitle {\sphinxupquote {Future}} objects}{137}{subsection.6.7.2}
+\contentsline {subsection}{\numberline {6.7.3}\sphinxstyleliteralintitle {\sphinxupquote {tornado.log}} \IeC {\textemdash } Logging support}{139}{subsection.6.7.3}
+\contentsline {subsection}{\numberline {6.7.4}\sphinxstyleliteralintitle {\sphinxupquote {tornado.options}} \IeC {\textemdash } Command-line parsing}{140}{subsection.6.7.4}
+\contentsline {subsubsection}{Global functions}{141}{subsubsection*.568}
+\contentsline {subsubsection}{OptionParser class}{142}{subsubsection*.576}
+\contentsline {subsection}{\numberline {6.7.5}\sphinxstyleliteralintitle {\sphinxupquote {tornado.testing}} \IeC {\textemdash } Unit testing support for asynchronous code}{144}{subsection.6.7.5}
+\contentsline {subsubsection}{Asynchronous test cases}{144}{subsubsection*.588}
+\contentsline {subsubsection}{Controlling log output}{147}{subsubsection*.602}
+\contentsline {subsubsection}{Test runner}{148}{subsubsection*.604}
+\contentsline {subsubsection}{Helper functions}{148}{subsubsection*.606}
+\contentsline {subsection}{\numberline {6.7.6}\sphinxstyleliteralintitle {\sphinxupquote {tornado.util}} \IeC {\textemdash } General-purpose utilities}{149}{subsection.6.7.6}
+\contentsline {section}{\numberline {6.8}Frequently Asked Questions}{151}{section.6.8}
+\contentsline {subsection}{\numberline {6.8.1}Why isn\IeC {\textquoteright }t this example with \sphinxstyleliteralintitle {\sphinxupquote {time.sleep()}} running in parallel?}{151}{subsection.6.8.1}
+\contentsline {subsection}{\numberline {6.8.2}My code is asynchronous. Why is it not running in parallel in two browser tabs?}{152}{subsection.6.8.2}
+\contentsline {section}{\numberline {6.9}Release notes}{152}{section.6.9}
+\contentsline {subsection}{\numberline {6.9.1}What\IeC {\textquoteright }s new in Tornado 6.0}{152}{subsection.6.9.1}
+\contentsline {subsubsection}{Mar 1, 2019}{152}{subsubsection*.631}
+\contentsline {paragraph}{Backwards-incompatible changes}{152}{paragraph*.632}
+\contentsline {paragraph}{General changes}{153}{paragraph*.633}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.auth}}}{153}{paragraph*.634}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.concurrent}}}{153}{paragraph*.635}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.gen}}}{153}{paragraph*.636}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpclient}}}{153}{paragraph*.637}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httputil}}}{153}{paragraph*.638}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}}}{153}{paragraph*.639}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}}}{154}{paragraph*.640}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.log}}}{154}{paragraph*.641}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.netutil}}}{154}{paragraph*.642}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.twisted}}}{154}{paragraph*.643}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.simple\_httpclient}}}{154}{paragraph*.644}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.stack\_context}}}{154}{paragraph*.645}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.tcpserver}}}{154}{paragraph*.646}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.testing}}}{154}{paragraph*.647}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{155}{paragraph*.648}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}}}{155}{paragraph*.649}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.wsgi}}}{155}{paragraph*.650}
+\contentsline {subsection}{\numberline {6.9.2}What\IeC {\textquoteright }s new in Tornado 5.1.1}{155}{subsection.6.9.2}
+\contentsline {subsubsection}{Sep 16, 2018}{155}{subsubsection*.651}
+\contentsline {paragraph}{Bug fixes}{155}{paragraph*.652}
+\contentsline {subsection}{\numberline {6.9.3}What\IeC {\textquoteright }s new in Tornado 5.1}{155}{subsection.6.9.3}
+\contentsline {subsubsection}{July 12, 2018}{155}{subsubsection*.653}
+\contentsline {paragraph}{Deprecation notice}{155}{paragraph*.654}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.auth}}}{156}{paragraph*.655}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.autoreload}}}{156}{paragraph*.656}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.concurrent}}}{156}{paragraph*.657}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.gen}}}{156}{paragraph*.658}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpclient}}}{156}{paragraph*.659}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httputil}}}{157}{paragraph*.660}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}}}{157}{paragraph*.661}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}}}{157}{paragraph*.662}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.netutil}}}{157}{paragraph*.663}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.options}}}{157}{paragraph*.664}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.twisted}}}{158}{paragraph*.665}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.stack\_context}}}{158}{paragraph*.666}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.testing}}}{158}{paragraph*.667}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{158}{paragraph*.668}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}}}{158}{paragraph*.669}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.wsgi}}}{158}{paragraph*.670}
+\contentsline {subsection}{\numberline {6.9.4}What\IeC {\textquoteright }s new in Tornado 5.0.2}{159}{subsection.6.9.4}
+\contentsline {subsubsection}{Apr 7, 2018}{159}{subsubsection*.671}
+\contentsline {paragraph}{Bug fixes}{159}{paragraph*.672}
+\contentsline {subsection}{\numberline {6.9.5}What\IeC {\textquoteright }s new in Tornado 5.0.1}{159}{subsection.6.9.5}
+\contentsline {subsubsection}{Mar 18, 2018}{159}{subsubsection*.673}
+\contentsline {paragraph}{Bug fix}{159}{paragraph*.674}
+\contentsline {subsection}{\numberline {6.9.6}What\IeC {\textquoteright }s new in Tornado 5.0}{159}{subsection.6.9.6}
+\contentsline {subsubsection}{Mar 5, 2018}{159}{subsubsection*.675}
+\contentsline {paragraph}{Highlights}{159}{paragraph*.676}
+\contentsline {paragraph}{Backwards-compatibility notes}{159}{paragraph*.677}
+\contentsline {paragraph}{Other notes}{160}{paragraph*.678}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.auth}}}{160}{paragraph*.679}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.autoreload}}}{160}{paragraph*.680}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.concurrent}}}{160}{paragraph*.681}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.curl\_httpclient}}}{161}{paragraph*.682}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.gen}}}{161}{paragraph*.683}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpclient}}}{161}{paragraph*.684}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpserver}}}{161}{paragraph*.685}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httputil}}}{162}{paragraph*.686}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}}}{162}{paragraph*.687}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}}}{162}{paragraph*.688}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.locks}}}{162}{paragraph*.689}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.netutil}}}{163}{paragraph*.690}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.options}}}{163}{paragraph*.691}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.asyncio}}}{163}{paragraph*.692}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.caresresolver}}}{163}{paragraph*.693}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.twisted}}}{163}{paragraph*.694}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.process}}}{163}{paragraph*.695}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.routing}}}{163}{paragraph*.696}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.simple\_httpclient}}}{164}{paragraph*.697}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.tcpclient}}}{164}{paragraph*.698}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.tcpserver}}}{164}{paragraph*.699}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.testing}}}{164}{paragraph*.700}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.util}}}{164}{paragraph*.701}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{164}{paragraph*.702}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}}}{165}{paragraph*.703}
+\contentsline {subsection}{\numberline {6.9.7}What\IeC {\textquoteright }s new in Tornado 4.5.3}{165}{subsection.6.9.7}
+\contentsline {subsubsection}{Jan 6, 2018}{165}{subsubsection*.704}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.curl\_httpclient}}}{165}{paragraph*.705}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpserver}}}{165}{paragraph*.706}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}}}{165}{paragraph*.707}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.options}}}{165}{paragraph*.708}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.testing}}}{165}{paragraph*.709}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{165}{paragraph*.710}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}}}{165}{paragraph*.711}
+\contentsline {subsection}{\numberline {6.9.8}What\IeC {\textquoteright }s new in Tornado 4.5.2}{166}{subsection.6.9.8}
+\contentsline {subsubsection}{Aug 27, 2017}{166}{subsubsection*.712}
+\contentsline {paragraph}{Bug Fixes}{166}{paragraph*.713}
+\contentsline {subsection}{\numberline {6.9.9}What\IeC {\textquoteright }s new in Tornado 4.5.1}{166}{subsection.6.9.9}
+\contentsline {subsubsection}{Apr 20, 2017}{166}{subsubsection*.714}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.log}}}{166}{paragraph*.715}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httputil}}}{166}{paragraph*.716}
+\contentsline {subsection}{\numberline {6.9.10}What\IeC {\textquoteright }s new in Tornado 4.5}{166}{subsection.6.9.10}
+\contentsline {subsubsection}{Apr 16, 2017}{166}{subsubsection*.717}
+\contentsline {paragraph}{Backwards-compatibility warning}{166}{paragraph*.718}
+\contentsline {paragraph}{New module}{166}{paragraph*.719}
+\contentsline {paragraph}{General changes}{166}{paragraph*.720}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.auth}}}{166}{paragraph*.721}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.autoreload}}}{167}{paragraph*.722}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.concurrent}}}{167}{paragraph*.723}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.gen}}}{167}{paragraph*.724}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.http1connection}}}{167}{paragraph*.725}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpclient}}}{167}{paragraph*.726}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpserver}}}{167}{paragraph*.727}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httputil}}}{167}{paragraph*.728}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}}}{168}{paragraph*.729}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}}}{168}{paragraph*.730}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.log}}}{168}{paragraph*.731}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.netutil}}}{168}{paragraph*.732}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.process}}}{168}{paragraph*.733}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.tcpclient}}}{168}{paragraph*.734}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.tcpserver}}}{168}{paragraph*.735}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{169}{paragraph*.736}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}}}{169}{paragraph*.737}
+\contentsline {paragraph}{Demos}{169}{paragraph*.738}
+\contentsline {paragraph}{Credits}{169}{paragraph*.739}
+\contentsline {subsection}{\numberline {6.9.11}What\IeC {\textquoteright }s new in Tornado 4.4.3}{170}{subsection.6.9.11}
+\contentsline {subsubsection}{Mar 30, 2017}{170}{subsubsection*.740}
+\contentsline {paragraph}{Bug fixes}{170}{paragraph*.741}
+\contentsline {subsection}{\numberline {6.9.12}What\IeC {\textquoteright }s new in Tornado 4.4.2}{171}{subsection.6.9.12}
+\contentsline {subsubsection}{Oct 1, 2016}{171}{subsubsection*.742}
+\contentsline {paragraph}{Security fixes}{171}{paragraph*.743}
+\contentsline {paragraph}{Backwards-compatibility notes}{171}{paragraph*.744}
+\contentsline {subsection}{\numberline {6.9.13}What\IeC {\textquoteright }s new in Tornado 4.4.1}{171}{subsection.6.9.13}
+\contentsline {subsubsection}{Jul 23, 2016}{171}{subsubsection*.745}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{171}{paragraph*.746}
+\contentsline {subsection}{\numberline {6.9.14}What\IeC {\textquoteright }s new in Tornado 4.4}{171}{subsection.6.9.14}
+\contentsline {subsubsection}{Jul 15, 2016}{171}{subsubsection*.747}
+\contentsline {paragraph}{General}{171}{paragraph*.748}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.curl\_httpclient}}}{171}{paragraph*.749}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.gen}}}{171}{paragraph*.750}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpclient}}}{172}{paragraph*.751}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpserver}}}{172}{paragraph*.752}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}}}{172}{paragraph*.753}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.netutil}}}{172}{paragraph*.754}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.options}}}{172}{paragraph*.755}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.simple\_httpclient}}}{172}{paragraph*.756}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.tcpserver}}}{172}{paragraph*.757}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.testing}}}{172}{paragraph*.758}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{172}{paragraph*.759}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}}}{173}{paragraph*.760}
+\contentsline {subsection}{\numberline {6.9.15}What\IeC {\textquoteright }s new in Tornado 4.3}{173}{subsection.6.9.15}
+\contentsline {subsubsection}{Nov 6, 2015}{173}{subsubsection*.761}
+\contentsline {paragraph}{Highlights}{173}{paragraph*.762}
+\contentsline {paragraph}{Deprecation notice}{173}{paragraph*.763}
+\contentsline {paragraph}{Installation}{173}{paragraph*.764}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.auth}}}{173}{paragraph*.765}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.autoreload}}}{173}{paragraph*.766}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.curl\_httpclient}}}{174}{paragraph*.767}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.gen}}}{174}{paragraph*.768}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpclient}}}{174}{paragraph*.769}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpserver}}}{174}{paragraph*.770}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httputil}}}{174}{paragraph*.771}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}}}{174}{paragraph*.772}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}}}{174}{paragraph*.773}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.locale}}}{175}{paragraph*.774}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.locks}}}{175}{paragraph*.775}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.log}}}{175}{paragraph*.776}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.netutil}}}{175}{paragraph*.777}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.options}}}{175}{paragraph*.778}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.queues}}}{175}{paragraph*.779}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.simple\_httpclient}}}{175}{paragraph*.780}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.template}}}{175}{paragraph*.781}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.testing}}}{176}{paragraph*.782}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{176}{paragraph*.783}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}}}{176}{paragraph*.784}
+\contentsline {subsection}{\numberline {6.9.16}What\IeC {\textquoteright }s new in Tornado 4.2.1}{176}{subsection.6.9.16}
+\contentsline {subsubsection}{Jul 17, 2015}{176}{subsubsection*.785}
+\contentsline {paragraph}{Security fix}{176}{paragraph*.786}
+\contentsline {subsection}{\numberline {6.9.17}What\IeC {\textquoteright }s new in Tornado 4.2}{176}{subsection.6.9.17}
+\contentsline {subsubsection}{May 26, 2015}{176}{subsubsection*.787}
+\contentsline {paragraph}{Backwards-compatibility notes}{176}{paragraph*.788}
+\contentsline {paragraph}{New modules: \sphinxstyleliteralintitle {\sphinxupquote {tornado.locks}} and \sphinxstyleliteralintitle {\sphinxupquote {tornado.queues}}}{177}{paragraph*.789}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.autoreload}}}{178}{paragraph*.790}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.concurrent}}}{178}{paragraph*.791}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.curl\_httpclient}}}{178}{paragraph*.792}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.escape}}}{178}{paragraph*.793}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.gen}}}{178}{paragraph*.794}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpclient}}}{179}{paragraph*.795}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpserver}}}{179}{paragraph*.796}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httputil}}}{179}{paragraph*.797}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}}}{179}{paragraph*.798}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}}}{179}{paragraph*.799}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.locale}}}{179}{paragraph*.800}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.log}}}{179}{paragraph*.801}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.process}}}{180}{paragraph*.802}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.simple\_httpclient}}}{180}{paragraph*.803}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.tcpserver}}}{180}{paragraph*.804}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.util}}}{180}{paragraph*.805}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{180}{paragraph*.806}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}}}{180}{paragraph*.807}
+\contentsline {subsection}{\numberline {6.9.18}What\IeC {\textquoteright }s new in Tornado 4.1}{181}{subsection.6.9.18}
+\contentsline {subsubsection}{Feb 7, 2015}{181}{subsubsection*.808}
+\contentsline {paragraph}{Highlights}{181}{paragraph*.809}
+\contentsline {paragraph}{Backwards-compatibility notes}{181}{paragraph*.810}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.concurrent}}}{181}{paragraph*.811}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.curl\_httpclient}}}{181}{paragraph*.812}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.gen}}}{181}{paragraph*.813}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpclient}}}{182}{paragraph*.814}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpserver}}}{182}{paragraph*.815}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httputil}}}{182}{paragraph*.816}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}}}{182}{paragraph*.817}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}}}{182}{paragraph*.818}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.options}}}{183}{paragraph*.819}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.asyncio}}}{183}{paragraph*.820}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.twisted}}}{183}{paragraph*.821}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.tcpclient}}}{183}{paragraph*.822}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.tcpserver}}}{183}{paragraph*.823}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.testing}}}{183}{paragraph*.824}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{183}{paragraph*.825}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}}}{184}{paragraph*.826}
+\contentsline {subsection}{\numberline {6.9.19}What\IeC {\textquoteright }s new in Tornado 4.0.2}{184}{subsection.6.9.19}
+\contentsline {subsubsection}{Sept 10, 2014}{184}{subsubsection*.827}
+\contentsline {paragraph}{Bug fixes}{184}{paragraph*.828}
+\contentsline {subsection}{\numberline {6.9.20}What\IeC {\textquoteright }s new in Tornado 4.0.1}{184}{subsection.6.9.20}
+\contentsline {subsubsection}{Aug 12, 2014}{184}{subsubsection*.829}
+\contentsline {subsection}{\numberline {6.9.21}What\IeC {\textquoteright }s new in Tornado 4.0}{185}{subsection.6.9.21}
+\contentsline {subsubsection}{July 15, 2014}{185}{subsubsection*.830}
+\contentsline {paragraph}{Highlights}{185}{paragraph*.831}
+\contentsline {paragraph}{Backwards-compatibility notes}{185}{paragraph*.832}
+\contentsline {paragraph}{Other notes}{186}{paragraph*.833}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.auth}}}{186}{paragraph*.834}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.concurrent}}}{186}{paragraph*.835}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.curl\_httpclient}}}{186}{paragraph*.836}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.gen}}}{186}{paragraph*.837}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.http1connection}}}{186}{paragraph*.838}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpclient}}}{187}{paragraph*.839}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpserver}}}{187}{paragraph*.840}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httputil}}}{187}{paragraph*.841}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}}}{187}{paragraph*.842}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}}}{188}{paragraph*.843}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.netutil}}}{188}{paragraph*.844}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.options}}}{188}{paragraph*.845}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.asyncio}}}{189}{paragraph*.846}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.twisted}}}{189}{paragraph*.847}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.simple\_httpclient}}}{189}{paragraph*.848}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.stack\_context}}}{189}{paragraph*.849}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.tcpclient}}}{189}{paragraph*.850}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.testing}}}{189}{paragraph*.851}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{190}{paragraph*.852}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}}}{190}{paragraph*.853}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.wsgi}}}{190}{paragraph*.854}
+\contentsline {subsection}{\numberline {6.9.22}What\IeC {\textquoteright }s new in Tornado 3.2.2}{191}{subsection.6.9.22}
+\contentsline {subsubsection}{June 3, 2014}{191}{subsubsection*.855}
+\contentsline {paragraph}{Security fixes}{191}{paragraph*.856}
+\contentsline {paragraph}{Backwards-compatibility notes}{191}{paragraph*.857}
+\contentsline {paragraph}{Other changes}{191}{paragraph*.858}
+\contentsline {subsection}{\numberline {6.9.23}What\IeC {\textquoteright }s new in Tornado 3.2.1}{191}{subsection.6.9.23}
+\contentsline {subsubsection}{May 5, 2014}{191}{subsubsection*.859}
+\contentsline {paragraph}{Security fixes}{191}{paragraph*.860}
+\contentsline {paragraph}{Backwards-compatibility notes}{191}{paragraph*.861}
+\contentsline {paragraph}{Other changes}{192}{paragraph*.862}
+\contentsline {subsection}{\numberline {6.9.24}What\IeC {\textquoteright }s new in Tornado 3.2}{192}{subsection.6.9.24}
+\contentsline {subsubsection}{Jan 14, 2014}{192}{subsubsection*.863}
+\contentsline {paragraph}{Installation}{192}{paragraph*.864}
+\contentsline {paragraph}{New modules}{192}{paragraph*.865}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.auth}}}{192}{paragraph*.866}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.concurrent}}}{192}{paragraph*.867}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.curl\_httpclient}}}{192}{paragraph*.868}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.escape}}}{192}{paragraph*.869}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.gen}}}{193}{paragraph*.870}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpclient}}}{193}{paragraph*.871}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpserver}}}{193}{paragraph*.872}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}}}{193}{paragraph*.873}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}}}{193}{paragraph*.874}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.locale}}}{193}{paragraph*.875}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.log}}}{193}{paragraph*.876}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.netutil}}}{194}{paragraph*.877}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.twisted}}}{194}{paragraph*.878}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.process}}}{194}{paragraph*.879}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.simple\_httpclient}}}{194}{paragraph*.880}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{194}{paragraph*.881}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}}}{195}{paragraph*.882}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.wsgi}}}{195}{paragraph*.883}
+\contentsline {subsection}{\numberline {6.9.25}What\IeC {\textquoteright }s new in Tornado 3.1.1}{195}{subsection.6.9.25}
+\contentsline {subsubsection}{Sep 1, 2013}{195}{subsubsection*.884}
+\contentsline {subsection}{\numberline {6.9.26}What\IeC {\textquoteright }s new in Tornado 3.1}{195}{subsection.6.9.26}
+\contentsline {subsubsection}{Jun 15, 2013}{195}{subsubsection*.885}
+\contentsline {paragraph}{Multiple modules}{195}{paragraph*.886}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.auth}}}{195}{paragraph*.887}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.escape}}}{196}{paragraph*.888}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.gen}}}{196}{paragraph*.889}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpclient}}}{196}{paragraph*.890}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpserver}}}{196}{paragraph*.891}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httputil}}}{197}{paragraph*.892}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}}}{197}{paragraph*.893}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}}}{197}{paragraph*.894}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.locale}}}{197}{paragraph*.895}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.netutil}}}{197}{paragraph*.896}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.options}}}{197}{paragraph*.897}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.process}}}{198}{paragraph*.898}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.stack\_context}}}{198}{paragraph*.899}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.tcpserver}}}{198}{paragraph*.900}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.template}}}{198}{paragraph*.901}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.testing}}}{198}{paragraph*.902}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.util}}}{198}{paragraph*.903}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{198}{paragraph*.904}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}}}{199}{paragraph*.905}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.wsgi}}}{199}{paragraph*.906}
+\contentsline {subsection}{\numberline {6.9.27}What\IeC {\textquoteright }s new in Tornado 3.0.2}{200}{subsection.6.9.27}
+\contentsline {subsubsection}{Jun 2, 2013}{200}{subsubsection*.907}
+\contentsline {subsection}{\numberline {6.9.28}What\IeC {\textquoteright }s new in Tornado 3.0.1}{200}{subsection.6.9.28}
+\contentsline {subsubsection}{Apr 8, 2013}{200}{subsubsection*.908}
+\contentsline {subsection}{\numberline {6.9.29}What\IeC {\textquoteright }s new in Tornado 3.0}{200}{subsection.6.9.29}
+\contentsline {subsubsection}{Mar 29, 2013}{200}{subsubsection*.909}
+\contentsline {paragraph}{Highlights}{200}{paragraph*.910}
+\contentsline {paragraph}{Backwards-incompatible changes}{201}{paragraph*.911}
+\contentsline {paragraph}{Detailed changes by module}{201}{paragraph*.912}
+\contentsline {subparagraph}{Multiple modules}{201}{subparagraph*.913}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.autoreload}}}{201}{subparagraph*.914}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.auth}}}{202}{subparagraph*.915}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.concurrent}}}{202}{subparagraph*.916}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.curl\_httpclient}}}{202}{subparagraph*.917}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.escape}}}{202}{subparagraph*.918}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.gen}}}{202}{subparagraph*.919}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpclient}}}{203}{subparagraph*.920}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpserver}}}{203}{subparagraph*.921}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}}}{203}{subparagraph*.922}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}}}{204}{subparagraph*.923}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.log}}}{204}{subparagraph*.924}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.netutil}}}{204}{subparagraph*.925}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.options}}}{205}{subparagraph*.926}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.caresresolver}}}{205}{subparagraph*.927}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.platform.twisted}}}{205}{subparagraph*.928}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.process}}}{206}{subparagraph*.929}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.simple\_httpclient}}}{206}{subparagraph*.930}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.stack\_context}}}{206}{subparagraph*.931}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.template}}}{206}{subparagraph*.932}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.testing}}}{206}{subparagraph*.933}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.util}}}{207}{subparagraph*.934}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{207}{subparagraph*.935}
+\contentsline {subparagraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}}}{207}{subparagraph*.936}
+\contentsline {subsection}{\numberline {6.9.30}What\IeC {\textquoteright }s new in Tornado 2.4.1}{208}{subsection.6.9.30}
+\contentsline {subsubsection}{Nov 24, 2012}{208}{subsubsection*.937}
+\contentsline {paragraph}{Bug fixes}{208}{paragraph*.938}
+\contentsline {subsection}{\numberline {6.9.31}What\IeC {\textquoteright }s new in Tornado 2.4}{208}{subsection.6.9.31}
+\contentsline {subsubsection}{Sep 4, 2012}{208}{subsubsection*.939}
+\contentsline {paragraph}{General}{208}{paragraph*.940}
+\contentsline {paragraph}{HTTP clients}{208}{paragraph*.941}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}} and \sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}}}{208}{paragraph*.942}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.template}}}{209}{paragraph*.943}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.testing}}}{209}{paragraph*.944}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{209}{paragraph*.945}
+\contentsline {paragraph}{Other modules}{209}{paragraph*.946}
+\contentsline {subsection}{\numberline {6.9.32}What\IeC {\textquoteright }s new in Tornado 2.3}{209}{subsection.6.9.32}
+\contentsline {subsubsection}{May 31, 2012}{209}{subsubsection*.947}
+\contentsline {paragraph}{HTTP clients}{209}{paragraph*.948}
+\contentsline {paragraph}{HTTP Server}{210}{paragraph*.949}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {IOLoop}} and \sphinxstyleliteralintitle {\sphinxupquote {IOStream}}}{210}{paragraph*.950}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.options}}}{210}{paragraph*.951}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.template}}}{210}{paragraph*.952}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{210}{paragraph*.953}
+\contentsline {paragraph}{Other modules}{211}{paragraph*.954}
+\contentsline {subsection}{\numberline {6.9.33}What\IeC {\textquoteright }s new in Tornado 2.2.1}{211}{subsection.6.9.33}
+\contentsline {subsubsection}{Apr 23, 2012}{211}{subsubsection*.955}
+\contentsline {paragraph}{Security fixes}{211}{paragraph*.956}
+\contentsline {paragraph}{Bug fixes}{212}{paragraph*.957}
+\contentsline {subsection}{\numberline {6.9.34}What\IeC {\textquoteright }s new in Tornado 2.2}{212}{subsection.6.9.34}
+\contentsline {subsubsection}{Jan 30, 2012}{212}{subsubsection*.958}
+\contentsline {paragraph}{Highlights}{212}{paragraph*.959}
+\contentsline {paragraph}{Security fixes}{212}{paragraph*.960}
+\contentsline {paragraph}{Backwards-incompatible changes}{212}{paragraph*.961}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpclient}}}{212}{paragraph*.962}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpserver}}}{212}{paragraph*.963}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.ioloop}} and \sphinxstyleliteralintitle {\sphinxupquote {tornado.iostream}}}{213}{paragraph*.964}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.template}}}{213}{paragraph*.965}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{213}{paragraph*.966}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.websocket}}}{213}{paragraph*.967}
+\contentsline {paragraph}{Other modules}{214}{paragraph*.968}
+\contentsline {subsection}{\numberline {6.9.35}What\IeC {\textquoteright }s new in Tornado 2.1.1}{214}{subsection.6.9.35}
+\contentsline {subsubsection}{Oct 4, 2011}{214}{subsubsection*.969}
+\contentsline {paragraph}{Bug fixes}{214}{paragraph*.970}
+\contentsline {paragraph}{Backwards-compatibility note}{214}{paragraph*.971}
+\contentsline {subsection}{\numberline {6.9.36}What\IeC {\textquoteright }s new in Tornado 2.1}{214}{subsection.6.9.36}
+\contentsline {subsubsection}{Sep 20, 2011}{214}{subsubsection*.972}
+\contentsline {paragraph}{Backwards-incompatible changes}{215}{paragraph*.973}
+\contentsline {paragraph}{Security fixes}{215}{paragraph*.974}
+\contentsline {paragraph}{New modules}{215}{paragraph*.975}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.web}}}{215}{paragraph*.976}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.httpserver}}}{216}{paragraph*.977}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {IOLoop}} and \sphinxstyleliteralintitle {\sphinxupquote {IOStream}}}{216}{paragraph*.978}
+\contentsline {paragraph}{\sphinxstyleliteralintitle {\sphinxupquote {tornado.simple\_httpclient}}}{216}{paragraph*.979}
+\contentsline {paragraph}{Other modules}{217}{paragraph*.980}
+\contentsline {paragraph}{Bug fixes}{217}{paragraph*.981}
+\contentsline {subsection}{\numberline {6.9.37}What\IeC {\textquoteright }s new in Tornado 2.0}{217}{subsection.6.9.37}
+\contentsline {subsubsection}{Jun 21, 2011}{217}{subsubsection*.982}
+\contentsline {subsection}{\numberline {6.9.38}What\IeC {\textquoteright }s new in Tornado 1.2.1}{218}{subsection.6.9.38}
+\contentsline {subsubsection}{Mar 3, 2011}{218}{subsubsection*.983}
+\contentsline {subsection}{\numberline {6.9.39}What\IeC {\textquoteright }s new in Tornado 1.2}{219}{subsection.6.9.39}
+\contentsline {subsubsection}{Feb 20, 2011}{219}{subsubsection*.984}
+\contentsline {subsection}{\numberline {6.9.40}What\IeC {\textquoteright }s new in Tornado 1.1.1}{220}{subsection.6.9.40}
+\contentsline {subsubsection}{Feb 8, 2011}{220}{subsubsection*.985}
+\contentsline {subsection}{\numberline {6.9.41}What\IeC {\textquoteright }s new in Tornado 1.1}{221}{subsection.6.9.41}
+\contentsline {subsubsection}{Sep 7, 2010}{221}{subsubsection*.986}
+\contentsline {subsection}{\numberline {6.9.42}What\IeC {\textquoteright }s new in Tornado 1.0.1}{222}{subsection.6.9.42}
+\contentsline {subsubsection}{Aug 13, 2010}{222}{subsubsection*.987}
+\contentsline {subsection}{\numberline {6.9.43}What\IeC {\textquoteright }s new in Tornado 1.0}{222}{subsection.6.9.43}
+\contentsline {subsubsection}{July 22, 2010}{222}{subsubsection*.988}
+\contentsline {chapter}{\numberline {7}Discussion and support}{225}{chapter.7}
+\contentsline {chapter}{Python Module Index}{227}{section*.989}

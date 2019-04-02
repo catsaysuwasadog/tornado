@@ -1,0 +1,465 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.concurrent &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tornado.concurrent</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tornado.concurrent</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2012 Facebook</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c1"># not use this file except in compliance with the License. You may obtain</span>
+<span class="c1"># a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c1"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c1"># License for the specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
+<span class="sd">&quot;&quot;&quot;Utilities for working with ``Future`` objects.</span>
+
+<span class="sd">Tornado previously provided its own ``Future`` class, but now uses</span>
+<span class="sd">`asyncio.Future`. This module contains utility functions for working</span>
+<span class="sd">with `asyncio.Future` in a way that is backwards-compatible with</span>
+<span class="sd">Tornado&#39;s old ``Future`` implementation.</span>
+
+<span class="sd">While this module is an important part of Tornado&#39;s internal</span>
+<span class="sd">implementation, applications rarely need to interact with it</span>
+<span class="sd">directly.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">from</span> <span class="nn">concurrent</span> <span class="k">import</span> <span class="n">futures</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">types</span>
+
+<span class="kn">from</span> <span class="nn">tornado.log</span> <span class="k">import</span> <span class="n">app_log</span>
+
+<span class="kn">import</span> <span class="nn">typing</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="n">_T</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;_T&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">ReturnValueIgnoredError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="c1"># No longer used; was previously used by @return_future</span>
+    <span class="k">pass</span>
+
+
+<span class="n">Future</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span>
+
+<span class="n">FUTURES</span> <span class="o">=</span> <span class="p">(</span><span class="n">futures</span><span class="o">.</span><span class="n">Future</span><span class="p">,</span> <span class="n">Future</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">is_future</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">FUTURES</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">DummyExecutor</span><span class="p">(</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">submit</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">_T</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;futures.Future[_T]&quot;</span><span class="p">:</span>
+        <span class="n">future</span> <span class="o">=</span> <span class="n">futures</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>  <span class="c1"># type: futures.Future[_T]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">future_set_exc_info</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">future</span>
+
+    <span class="k">def</span> <span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wait</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+
+<span class="n">dummy_executor</span> <span class="o">=</span> <span class="n">DummyExecutor</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="run_on_executor"><a class="viewcode-back" href="../../concurrent.html#tornado.concurrent.run_on_executor">[docs]</a><span class="k">def</span> <span class="nf">run_on_executor</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Decorator to run a synchronous method asynchronously on an executor.</span>
+
+<span class="sd">    The decorated method may be called with a ``callback`` keyword</span>
+<span class="sd">    argument and returns a future.</span>
+
+<span class="sd">    The executor to be used is determined by the ``executor``</span>
+<span class="sd">    attributes of ``self``. To use a different attribute name, pass a</span>
+<span class="sd">    keyword argument to the decorator::</span>
+
+<span class="sd">        @run_on_executor(executor=&#39;_thread_pool&#39;)</span>
+<span class="sd">        def foo(self):</span>
+<span class="sd">            pass</span>
+
+<span class="sd">    This decorator should not be confused with the similarly-named</span>
+<span class="sd">    `.IOLoop.run_in_executor`. In general, using ``run_in_executor``</span>
+<span class="sd">    when *calling* a blocking method is recommended instead of using</span>
+<span class="sd">    this decorator when *defining* a method. If compatibility with older</span>
+<span class="sd">    versions of Tornado is required, consider defining an executor</span>
+<span class="sd">    and using ``executor.submit()`` at the call site.</span>
+
+<span class="sd">    .. versionchanged:: 4.2</span>
+<span class="sd">       Added keyword arguments to use alternative attributes.</span>
+
+<span class="sd">    .. versionchanged:: 5.0</span>
+<span class="sd">       Always uses the current IOLoop instead of ``self.io_loop``.</span>
+
+<span class="sd">    .. versionchanged:: 5.1</span>
+<span class="sd">       Returns a `.Future` compatible with ``await`` instead of a</span>
+<span class="sd">       `concurrent.futures.Future`.</span>
+
+<span class="sd">    .. deprecated:: 5.1</span>
+
+<span class="sd">       The ``callback`` argument is deprecated and will be removed in</span>
+<span class="sd">       6.0. The decorator itself is discouraged in new code but will</span>
+<span class="sd">       not be removed in 6.0.</span>
+
+<span class="sd">    .. versionchanged:: 6.0</span>
+
+<span class="sd">       The ``callback`` argument was removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Fully type-checking decorators is tricky, and this one is</span>
+    <span class="c1"># discouraged anyway so it doesn&#39;t have all the generic magic.</span>
+    <span class="k">def</span> <span class="nf">run_on_executor_decorator</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Future</span><span class="p">]:</span>
+        <span class="n">executor</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;executor&quot;</span><span class="p">,</span> <span class="s2">&quot;executor&quot;</span><span class="p">)</span>
+
+        <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Future</span><span class="p">:</span>
+            <span class="n">async_future</span> <span class="o">=</span> <span class="n">Future</span><span class="p">()</span>  <span class="c1"># type: Future</span>
+            <span class="n">conc_future</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">executor</span><span class="p">)</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">chain_future</span><span class="p">(</span><span class="n">conc_future</span><span class="p">,</span> <span class="n">async_future</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">async_future</span>
+
+        <span class="k">return</span> <span class="n">wrapper</span>
+
+    <span class="k">if</span> <span class="n">args</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot combine positional and keyword args&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">run_on_executor_decorator</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;expected 1 argument, got </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">run_on_executor_decorator</span></div>
+
+
+<span class="n">_NO_RESULT</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="chain_future"><a class="viewcode-back" href="../../concurrent.html#tornado.concurrent.chain_future">[docs]</a><span class="k">def</span> <span class="nf">chain_future</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="s2">&quot;Future[_T]&quot;</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="s2">&quot;Future[_T]&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Chain two futures together so that when one completes, so does the other.</span>
+
+<span class="sd">    The result (success or failure) of ``a`` will be copied to ``b``, unless</span>
+<span class="sd">    ``b`` has already been completed or cancelled by the time ``a`` finishes.</span>
+
+<span class="sd">    .. versionchanged:: 5.0</span>
+
+<span class="sd">       Now accepts both Tornado/asyncio `Future` objects and</span>
+<span class="sd">       `concurrent.futures.Future`.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="n">future</span><span class="p">:</span> <span class="s2">&quot;Future[_T]&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">future</span> <span class="ow">is</span> <span class="n">a</span>
+        <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">&quot;exc_info&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+            <span class="n">future_set_exc_info</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">exc_info</span><span class="p">())</span>  <span class="c1"># type: ignore</span>
+        <span class="k">elif</span> <span class="n">a</span><span class="o">.</span><span class="n">exception</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">b</span><span class="o">.</span><span class="n">set_exception</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">exception</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">b</span><span class="o">.</span><span class="n">set_result</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">Future</span><span class="p">):</span>
+        <span class="n">future_add_done_callback</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">copy</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># concurrent.futures.Future</span>
+        <span class="kn">from</span> <span class="nn">tornado.ioloop</span> <span class="k">import</span> <span class="n">IOLoop</span>
+
+        <span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">.</span><span class="n">add_future</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">copy</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="future_set_result_unless_cancelled"><a class="viewcode-back" href="../../concurrent.html#tornado.concurrent.future_set_result_unless_cancelled">[docs]</a><span class="k">def</span> <span class="nf">future_set_result_unless_cancelled</span><span class="p">(</span>
+    <span class="n">future</span><span class="p">:</span> <span class="s2">&quot;Union[futures.Future[_T], Future[_T]]&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_T</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Set the given ``value`` as the `Future`&#39;s result, if not cancelled.</span>
+
+<span class="sd">    Avoids ``asyncio.InvalidStateError`` when calling ``set_result()`` on</span>
+<span class="sd">    a cancelled `asyncio.Future`.</span>
+
+<span class="sd">    .. versionadded:: 5.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">future</span><span class="o">.</span><span class="n">cancelled</span><span class="p">():</span>
+        <span class="n">future</span><span class="o">.</span><span class="n">set_result</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="future_set_exception_unless_cancelled"><a class="viewcode-back" href="../../concurrent.html#tornado.concurrent.future_set_exception_unless_cancelled">[docs]</a><span class="k">def</span> <span class="nf">future_set_exception_unless_cancelled</span><span class="p">(</span>
+    <span class="n">future</span><span class="p">:</span> <span class="s2">&quot;Union[futures.Future[_T], Future[_T]]&quot;</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="ne">BaseException</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Set the given ``exc`` as the `Future`&#39;s exception.</span>
+
+<span class="sd">    If the Future is already canceled, logs the exception instead. If</span>
+<span class="sd">    this logging is not desired, the caller should explicitly check</span>
+<span class="sd">    the state of the Future and call ``Future.set_exception`` instead of</span>
+<span class="sd">    this wrapper.</span>
+
+<span class="sd">    Avoids ``asyncio.InvalidStateError`` when calling ``set_exception()`` on</span>
+<span class="sd">    a cancelled `asyncio.Future`.</span>
+
+<span class="sd">    .. versionadded:: 6.0</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">future</span><span class="o">.</span><span class="n">cancelled</span><span class="p">():</span>
+        <span class="n">future</span><span class="o">.</span><span class="n">set_exception</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">app_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Exception after Future was cancelled&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">exc</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="future_set_exc_info"><a class="viewcode-back" href="../../concurrent.html#tornado.concurrent.future_set_exc_info">[docs]</a><span class="k">def</span> <span class="nf">future_set_exc_info</span><span class="p">(</span>
+    <span class="n">future</span><span class="p">:</span> <span class="s2">&quot;Union[futures.Future[_T], Future[_T]]&quot;</span><span class="p">,</span>
+    <span class="n">exc_info</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span>
+        <span class="n">Optional</span><span class="p">[</span><span class="nb">type</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">TracebackType</span><span class="p">]</span>
+    <span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Set the given ``exc_info`` as the `Future`&#39;s exception.</span>
+
+<span class="sd">    Understands both `asyncio.Future` and the extensions in older</span>
+<span class="sd">    versions of Tornado to enable better tracebacks on Python 2.</span>
+
+<span class="sd">    .. versionadded:: 5.0</span>
+
+<span class="sd">    .. versionchanged:: 6.0</span>
+
+<span class="sd">       If the future is already cancelled, this function is a no-op.</span>
+<span class="sd">       (previously ``asyncio.InvalidStateError`` would be raised)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">exc_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;future_set_exc_info called with no exception&quot;</span><span class="p">)</span>
+    <span class="n">future_set_exception_unless_cancelled</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="n">exc_info</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></div>
+
+
+<span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>
+<span class="k">def</span> <span class="nf">future_add_done_callback</span><span class="p">(</span>
+    <span class="n">future</span><span class="p">:</span> <span class="s2">&quot;futures.Future[_T]&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="s2">&quot;futures.Future[_T]&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>  <span class="c1"># noqa: F811</span>
+<span class="k">def</span> <span class="nf">future_add_done_callback</span><span class="p">(</span>
+    <span class="n">future</span><span class="p">:</span> <span class="s2">&quot;Future[_T]&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="s2">&quot;Future[_T]&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="future_add_done_callback"><a class="viewcode-back" href="../../concurrent.html#tornado.concurrent.future_add_done_callback">[docs]</a><span class="k">def</span> <span class="nf">future_add_done_callback</span><span class="p">(</span>  <span class="c1"># noqa: F811</span>
+    <span class="n">future</span><span class="p">:</span> <span class="s2">&quot;Union[futures.Future[_T], Future[_T]]&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Arrange to call ``callback`` when ``future`` is complete.</span>
+
+<span class="sd">    ``callback`` is invoked with one argument, the ``future``.</span>
+
+<span class="sd">    If ``future`` is already done, ``callback`` is invoked immediately.</span>
+<span class="sd">    This may differ from the behavior of ``Future.add_done_callback``,</span>
+<span class="sd">    which makes no such guarantee.</span>
+
+<span class="sd">    .. versionadded:: 5.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">future</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+        <span class="n">callback</span><span class="p">(</span><span class="n">future</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">future</span><span class="o">.</span><span class="n">add_done_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

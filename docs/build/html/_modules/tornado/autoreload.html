@@ -1,0 +1,565 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.autoreload &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tornado.autoreload</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tornado.autoreload</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2009 Facebook</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c1"># not use this file except in compliance with the License. You may obtain</span>
+<span class="c1"># a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c1"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c1"># License for the specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
+
+<span class="sd">&quot;&quot;&quot;Automatically restart the server when a source file is modified.</span>
+
+<span class="sd">Most applications should not access this module directly.  Instead,</span>
+<span class="sd">pass the keyword argument ``autoreload=True`` to the</span>
+<span class="sd">`tornado.web.Application` constructor (or ``debug=True``, which</span>
+<span class="sd">enables this setting and several others).  This will enable autoreload</span>
+<span class="sd">mode as well as checking for changes to templates and static</span>
+<span class="sd">resources.  Note that restarting is a destructive operation and any</span>
+<span class="sd">requests in progress will be aborted when the process restarts.  (If</span>
+<span class="sd">you want to disable autoreload while using other debug-mode features,</span>
+<span class="sd">pass both ``debug=True`` and ``autoreload=False``).</span>
+
+<span class="sd">This module can also be used as a command-line wrapper around scripts</span>
+<span class="sd">such as unit test runners.  See the `main` method for details.</span>
+
+<span class="sd">The command-line wrapper and Application debug modes can be used together.</span>
+<span class="sd">This combination is encouraged as the wrapper catches syntax errors and</span>
+<span class="sd">other import-time failures, while debug mode catches changes once</span>
+<span class="sd">the server has started.</span>
+
+<span class="sd">This module will not work correctly when `.HTTPServer`&#39;s multi-process</span>
+<span class="sd">mode is used.</span>
+
+<span class="sd">Reloading loses any Python interpreter command-line arguments (e.g. ``-u``)</span>
+<span class="sd">because it re-executes Python using ``sys.executable`` and ``sys.argv``.</span>
+<span class="sd">Additionally, modifying these variables will cause reloading to behave</span>
+<span class="sd">incorrectly.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="c1"># sys.path handling</span>
+<span class="c1"># -----------------</span>
+<span class="c1">#</span>
+<span class="c1"># If a module is run with &quot;python -m&quot;, the current directory (i.e. &quot;&quot;)</span>
+<span class="c1"># is automatically prepended to sys.path, but not if it is run as</span>
+<span class="c1"># &quot;path/to/file.py&quot;.  The processing for &quot;-m&quot; rewrites the former to</span>
+<span class="c1"># the latter, so subsequent executions won&#39;t have the same path as the</span>
+<span class="c1"># original.</span>
+<span class="c1">#</span>
+<span class="c1"># Conversely, when run as path/to/file.py, the directory containing</span>
+<span class="c1"># file.py gets added to the path, which can cause confusion as imports</span>
+<span class="c1"># may become relative in spite of the future import.</span>
+<span class="c1">#</span>
+<span class="c1"># We address the former problem by reconstructing the original command</span>
+<span class="c1"># line (Python &gt;= 3.4) or by setting the $PYTHONPATH environment</span>
+<span class="c1"># variable (Python &lt; 3.4) before re-execution so the new process will</span>
+<span class="c1"># see the correct path.  We attempt to address the latter problem when</span>
+<span class="c1"># tornado.autoreload is run as __main__.</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># This sys.path manipulation must come before our imports (as much</span>
+    <span class="c1"># as possible - if we introduced a tornado.sys or tornado.os</span>
+    <span class="c1"># module we&#39;d be in trouble), or else our imports would become</span>
+    <span class="c1"># relative again despite the future import.</span>
+    <span class="c1">#</span>
+    <span class="c1"># There is a separate __main__ block at the end of the file to call main().</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">):</span>
+        <span class="k">del</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pkgutil</span>  <span class="c1"># type: ignore</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">weakref</span>
+
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">ioloop</span>
+<span class="kn">from</span> <span class="nn">tornado.log</span> <span class="k">import</span> <span class="n">gen_log</span>
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">process</span>
+<span class="kn">from</span> <span class="nn">tornado.util</span> <span class="k">import</span> <span class="n">exec_in</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">signal</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">signal</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+
+<span class="kn">import</span> <span class="nn">typing</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span>
+
+<span class="k">if</span> <span class="n">typing</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>  <span class="c1"># noqa: F401</span>
+
+<span class="c1"># os.execv is broken on Windows and can&#39;t properly parse command line</span>
+<span class="c1"># arguments and executable name if they contain whitespaces. subprocess</span>
+<span class="c1"># fixes that behavior.</span>
+<span class="n">_has_execv</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">!=</span> <span class="s2">&quot;win32&quot;</span>
+
+<span class="n">_watched_files</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+<span class="n">_reload_hooks</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">_reload_attempted</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">_io_loops</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">WeakKeyDictionary</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+<span class="n">_autoreload_is_main</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">_original_argv</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[List[str]]</span>
+<span class="n">_original_spec</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="start"><a class="viewcode-back" href="../../autoreload.html#tornado.autoreload.start">[docs]</a><span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">check_time</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">500</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Begins watching source files for changes.</span>
+
+<span class="sd">    .. versionchanged:: 5.0</span>
+<span class="sd">       The ``io_loop`` argument (deprecated since version 4.1) has been removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">io_loop</span> <span class="o">=</span> <span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">io_loop</span> <span class="ow">in</span> <span class="n">_io_loops</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">_io_loops</span><span class="p">[</span><span class="n">io_loop</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_io_loops</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">gen_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;tornado.autoreload started more than once in the same process&quot;</span><span class="p">)</span>
+    <span class="n">modify_times</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, float]</span>
+    <span class="n">callback</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">_reload_on_update</span><span class="p">,</span> <span class="n">modify_times</span><span class="p">)</span>
+    <span class="n">scheduler</span> <span class="o">=</span> <span class="n">ioloop</span><span class="o">.</span><span class="n">PeriodicCallback</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">check_time</span><span class="p">)</span>
+    <span class="n">scheduler</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="wait"><a class="viewcode-back" href="../../autoreload.html#tornado.autoreload.wait">[docs]</a><span class="k">def</span> <span class="nf">wait</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Wait for a watched file to change, then restart the process.</span>
+
+<span class="sd">    Intended to be used at the end of scripts like unit test runners,</span>
+<span class="sd">    to run the tests again after any source file changes (but see also</span>
+<span class="sd">    the command-line interface in `main`)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">io_loop</span> <span class="o">=</span> <span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="p">()</span>
+    <span class="n">io_loop</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+    <span class="n">io_loop</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="watch"><a class="viewcode-back" href="../../autoreload.html#tornado.autoreload.watch">[docs]</a><span class="k">def</span> <span class="nf">watch</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Add a file to the watch list.</span>
+
+<span class="sd">    All imported modules are watched by default.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_watched_files</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="add_reload_hook"><a class="viewcode-back" href="../../autoreload.html#tornado.autoreload.add_reload_hook">[docs]</a><span class="k">def</span> <span class="nf">add_reload_hook</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="kc">None</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Add a function to be called before reloading the process.</span>
+
+<span class="sd">    Note that for open file and socket handles it is generally</span>
+<span class="sd">    preferable to set the ``FD_CLOEXEC`` flag (using `fcntl` or</span>
+<span class="sd">    ``tornado.platform.auto.set_close_exec``) instead</span>
+<span class="sd">    of using a reload hook to close them.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_reload_hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_reload_on_update</span><span class="p">(</span><span class="n">modify_times</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">_reload_attempted</span><span class="p">:</span>
+        <span class="c1"># We already tried to reload and it didn&#39;t work, so don&#39;t try again.</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">process</span><span class="o">.</span><span class="n">task_id</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># We&#39;re in a child process created by fork_processes.  If child</span>
+        <span class="c1"># processes restarted themselves, they&#39;d all restart and then</span>
+        <span class="c1"># all call fork_processes again.</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="c1"># Some modules play games with sys.modules (e.g. email/__init__.py</span>
+        <span class="c1"># in the standard library), and occasionally this can cause strange</span>
+        <span class="c1"># failures in getattr.  Just ignore anything that&#39;s not an ordinary</span>
+        <span class="c1"># module.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;__file__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.pyc&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.pyo&quot;</span><span class="p">):</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">_check_file</span><span class="p">(</span><span class="n">modify_times</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">_watched_files</span><span class="p">:</span>
+        <span class="n">_check_file</span><span class="p">(</span><span class="n">modify_times</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_check_file</span><span class="p">(</span><span class="n">modify_times</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">modified</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">st_mtime</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">modify_times</span><span class="p">:</span>
+        <span class="n">modify_times</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">modified</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">modify_times</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">!=</span> <span class="n">modified</span><span class="p">:</span>
+        <span class="n">gen_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> modified; restarting server&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="n">_reload</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">_reload</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">global</span> <span class="n">_reload_attempted</span>
+    <span class="n">_reload_attempted</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">_reload_hooks</span><span class="p">:</span>
+        <span class="n">fn</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="s2">&quot;setitimer&quot;</span><span class="p">):</span>
+        <span class="c1"># Clear the alarm signal set by</span>
+        <span class="c1"># ioloop.set_blocking_log_threshold so it doesn&#39;t fire</span>
+        <span class="c1"># after the exec.</span>
+        <span class="n">signal</span><span class="o">.</span><span class="n">setitimer</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">ITIMER_REAL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># sys.path fixes: see comments at top of file.  If __main__.__spec__</span>
+    <span class="c1"># exists, we were invoked with -m and the effective path is about to</span>
+    <span class="c1"># change on re-exec.  Reconstruct the original command line to</span>
+    <span class="c1"># ensure that the new process sees the same path we did.  If</span>
+    <span class="c1"># __spec__ is not available (Python &lt; 3.4), check instead if</span>
+    <span class="c1"># sys.path[0] is an empty string and add the current directory to</span>
+    <span class="c1"># $PYTHONPATH.</span>
+    <span class="k">if</span> <span class="n">_autoreload_is_main</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">_original_argv</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">_original_spec</span>
+        <span class="n">argv</span> <span class="o">=</span> <span class="n">_original_argv</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s2">&quot;__main__&quot;</span><span class="p">],</span> <span class="s2">&quot;__spec__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">argv</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+    <span class="k">if</span> <span class="n">spec</span><span class="p">:</span>
+        <span class="n">argv</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="n">spec</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">path_prefix</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">pathsep</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;PYTHONPATH&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
+            <span class="n">path_prefix</span>
+        <span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYTHONPATH&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">path_prefix</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;PYTHONPATH&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_has_execv</span><span class="p">:</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">_exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">execv</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="p">[</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="c1"># Mac OS X versions prior to 10.6 do not support execv in</span>
+            <span class="c1"># a process that contains multiple threads.  Instead of</span>
+            <span class="c1"># re-executing in the current process, start a new one</span>
+            <span class="c1"># and cause the current process to exit.  This isn&#39;t</span>
+            <span class="c1"># ideal since the new process is detached from the parent</span>
+            <span class="c1"># terminal and thus cannot easily be killed with ctrl-C,</span>
+            <span class="c1"># but it&#39;s better than not being able to autoreload at</span>
+            <span class="c1"># all.</span>
+            <span class="c1"># Unfortunately the errno returned in this case does not</span>
+            <span class="c1"># appear to be consistent, so we can&#39;t easily check for</span>
+            <span class="c1"># this error specifically.</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">spawnv</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">P_NOWAIT</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="p">[</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span>
+            <span class="p">)</span>
+            <span class="c1"># At this point the IOLoop has been closed and finally</span>
+            <span class="c1"># blocks will experience errors if we allow the stack to</span>
+            <span class="c1"># unwind, so just exit uncleanly.</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">_exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+
+<span class="n">_USAGE</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Usage:</span>
+<span class="s2">  python -m tornado.autoreload -m module.to.run [args...]</span>
+<span class="s2">  python -m tornado.autoreload path/to/script.py [args...]</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../autoreload.html#tornado.autoreload.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Command-line wrapper to re-run a script whenever its source changes.</span>
+
+<span class="sd">    Scripts may be specified by filename or module name::</span>
+
+<span class="sd">        python -m tornado.autoreload -m tornado.test.runtests</span>
+<span class="sd">        python -m tornado.autoreload tornado/test/runtests.py</span>
+
+<span class="sd">    Running a script with this wrapper is similar to calling</span>
+<span class="sd">    `tornado.autoreload.wait` at the end of the script, but this wrapper</span>
+<span class="sd">    can catch import-time problems like syntax errors that would otherwise</span>
+<span class="sd">    prevent the script from reaching its call to `wait`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Remember that we were launched with autoreload as main.</span>
+    <span class="c1"># The main module can be tricky; set the variables both in our globals</span>
+    <span class="c1"># (which may be __main__) and the real importable version.</span>
+    <span class="kn">import</span> <span class="nn">tornado.autoreload</span>
+
+    <span class="k">global</span> <span class="n">_autoreload_is_main</span>
+    <span class="k">global</span> <span class="n">_original_argv</span><span class="p">,</span> <span class="n">_original_spec</span>
+    <span class="n">tornado</span><span class="o">.</span><span class="n">autoreload</span><span class="o">.</span><span class="n">_autoreload_is_main</span> <span class="o">=</span> <span class="n">_autoreload_is_main</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">original_argv</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+    <span class="n">tornado</span><span class="o">.</span><span class="n">autoreload</span><span class="o">.</span><span class="n">_original_argv</span> <span class="o">=</span> <span class="n">_original_argv</span> <span class="o">=</span> <span class="n">original_argv</span>
+    <span class="n">original_spec</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s2">&quot;__main__&quot;</span><span class="p">],</span> <span class="s2">&quot;__spec__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">tornado</span><span class="o">.</span><span class="n">autoreload</span><span class="o">.</span><span class="n">_original_spec</span> <span class="o">=</span> <span class="n">_original_spec</span> <span class="o">=</span> <span class="n">original_spec</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[:]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;-m&quot;</span><span class="p">:</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;module&quot;</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;script&quot;</span>
+        <span class="n">script</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">_USAGE</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;module&quot;</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">runpy</span>
+
+            <span class="n">runpy</span><span class="o">.</span><span class="n">run_module</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">run_name</span><span class="o">=</span><span class="s2">&quot;__main__&quot;</span><span class="p">,</span> <span class="n">alter_sys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;script&quot;</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">script</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="c1"># Execute the script in our namespace instead of creating</span>
+                <span class="c1"># a new one so that something that tries to import __main__</span>
+                <span class="c1"># (e.g. the unittest module) will see names defined in the</span>
+                <span class="c1"># script instead of just those defined in this module.</span>
+                <span class="k">global</span> <span class="vm">__file__</span>
+                <span class="vm">__file__</span> <span class="o">=</span> <span class="n">script</span>
+                <span class="c1"># If __package__ is defined, imports may be incorrectly</span>
+                <span class="c1"># interpreted as relative to this module.</span>
+                <span class="k">global</span> <span class="n">__package__</span>
+                <span class="k">del</span> <span class="n">__package__</span>
+                <span class="n">exec_in</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="nb">globals</span><span class="p">(),</span> <span class="nb">globals</span><span class="p">())</span>
+    <span class="k">except</span> <span class="ne">SystemExit</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
+        <span class="n">gen_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Script exited with status </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">code</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
+        <span class="n">gen_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Script exited with uncaught exception&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># If an exception occurred at import time, the file with the error</span>
+        <span class="c1"># never made it into sys.modules and so we won&#39;t know to watch it.</span>
+        <span class="c1"># Just to make sure we&#39;ve covered everything, walk the stack trace</span>
+        <span class="c1"># from the exception and watch every file.</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">lineno</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="ow">in</span> <span class="n">traceback</span><span class="o">.</span><span class="n">extract_tb</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">2</span><span class="p">]):</span>
+            <span class="n">watch</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="ne">SyntaxError</span><span class="p">):</span>
+            <span class="c1"># SyntaxErrors are special:  their innermost stack frame is fake</span>
+            <span class="c1"># so extract_tb won&#39;t see it and we have to get the filename</span>
+            <span class="c1"># from the exception object.</span>
+            <span class="n">watch</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
+        <span class="n">gen_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Script exited normally&quot;</span><span class="p">)</span>
+    <span class="c1"># restore sys.argv so subsequent executions will include autoreload</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="o">=</span> <span class="n">original_argv</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;module&quot;</span><span class="p">:</span>
+        <span class="c1"># runpy did a fake import of the module as __main__, but now it&#39;s</span>
+        <span class="c1"># no longer in sys.modules.  Figure out where it is and watch it.</span>
+        <span class="n">loader</span> <span class="o">=</span> <span class="n">pkgutil</span><span class="o">.</span><span class="n">get_loader</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">loader</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">watch</span><span class="p">(</span><span class="n">loader</span><span class="o">.</span><span class="n">get_filename</span><span class="p">())</span>  <span class="c1"># type: ignore</span>
+
+    <span class="n">wait</span><span class="p">()</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># See also the other __main__ block at the top of the file, which modifies</span>
+    <span class="c1"># sys.path before our imports</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

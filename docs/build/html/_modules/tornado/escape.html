@@ -1,0 +1,601 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.escape &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tornado.escape</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tornado.escape</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2009 Facebook</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c1"># not use this file except in compliance with the License. You may obtain</span>
+<span class="c1"># a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c1"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c1"># License for the specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
+
+<span class="sd">&quot;&quot;&quot;Escaping/unescaping methods for HTML, JSON, URLs, and others.</span>
+
+<span class="sd">Also includes a few other miscellaneous string manipulation functions that</span>
+<span class="sd">have crept in over time.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">html.entities</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">urllib.parse</span>
+
+<span class="kn">from</span> <span class="nn">tornado.util</span> <span class="k">import</span> <span class="n">unicode_type</span>
+
+<span class="kn">import</span> <span class="nn">typing</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span>
+
+
+<span class="n">_XHTML_ESCAPE_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;[&amp;&lt;&gt;</span><span class="se">\&quot;</span><span class="s2">&#39;]&quot;</span><span class="p">)</span>
+<span class="n">_XHTML_ESCAPE_DICT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;&amp;&quot;</span><span class="p">:</span> <span class="s2">&quot;&amp;amp;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;&lt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&amp;lt;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&amp;gt;&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;&quot;&#39;</span><span class="p">:</span> <span class="s2">&quot;&amp;quot;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;&#39;&quot;</span><span class="p">:</span> <span class="s2">&quot;&amp;#39;&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="xhtml_escape"><a class="viewcode-back" href="../../escape.html#tornado.escape.xhtml_escape">[docs]</a><span class="k">def</span> <span class="nf">xhtml_escape</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Escapes a string so it is valid within HTML or XML.</span>
+
+<span class="sd">    Escapes the characters ``&lt;``, ``&gt;``, ``&quot;``, ``&#39;``, and ``&amp;``.</span>
+<span class="sd">    When used in attribute values the escaped strings must be enclosed</span>
+<span class="sd">    in quotes.</span>
+
+<span class="sd">    .. versionchanged:: 3.2</span>
+
+<span class="sd">       Added the single quote to the list of escaped characters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_XHTML_ESCAPE_RE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">match</span><span class="p">:</span> <span class="n">_XHTML_ESCAPE_DICT</span><span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)],</span> <span class="n">to_basestring</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="xhtml_unescape"><a class="viewcode-back" href="../../escape.html#tornado.escape.xhtml_unescape">[docs]</a><span class="k">def</span> <span class="nf">xhtml_unescape</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Un-escapes an XML-escaped string.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;&amp;(#?)(\w+?);&quot;</span><span class="p">,</span> <span class="n">_convert_entity</span><span class="p">,</span> <span class="n">_unicode</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div>
+
+
+<span class="c1"># The fact that json_encode wraps json.dumps is an implementation detail.</span>
+<span class="c1"># Please see https://github.com/tornadoweb/tornado/pull/706</span>
+<span class="c1"># before sending a pull request that adds **kwargs to this function.</span>
+<div class="viewcode-block" id="json_encode"><a class="viewcode-back" href="../../escape.html#tornado.escape.json_encode">[docs]</a><span class="k">def</span> <span class="nf">json_encode</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;JSON-encodes the given Python object.&quot;&quot;&quot;</span>
+    <span class="c1"># JSON permits but does not require forward slashes to be escaped.</span>
+    <span class="c1"># This is useful when json data is emitted in a &lt;script&gt; tag</span>
+    <span class="c1"># in HTML, as it prevents &lt;/script&gt; tags from prematurely terminating</span>
+    <span class="c1"># the javascript.  Some json libraries do this escaping by default,</span>
+    <span class="c1"># although python&#39;s standard library does not, so we do it here.</span>
+    <span class="c1"># http://stackoverflow.com/questions/1580647/json-why-are-forward-slashes-escaped</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&lt;/&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;</span><span class="se">\\</span><span class="s2">/&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="json_decode"><a class="viewcode-back" href="../../escape.html#tornado.escape.json_decode">[docs]</a><span class="k">def</span> <span class="nf">json_decode</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Returns Python objects for the given JSON string.</span>
+
+<span class="sd">    Supports both `str` and `bytes` inputs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">to_basestring</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="squeeze"><a class="viewcode-back" href="../../escape.html#tornado.escape.squeeze">[docs]</a><span class="k">def</span> <span class="nf">squeeze</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Replace all sequences of whitespace chars with a single space.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[\x00-\x20]+&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="url_escape"><a class="viewcode-back" href="../../escape.html#tornado.escape.url_escape">[docs]</a><span class="k">def</span> <span class="nf">url_escape</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span> <span class="n">plus</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Returns a URL-encoded version of the given value.</span>
+
+<span class="sd">    If ``plus`` is true (the default), spaces will be represented</span>
+<span class="sd">    as &quot;+&quot; instead of &quot;%20&quot;.  This is appropriate for query strings</span>
+<span class="sd">    but not for the path component of a URL.  Note that this default</span>
+<span class="sd">    is the reverse of Python&#39;s urllib module.</span>
+
+<span class="sd">    .. versionadded:: 3.1</span>
+<span class="sd">        The ``plus`` argument</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">quote</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">quote_plus</span> <span class="k">if</span> <span class="n">plus</span> <span class="k">else</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">quote</span>
+    <span class="k">return</span> <span class="n">quote</span><span class="p">(</span><span class="n">utf8</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div>
+
+
+<span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>
+<span class="k">def</span> <span class="nf">url_unescape</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span> <span class="n">encoding</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="n">plus</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>  <span class="c1"># noqa: F811</span>
+<span class="k">def</span> <span class="nf">url_unescape</span><span class="p">(</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span> <span class="n">encoding</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">plus</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="url_unescape"><a class="viewcode-back" href="../../escape.html#tornado.escape.url_unescape">[docs]</a><span class="k">def</span> <span class="nf">url_unescape</span><span class="p">(</span>  <span class="c1"># noqa: F811</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span> <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">plus</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Decodes the given value from a URL.</span>
+
+<span class="sd">    The argument may be either a byte or unicode string.</span>
+
+<span class="sd">    If encoding is None, the result will be a byte string.  Otherwise,</span>
+<span class="sd">    the result is a unicode string in the specified encoding.</span>
+
+<span class="sd">    If ``plus`` is true (the default), plus signs will be interpreted</span>
+<span class="sd">    as spaces (literal plus signs must be represented as &quot;%2B&quot;).  This</span>
+<span class="sd">    is appropriate for query strings and form-encoded values but not</span>
+<span class="sd">    for the path component of a URL.  Note that this default is the</span>
+<span class="sd">    reverse of Python&#39;s urllib module.</span>
+
+<span class="sd">    .. versionadded:: 3.1</span>
+<span class="sd">       The ``plus`` argument</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">encoding</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">plus</span><span class="p">:</span>
+            <span class="c1"># unquote_to_bytes doesn&#39;t have a _plus variant</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">to_basestring</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">unquote_to_bytes</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">unquote</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">unquote_plus</span> <span class="k">if</span> <span class="n">plus</span> <span class="k">else</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">unquote</span>
+        <span class="k">return</span> <span class="n">unquote</span><span class="p">(</span><span class="n">to_basestring</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">parse_qs_bytes</span><span class="p">(</span>
+    <span class="n">qs</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">keep_blank_values</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">strict_parsing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;Parses a query string like urlparse.parse_qs, but returns the</span>
+<span class="sd">    values as byte strings.</span>
+
+<span class="sd">    Keys still become type str (interpreted as latin1 in python3!)</span>
+<span class="sd">    because it&#39;s too painful to keep them as byte strings in</span>
+<span class="sd">    python3 and in practice they&#39;re nearly always ascii anyway.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># This is gross, but python3 doesn&#39;t give us another way.</span>
+    <span class="c1"># Latin1 is the universal donor of character encodings.</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">parse_qs</span><span class="p">(</span>
+        <span class="n">qs</span><span class="p">,</span> <span class="n">keep_blank_values</span><span class="p">,</span> <span class="n">strict_parsing</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;latin1&quot;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;strict&quot;</span>
+    <span class="p">)</span>
+    <span class="n">encoded</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">encoded</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;latin1&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">encoded</span>
+
+
+<span class="n">_UTF8_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
+
+
+<span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>
+<span class="k">def</span> <span class="nf">utf8</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>  <span class="c1"># noqa: F811</span>
+<span class="k">def</span> <span class="nf">utf8</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>  <span class="c1"># noqa: F811</span>
+<span class="k">def</span> <span class="nf">utf8</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="utf8"><a class="viewcode-back" href="../../escape.html#tornado.escape.utf8">[docs]</a><span class="k">def</span> <span class="nf">utf8</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]:</span>  <span class="c1"># noqa: F811</span>
+    <span class="sd">&quot;&quot;&quot;Converts a string argument to a byte string.</span>
+
+<span class="sd">    If the argument is already a byte string or None, it is returned unchanged.</span>
+<span class="sd">    Otherwise it must be a unicode string and is encoded as utf8.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_UTF8_TYPES</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">unicode_type</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expected bytes, unicode, or None; got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span></div>
+
+
+<span class="n">_TO_UNICODE_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="n">unicode_type</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
+
+
+<span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>
+<span class="k">def</span> <span class="nf">to_unicode</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>  <span class="c1"># noqa: F811</span>
+<span class="k">def</span> <span class="nf">to_unicode</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>  <span class="c1"># noqa: F811</span>
+<span class="k">def</span> <span class="nf">to_unicode</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="to_unicode"><a class="viewcode-back" href="../../escape.html#tornado.escape.to_unicode">[docs]</a><span class="k">def</span> <span class="nf">to_unicode</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>  <span class="c1"># noqa: F811</span>
+    <span class="sd">&quot;&quot;&quot;Converts a string argument to a unicode string.</span>
+
+<span class="sd">    If the argument is already a unicode string or None, it is returned</span>
+<span class="sd">    unchanged.  Otherwise it must be a byte string and is decoded as utf8.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_TO_UNICODE_TYPES</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expected bytes, unicode, or None; got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span></div>
+
+
+<span class="c1"># to_unicode was previously named _unicode not because it was private,</span>
+<span class="c1"># but to avoid conflicts with the built-in unicode() function/type</span>
+<span class="n">_unicode</span> <span class="o">=</span> <span class="n">to_unicode</span>
+
+<span class="c1"># When dealing with the standard library across python 2 and 3 it is</span>
+<span class="c1"># sometimes useful to have a direct conversion to the native string type</span>
+<span class="n">native_str</span> <span class="o">=</span> <span class="n">to_unicode</span>
+<span class="n">to_basestring</span> <span class="o">=</span> <span class="n">to_unicode</span>
+
+
+<div class="viewcode-block" id="recursive_unicode"><a class="viewcode-back" href="../../escape.html#tornado.escape.recursive_unicode">[docs]</a><span class="k">def</span> <span class="nf">recursive_unicode</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Walks a simple data structure, converting byte strings to unicode.</span>
+
+<span class="sd">    Supports lists, tuples, and dictionaries.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">recursive_unicode</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">recursive_unicode</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">recursive_unicode</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">recursive_unicode</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">to_unicode</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">obj</span></div>
+
+
+<span class="c1"># I originally used the regex from</span>
+<span class="c1"># http://daringfireball.net/2010/07/improved_regex_for_matching_urls</span>
+<span class="c1"># but it gets all exponential on certain patterns (such as too many trailing</span>
+<span class="c1"># dots), causing the regex matcher to never return.</span>
+<span class="c1"># This regex should avoid those problems.</span>
+<span class="c1"># Use to_unicode instead of tornado.util.u - we don&#39;t want backslashes getting</span>
+<span class="c1"># processed as escapes.</span>
+<span class="n">_URL_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="n">to_unicode</span><span class="p">(</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;\b((?:([\w-]+):(/{1,3})|www[.])(?:(?:(?:[^\s&amp;()]|&amp;amp;|&amp;quot;)*(?:[^!&quot;#$%&amp;&#39;()*+,.:;&lt;=&gt;?@\[\]^`{|}~\s]))|(?:\((?:[^\s&amp;()]|&amp;amp;|&amp;quot;)*\)))+)&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="linkify"><a class="viewcode-back" href="../../escape.html#tornado.escape.linkify">[docs]</a><span class="k">def</span> <span class="nf">linkify</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span>
+    <span class="n">shorten</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">extra_params</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">require_protocol</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">permitted_protocols</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;http&quot;</span><span class="p">,</span> <span class="s2">&quot;https&quot;</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Converts plain text into HTML with links.</span>
+
+<span class="sd">    For example: ``linkify(&quot;Hello http://tornadoweb.org!&quot;)`` would return</span>
+<span class="sd">    ``Hello &lt;a href=&quot;http://tornadoweb.org&quot;&gt;http://tornadoweb.org&lt;/a&gt;!``</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    * ``shorten``: Long urls will be shortened for display.</span>
+
+<span class="sd">    * ``extra_params``: Extra text to include in the link tag, or a callable</span>
+<span class="sd">      taking the link as an argument and returning the extra text</span>
+<span class="sd">      e.g. ``linkify(text, extra_params=&#39;rel=&quot;nofollow&quot; class=&quot;external&quot;&#39;)``,</span>
+<span class="sd">      or::</span>
+
+<span class="sd">          def extra_params_cb(url):</span>
+<span class="sd">              if url.startswith(&quot;http://example.com&quot;):</span>
+<span class="sd">                  return &#39;class=&quot;internal&quot;&#39;</span>
+<span class="sd">              else:</span>
+<span class="sd">                  return &#39;class=&quot;external&quot; rel=&quot;nofollow&quot;&#39;</span>
+<span class="sd">          linkify(text, extra_params=extra_params_cb)</span>
+
+<span class="sd">    * ``require_protocol``: Only linkify urls which include a protocol. If</span>
+<span class="sd">      this is False, urls such as www.facebook.com will also be linkified.</span>
+
+<span class="sd">    * ``permitted_protocols``: List (or set) of protocols which should be</span>
+<span class="sd">      linkified, e.g. ``linkify(text, permitted_protocols=[&quot;http&quot;, &quot;ftp&quot;,</span>
+<span class="sd">      &quot;mailto&quot;])``. It is very unsafe to include protocols such as</span>
+<span class="sd">      ``javascript``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">extra_params</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">extra_params</span><span class="p">):</span>
+        <span class="n">extra_params</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">extra_params</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">make_link</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Match</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">proto</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">require_protocol</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">proto</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">url</span>  <span class="c1"># not protocol, no linkify</span>
+
+        <span class="k">if</span> <span class="n">proto</span> <span class="ow">and</span> <span class="n">proto</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">permitted_protocols</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">url</span>  <span class="c1"># bad protocol, no linkify</span>
+
+        <span class="n">href</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">proto</span><span class="p">:</span>
+            <span class="n">href</span> <span class="o">=</span> <span class="s2">&quot;http://&quot;</span> <span class="o">+</span> <span class="n">href</span>  <span class="c1"># no proto specified, use http</span>
+
+        <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">extra_params</span><span class="p">):</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">extra_params</span><span class="p">(</span><span class="n">href</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">extra_params</span>
+
+        <span class="c1"># clip long urls. max_len is just an approximation</span>
+        <span class="n">max_len</span> <span class="o">=</span> <span class="mi">30</span>
+        <span class="k">if</span> <span class="n">shorten</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_len</span><span class="p">:</span>
+            <span class="n">before_clip</span> <span class="o">=</span> <span class="n">url</span>
+            <span class="k">if</span> <span class="n">proto</span><span class="p">:</span>
+                <span class="n">proto_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">proto</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>  <span class="c1"># +1 for :</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">proto_len</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">url</span><span class="p">[</span><span class="n">proto_len</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># Grab the whole host part plus the first bit of the path</span>
+                <span class="c1"># The path is usually not that interesting once shortened</span>
+                <span class="c1"># (no more slug, etc), so it really just provides a little</span>
+                <span class="c1"># extra indication of shortening.</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">url</span><span class="p">[:</span><span class="n">proto_len</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+                    <span class="o">+</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">][:</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_len</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">:</span>  <span class="c1"># still too long</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">[:</span><span class="n">max_len</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">url</span> <span class="o">!=</span> <span class="n">before_clip</span><span class="p">:</span>
+                <span class="n">amp</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;&amp;&quot;</span><span class="p">)</span>
+                <span class="c1"># avoid splitting html char entities</span>
+                <span class="k">if</span> <span class="n">amp</span> <span class="o">&gt;</span> <span class="n">max_len</span> <span class="o">-</span> <span class="mi">5</span><span class="p">:</span>
+                    <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">[:</span><span class="n">amp</span><span class="p">]</span>
+                <span class="n">url</span> <span class="o">+=</span> <span class="s2">&quot;...&quot;</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">before_clip</span><span class="p">):</span>
+                    <span class="n">url</span> <span class="o">=</span> <span class="n">before_clip</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># full url is visible on mouse-over (for those who don&#39;t</span>
+                    <span class="c1"># have a status bar, such as Safari by default)</span>
+                    <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; title=&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">href</span>
+
+        <span class="k">return</span> <span class="sa">u</span><span class="s1">&#39;&lt;a href=&quot;</span><span class="si">%s</span><span class="s1">&quot;</span><span class="si">%s</span><span class="s1">&gt;</span><span class="si">%s</span><span class="s1">&lt;/a&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">href</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+
+    <span class="c1"># First HTML-escape so that our strings are all safe.</span>
+    <span class="c1"># The regex is modified to avoid character entites other than &amp;amp; so</span>
+    <span class="c1"># that we won&#39;t pick up &amp;quot;, etc.</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_unicode</span><span class="p">(</span><span class="n">xhtml_escape</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">_URL_RE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">make_link</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_convert_entity</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Match</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;#&quot;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)[:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">chr</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="mi">16</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">chr</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&amp;#</span><span class="si">%s</span><span class="s2">;&quot;</span> <span class="o">%</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_HTML_UNICODE_MAP</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;&amp;</span><span class="si">%s</span><span class="s2">;&quot;</span> <span class="o">%</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_build_unicode_map</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="n">unicode_map</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">html</span><span class="o">.</span><span class="n">entities</span><span class="o">.</span><span class="n">name2codepoint</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">unicode_map</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">unicode_map</span>
+
+
+<span class="n">_HTML_UNICODE_MAP</span> <span class="o">=</span> <span class="n">_build_unicode_map</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

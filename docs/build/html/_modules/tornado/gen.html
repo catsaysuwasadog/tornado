@@ -1,0 +1,1040 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.gen &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tornado.gen</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tornado.gen</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;``tornado.gen`` implements generator-based coroutines.</span>
+
+<span class="sd">.. note::</span>
+
+<span class="sd">   The &quot;decorator and generator&quot; approach in this module is a</span>
+<span class="sd">   precursor to native coroutines (using ``async def`` and ``await``)</span>
+<span class="sd">   which were introduced in Python 3.5. Applications that do not</span>
+<span class="sd">   require compatibility with older versions of Python should use</span>
+<span class="sd">   native coroutines instead. Some parts of this module are still</span>
+<span class="sd">   useful with native coroutines, notably `multi`, `sleep`,</span>
+<span class="sd">   `WaitIterator`, and `with_timeout`. Some of these functions have</span>
+<span class="sd">   counterparts in the `asyncio` module which may be used as well,</span>
+<span class="sd">   although the two may not necessarily be 100% compatible.</span>
+
+<span class="sd">Coroutines provide an easier way to work in an asynchronous</span>
+<span class="sd">environment than chaining callbacks. Code using coroutines is</span>
+<span class="sd">technically asynchronous, but it is written as a single generator</span>
+<span class="sd">instead of a collection of separate functions.</span>
+
+<span class="sd">For example, here&#39;s a coroutine-based handler:</span>
+
+<span class="sd">.. testcode::</span>
+
+<span class="sd">    class GenAsyncHandler(RequestHandler):</span>
+<span class="sd">        @gen.coroutine</span>
+<span class="sd">        def get(self):</span>
+<span class="sd">            http_client = AsyncHTTPClient()</span>
+<span class="sd">            response = yield http_client.fetch(&quot;http://example.com&quot;)</span>
+<span class="sd">            do_something_with_response(response)</span>
+<span class="sd">            self.render(&quot;template.html&quot;)</span>
+
+<span class="sd">.. testoutput::</span>
+<span class="sd">   :hide:</span>
+
+<span class="sd">Asynchronous functions in Tornado return an ``Awaitable`` or `.Future`;</span>
+<span class="sd">yielding this object returns its result.</span>
+
+<span class="sd">You can also yield a list or dict of other yieldable objects, which</span>
+<span class="sd">will be started at the same time and run in parallel; a list or dict</span>
+<span class="sd">of results will be returned when they are all finished:</span>
+
+<span class="sd">.. testcode::</span>
+
+<span class="sd">    @gen.coroutine</span>
+<span class="sd">    def get(self):</span>
+<span class="sd">        http_client = AsyncHTTPClient()</span>
+<span class="sd">        response1, response2 = yield [http_client.fetch(url1),</span>
+<span class="sd">                                      http_client.fetch(url2)]</span>
+<span class="sd">        response_dict = yield dict(response3=http_client.fetch(url3),</span>
+<span class="sd">                                   response4=http_client.fetch(url4))</span>
+<span class="sd">        response3 = response_dict[&#39;response3&#39;]</span>
+<span class="sd">        response4 = response_dict[&#39;response4&#39;]</span>
+
+<span class="sd">.. testoutput::</span>
+<span class="sd">   :hide:</span>
+
+<span class="sd">If ``tornado.platform.twisted`` is imported, it is also possible to</span>
+<span class="sd">yield Twisted&#39;s ``Deferred`` objects. See the `convert_yielded`</span>
+<span class="sd">function to extend this mechanism.</span>
+
+<span class="sd">.. versionchanged:: 3.2</span>
+<span class="sd">   Dict support added.</span>
+
+<span class="sd">.. versionchanged:: 4.1</span>
+<span class="sd">   Support added for yielding ``asyncio`` Futures and Twisted Deferreds</span>
+<span class="sd">   via ``singledispatch``.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">builtins</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="k">import</span> <span class="n">Generator</span>
+<span class="kn">import</span> <span class="nn">concurrent.futures</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">singledispatch</span>
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">isawaitable</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">types</span>
+
+<span class="kn">from</span> <span class="nn">tornado.concurrent</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">Future</span><span class="p">,</span>
+    <span class="n">is_future</span><span class="p">,</span>
+    <span class="n">chain_future</span><span class="p">,</span>
+    <span class="n">future_set_exc_info</span><span class="p">,</span>
+    <span class="n">future_add_done_callback</span><span class="p">,</span>
+    <span class="n">future_set_result_unless_cancelled</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">tornado.ioloop</span> <span class="k">import</span> <span class="n">IOLoop</span>
+<span class="kn">from</span> <span class="nn">tornado.log</span> <span class="k">import</span> <span class="n">app_log</span>
+<span class="kn">from</span> <span class="nn">tornado.util</span> <span class="k">import</span> <span class="ne">TimeoutError</span>
+
+<span class="kn">import</span> <span class="nn">typing</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Dict</span>
+
+<span class="k">if</span> <span class="n">typing</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Deque</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Iterable</span>  <span class="c1"># noqa: F401</span>
+
+<span class="n">_T</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;_T&quot;</span><span class="p">)</span>
+
+<span class="n">_Yieldable</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span>
+    <span class="kc">None</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">],</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Future</span>
+<span class="p">]</span>
+
+
+<span class="k">class</span> <span class="nc">KeyReuseError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">UnknownKeyError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">LeakedCallbackError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">BadYieldError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">ReturnValueIgnoredError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">def</span> <span class="nf">_value_from_stopiteration</span><span class="p">(</span><span class="n">e</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="ne">StopIteration</span><span class="p">,</span> <span class="s2">&quot;Return&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># StopIteration has a value attribute beginning in py33.</span>
+        <span class="c1"># So does our Return class.</span>
+        <span class="k">return</span> <span class="n">e</span><span class="o">.</span><span class="n">value</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Cython backports coroutine functionality by putting the value in</span>
+        <span class="c1"># e.args[0].</span>
+        <span class="k">return</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span> <span class="nf">_create_future</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Future</span><span class="p">:</span>
+    <span class="n">future</span> <span class="o">=</span> <span class="n">Future</span><span class="p">()</span>  <span class="c1"># type: Future</span>
+    <span class="c1"># Fixup asyncio debug info by removing extraneous stack entries</span>
+    <span class="n">source_traceback</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="s2">&quot;_source_traceback&quot;</span><span class="p">,</span> <span class="p">())</span>
+    <span class="k">while</span> <span class="n">source_traceback</span><span class="p">:</span>
+        <span class="c1"># Each traceback entry is equivalent to a</span>
+        <span class="c1"># (filename, self.lineno, self.name, self.line) tuple</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">source_traceback</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="vm">__file__</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">source_traceback</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="k">return</span> <span class="n">future</span>
+
+
+<div class="viewcode-block" id="coroutine"><a class="viewcode-back" href="../../gen.html#tornado.gen.coroutine">[docs]</a><span class="k">def</span> <span class="nf">coroutine</span><span class="p">(</span>
+    <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;Generator[Any, Any, _T]&quot;</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;Future[_T]&quot;</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Decorator for asynchronous generators.</span>
+
+<span class="sd">    For compatibility with older versions of Python, coroutines may</span>
+<span class="sd">    also &quot;return&quot; by raising the special exception `Return(value)</span>
+<span class="sd">    &lt;Return&gt;`.</span>
+
+<span class="sd">    Functions with this decorator return a `.Future`.</span>
+
+<span class="sd">    .. warning::</span>
+
+<span class="sd">       When exceptions occur inside a coroutine, the exception</span>
+<span class="sd">       information will be stored in the `.Future` object. You must</span>
+<span class="sd">       examine the result of the `.Future` object, or the exception</span>
+<span class="sd">       may go unnoticed by your code. This means yielding the function</span>
+<span class="sd">       if called from another coroutine, using something like</span>
+<span class="sd">       `.IOLoop.run_sync` for top-level calls, or passing the `.Future`</span>
+<span class="sd">       to `.IOLoop.add_future`.</span>
+
+<span class="sd">    .. versionchanged:: 6.0</span>
+
+<span class="sd">       The ``callback`` argument was removed. Use the returned</span>
+<span class="sd">       awaitable object instead.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># type: (*Any, **Any) -&gt; Future[_T]</span>
+        <span class="c1"># This function is type-annotated with a comment to work around</span>
+        <span class="c1"># https://bitbucket.org/pypy/pypy/issues/2868/segfault-with-args-type-annotation-in</span>
+        <span class="n">future</span> <span class="o">=</span> <span class="n">_create_future</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">Return</span><span class="p">,</span> <span class="ne">StopIteration</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">_value_from_stopiteration</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">future_set_exc_info</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">())</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">future</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="c1"># Avoid circular references</span>
+                <span class="n">future</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">Generator</span><span class="p">):</span>
+                <span class="c1"># Inline the first iteration of Runner.run.  This lets us</span>
+                <span class="c1"># avoid the cost of creating a Runner when the coroutine</span>
+                <span class="c1"># never actually yields, which in turn allows us to</span>
+                <span class="c1"># use &quot;optional&quot; coroutines in critical path code without</span>
+                <span class="c1"># performance penalty for the synchronous case.</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">yielded</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">StopIteration</span><span class="p">,</span> <span class="n">Return</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span>
+                        <span class="n">future</span><span class="p">,</span> <span class="n">_value_from_stopiteration</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">future_set_exc_info</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Provide strong references to Runner objects as long</span>
+                    <span class="c1"># as their result future objects also have strong</span>
+                    <span class="c1"># references (typically from the parent coroutine&#39;s</span>
+                    <span class="c1"># Runner). This keeps the coroutine&#39;s Runner alive.</span>
+                    <span class="c1"># We do this by exploiting the public API</span>
+                    <span class="c1"># add_done_callback() instead of putting a private</span>
+                    <span class="c1"># attribute on the Future.</span>
+                    <span class="c1"># (Github issues #1769, #2229).</span>
+                    <span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">future</span><span class="p">,</span> <span class="n">yielded</span><span class="p">)</span>
+                    <span class="n">future</span><span class="o">.</span><span class="n">add_done_callback</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="n">runner</span><span class="p">)</span>
+                <span class="n">yielded</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">future</span>
+                <span class="k">finally</span><span class="p">:</span>
+                    <span class="c1"># Subtle memory optimization: if next() raised an exception,</span>
+                    <span class="c1"># the future&#39;s exc_info contains a traceback which</span>
+                    <span class="c1"># includes this stack frame.  This creates a cycle,</span>
+                    <span class="c1"># which will be collected at the next full GC but has</span>
+                    <span class="c1"># been shown to greatly increase memory usage of</span>
+                    <span class="c1"># benchmarks (relative to the refcount-based scheme</span>
+                    <span class="c1"># used in the absence of cycles).  We can avoid the</span>
+                    <span class="c1"># cycle by clearing the local variable after we return it.</span>
+                    <span class="n">future</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+        <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">future</span>
+
+    <span class="n">wrapper</span><span class="o">.</span><span class="n">__wrapped__</span> <span class="o">=</span> <span class="n">func</span>  <span class="c1"># type: ignore</span>
+    <span class="n">wrapper</span><span class="o">.</span><span class="n">__tornado_coroutine__</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># type: ignore</span>
+    <span class="k">return</span> <span class="n">wrapper</span></div>
+
+
+<div class="viewcode-block" id="is_coroutine_function"><a class="viewcode-back" href="../../gen.html#tornado.gen.is_coroutine_function">[docs]</a><span class="k">def</span> <span class="nf">is_coroutine_function</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return whether *func* is a coroutine function, i.e. a function</span>
+<span class="sd">    wrapped with `~.gen.coroutine`.</span>
+
+<span class="sd">    .. versionadded:: 4.5</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s2">&quot;__tornado_coroutine__&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Return"><a class="viewcode-back" href="../../gen.html#tornado.gen.Return">[docs]</a><span class="k">class</span> <span class="nc">Return</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Special exception to return a value from a `coroutine`.</span>
+
+<span class="sd">    If this exception is raised, its value argument is used as the</span>
+<span class="sd">    result of the coroutine::</span>
+
+<span class="sd">        @gen.coroutine</span>
+<span class="sd">        def fetch_json(url):</span>
+<span class="sd">            response = yield AsyncHTTPClient().fetch(url)</span>
+<span class="sd">            raise gen.Return(json_decode(response.body))</span>
+
+<span class="sd">    In Python 3.3, this exception is no longer necessary: the ``return``</span>
+<span class="sd">    statement can be used directly to return a value (previously</span>
+<span class="sd">    ``yield`` and ``return`` with a value could not be combined in the</span>
+<span class="sd">    same function).</span>
+
+<span class="sd">    By analogy with the return statement, the value argument is optional,</span>
+<span class="sd">    but it is never necessary to ``raise gen.Return()``.  The ``return``</span>
+<span class="sd">    statement can be used with no arguments instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Return</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="c1"># Cython recognizes subclasses of StopIteration with a .args tuple.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span><span class="p">,)</span></div>
+
+
+<div class="viewcode-block" id="WaitIterator"><a class="viewcode-back" href="../../gen.html#tornado.gen.WaitIterator">[docs]</a><span class="k">class</span> <span class="nc">WaitIterator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Provides an iterator to yield the results of awaitables as they finish.</span>
+
+<span class="sd">    Yielding a set of awaitables like this:</span>
+
+<span class="sd">    ``results = yield [awaitable1, awaitable2]``</span>
+
+<span class="sd">    pauses the coroutine until both ``awaitable1`` and ``awaitable2``</span>
+<span class="sd">    return, and then restarts the coroutine with the results of both</span>
+<span class="sd">    awaitables. If either awaitable raises an exception, the</span>
+<span class="sd">    expression will raise that exception and all the results will be</span>
+<span class="sd">    lost.</span>
+
+<span class="sd">    If you need to get the result of each awaitable as soon as possible,</span>
+<span class="sd">    or if you need the result of some awaitables even if others produce</span>
+<span class="sd">    errors, you can use ``WaitIterator``::</span>
+
+<span class="sd">      wait_iterator = gen.WaitIterator(awaitable1, awaitable2)</span>
+<span class="sd">      while not wait_iterator.done():</span>
+<span class="sd">          try:</span>
+<span class="sd">              result = yield wait_iterator.next()</span>
+<span class="sd">          except Exception as e:</span>
+<span class="sd">              print(&quot;Error {} from {}&quot;.format(e, wait_iterator.current_future))</span>
+<span class="sd">          else:</span>
+<span class="sd">              print(&quot;Result {} received from {} at {}&quot;.format(</span>
+<span class="sd">                  result, wait_iterator.current_future,</span>
+<span class="sd">                  wait_iterator.current_index))</span>
+
+<span class="sd">    Because results are returned as soon as they are available the</span>
+<span class="sd">    output from the iterator *will not be in the same order as the</span>
+<span class="sd">    input arguments*. If you need to know which future produced the</span>
+<span class="sd">    current result, you can use the attributes</span>
+<span class="sd">    ``WaitIterator.current_future``, or ``WaitIterator.current_index``</span>
+<span class="sd">    to get the index of the awaitable from the input list. (if keyword</span>
+<span class="sd">    arguments were used in the construction of the `WaitIterator`,</span>
+<span class="sd">    ``current_index`` will use the corresponding keyword).</span>
+
+<span class="sd">    On Python 3.5, `WaitIterator` implements the async iterator</span>
+<span class="sd">    protocol, so it can be used with the ``async for`` statement (note</span>
+<span class="sd">    that in this version the entire iteration is aborted if any value</span>
+<span class="sd">    raises an exception, while the previous example can continue past</span>
+<span class="sd">    individual errors)::</span>
+
+<span class="sd">      async for result in gen.WaitIterator(future1, future2):</span>
+<span class="sd">          print(&quot;Result {} received from {} at {}&quot;.format(</span>
+<span class="sd">              result, wait_iterator.current_future,</span>
+<span class="sd">              wait_iterator.current_index))</span>
+
+<span class="sd">    .. versionadded:: 4.1</span>
+
+<span class="sd">    .. versionchanged:: 4.3</span>
+<span class="sd">       Added ``async for`` support in Python 3.5.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_unfinished</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[Future, Union[int, str]]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Future</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Future</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">args</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You must provide args or kwargs, not both&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_unfinished</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">f</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            <span class="n">futures</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>  <span class="c1"># type: Sequence[Future]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_unfinished</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">f</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+            <span class="n">futures</span> <span class="o">=</span> <span class="n">args</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">deque</span><span class="p">()</span>  <span class="c1"># type: Deque[Future]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_index</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[Union[str, int]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_future</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[Future]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_running_future</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[Future]</span>
+
+        <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">futures</span><span class="p">:</span>
+            <span class="n">future_add_done_callback</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_done_callback</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WaitIterator.done"><a class="viewcode-back" href="../../gen.html#tornado.gen.WaitIterator.done">[docs]</a>    <span class="k">def</span> <span class="nf">done</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns True if this iterator has no more results.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unfinished</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="c1"># Clear the &#39;current&#39; values when iteration is done.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_future</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="WaitIterator.next"><a class="viewcode-back" href="../../gen.html#tornado.gen.WaitIterator.next">[docs]</a>    <span class="k">def</span> <span class="nf">next</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Future</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns a `.Future` that will yield the next available result.</span>
+
+<span class="sd">        Note that this `.Future` will not be the same object as any of</span>
+<span class="sd">        the inputs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_running_future</span> <span class="o">=</span> <span class="n">Future</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_return_result</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_finished</span><span class="o">.</span><span class="n">popleft</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_future</span></div>
+
+    <span class="k">def</span> <span class="nf">_done_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">done</span><span class="p">:</span> <span class="n">Future</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_future</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_future</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_return_result</span><span class="p">(</span><span class="n">done</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">done</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_return_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">done</span><span class="p">:</span> <span class="n">Future</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Called set the returned future&#39;s state that of the future</span>
+<span class="sd">        we yielded, and set the current future for the iterator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_future</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;no future is running&quot;</span><span class="p">)</span>
+        <span class="n">chain_future</span><span class="p">(</span><span class="n">done</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_future</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_future</span> <span class="o">=</span> <span class="n">done</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unfinished</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">done</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__aiter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">AsyncIterator</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__anext__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Future</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+            <span class="c1"># Lookup by name to silence pyflakes on older versions.</span>
+            <span class="k">raise</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">builtins</span><span class="p">,</span> <span class="s2">&quot;StopAsyncIteration&quot;</span><span class="p">)()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">next</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="multi"><a class="viewcode-back" href="../../gen.html#tornado.gen.multi">[docs]</a><span class="k">def</span> <span class="nf">multi</span><span class="p">(</span>
+    <span class="n">children</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">_Yieldable</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">_Yieldable</span><span class="p">]],</span>
+    <span class="n">quiet_exceptions</span><span class="p">:</span> <span class="s2">&quot;Union[Type[Exception], Tuple[Type[Exception], ...]]&quot;</span> <span class="o">=</span> <span class="p">(),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Union[Future[List], Future[Dict]]&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Runs multiple asynchronous operations in parallel.</span>
+
+<span class="sd">    ``children`` may either be a list or a dict whose values are</span>
+<span class="sd">    yieldable objects. ``multi()`` returns a new yieldable</span>
+<span class="sd">    object that resolves to a parallel structure containing their</span>
+<span class="sd">    results. If ``children`` is a list, the result is a list of</span>
+<span class="sd">    results in the same order; if it is a dict, the result is a dict</span>
+<span class="sd">    with the same keys.</span>
+
+<span class="sd">    That is, ``results = yield multi(list_of_futures)`` is equivalent</span>
+<span class="sd">    to::</span>
+
+<span class="sd">        results = []</span>
+<span class="sd">        for future in list_of_futures:</span>
+<span class="sd">            results.append(yield future)</span>
+
+<span class="sd">    If any children raise exceptions, ``multi()`` will raise the first</span>
+<span class="sd">    one. All others will be logged, unless they are of types</span>
+<span class="sd">    contained in the ``quiet_exceptions`` argument.</span>
+
+<span class="sd">    In a ``yield``-based coroutine, it is not normally necessary to</span>
+<span class="sd">    call this function directly, since the coroutine runner will</span>
+<span class="sd">    do it automatically when a list or dict is yielded. However,</span>
+<span class="sd">    it is necessary in ``await``-based coroutines, or to pass</span>
+<span class="sd">    the ``quiet_exceptions`` argument.</span>
+
+<span class="sd">    This function is available under the names ``multi()`` and ``Multi()``</span>
+<span class="sd">    for historical reasons.</span>
+
+<span class="sd">    Cancelling a `.Future` returned by ``multi()`` does not cancel its</span>
+<span class="sd">    children. `asyncio.gather` is similar to ``multi()``, but it does</span>
+<span class="sd">    cancel its children.</span>
+
+<span class="sd">    .. versionchanged:: 4.2</span>
+<span class="sd">       If multiple yieldables fail, any exceptions after the first</span>
+<span class="sd">       (which is raised) will be logged. Added the ``quiet_exceptions``</span>
+<span class="sd">       argument to suppress this logging for selected exception types.</span>
+
+<span class="sd">    .. versionchanged:: 4.3</span>
+<span class="sd">       Replaced the class ``Multi`` and the function ``multi_future``</span>
+<span class="sd">       with a unified function ``multi``. Added support for yieldables</span>
+<span class="sd">       other than ``YieldPoint`` and `.Future`.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">multi_future</span><span class="p">(</span><span class="n">children</span><span class="p">,</span> <span class="n">quiet_exceptions</span><span class="o">=</span><span class="n">quiet_exceptions</span><span class="p">)</span></div>
+
+
+<span class="n">Multi</span> <span class="o">=</span> <span class="n">multi</span>
+
+
+<div class="viewcode-block" id="multi_future"><a class="viewcode-back" href="../../gen.html#tornado.gen.multi_future">[docs]</a><span class="k">def</span> <span class="nf">multi_future</span><span class="p">(</span>
+    <span class="n">children</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">_Yieldable</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">_Yieldable</span><span class="p">]],</span>
+    <span class="n">quiet_exceptions</span><span class="p">:</span> <span class="s2">&quot;Union[Type[Exception], Tuple[Type[Exception], ...]]&quot;</span> <span class="o">=</span> <span class="p">(),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Union[Future[List], Future[Dict]]&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Wait for multiple asynchronous futures in parallel.</span>
+
+<span class="sd">    Since Tornado 6.0, this function is exactly the same as `multi`.</span>
+
+<span class="sd">    .. versionadded:: 4.0</span>
+
+<span class="sd">    .. versionchanged:: 4.2</span>
+<span class="sd">       If multiple ``Futures`` fail, any exceptions after the first (which is</span>
+<span class="sd">       raised) will be logged. Added the ``quiet_exceptions``</span>
+<span class="sd">       argument to suppress this logging for selected exception types.</span>
+
+<span class="sd">    .. deprecated:: 4.3</span>
+<span class="sd">       Use `multi` instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">children</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">children</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>  <span class="c1"># type: Optional[List]</span>
+        <span class="n">children_seq</span> <span class="o">=</span> <span class="n">children</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>  <span class="c1"># type: Iterable</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">children_seq</span> <span class="o">=</span> <span class="n">children</span>
+    <span class="n">children_futs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">convert_yielded</span><span class="p">,</span> <span class="n">children_seq</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">is_future</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">_NullFuture</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">children_futs</span><span class="p">)</span>
+    <span class="n">unfinished_children</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">children_futs</span><span class="p">)</span>
+
+    <span class="n">future</span> <span class="o">=</span> <span class="n">_create_future</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">children_futs</span><span class="p">:</span>
+        <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[])</span>
+
+    <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">fut</span><span class="p">:</span> <span class="n">Future</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">unfinished_children</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">fut</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">unfinished_children</span><span class="p">:</span>
+            <span class="n">result_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">children_futs</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">result_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">future</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">quiet_exceptions</span><span class="p">):</span>
+                            <span class="n">app_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                                <span class="s2">&quot;Multiple exceptions in yield list&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span>
+                            <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">future_set_exc_info</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">())</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">future</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span>
+                        <span class="n">future</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">result_list</span><span class="p">))</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span>
+
+    <span class="n">listening</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># type: Set[Future]</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">children_futs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">f</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">listening</span><span class="p">:</span>
+            <span class="n">listening</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">future_add_done_callback</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">future</span></div>
+
+
+<div class="viewcode-block" id="maybe_future"><a class="viewcode-back" href="../../gen.html#tornado.gen.maybe_future">[docs]</a><span class="k">def</span> <span class="nf">maybe_future</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Future</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Converts ``x`` into a `.Future`.</span>
+
+<span class="sd">    If ``x`` is already a `.Future`, it is simply returned; otherwise</span>
+<span class="sd">    it is wrapped in a new `.Future`.  This is suitable for use as</span>
+<span class="sd">    ``result = yield gen.maybe_future(f())`` when you don&#39;t know whether</span>
+<span class="sd">    ``f()`` returns a `.Future` or not.</span>
+
+<span class="sd">    .. deprecated:: 4.3</span>
+<span class="sd">       This function only handles ``Futures``, not other yieldable objects.</span>
+<span class="sd">       Instead of `maybe_future`, check for the non-future result types</span>
+<span class="sd">       you expect (often just ``None``), and ``yield`` anything unknown.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">is_future</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fut</span> <span class="o">=</span> <span class="n">_create_future</span><span class="p">()</span>
+        <span class="n">fut</span><span class="o">.</span><span class="n">set_result</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fut</span></div>
+
+
+<div class="viewcode-block" id="with_timeout"><a class="viewcode-back" href="../../gen.html#tornado.gen.with_timeout">[docs]</a><span class="k">def</span> <span class="nf">with_timeout</span><span class="p">(</span>
+    <span class="n">timeout</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">],</span>
+    <span class="n">future</span><span class="p">:</span> <span class="n">_Yieldable</span><span class="p">,</span>
+    <span class="n">quiet_exceptions</span><span class="p">:</span> <span class="s2">&quot;Union[Type[Exception], Tuple[Type[Exception], ...]]&quot;</span> <span class="o">=</span> <span class="p">(),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Future</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Wraps a `.Future` (or other yieldable object) in a timeout.</span>
+
+<span class="sd">    Raises `tornado.util.TimeoutError` if the input future does not</span>
+<span class="sd">    complete before ``timeout``, which may be specified in any form</span>
+<span class="sd">    allowed by `.IOLoop.add_timeout` (i.e. a `datetime.timedelta` or</span>
+<span class="sd">    an absolute time relative to `.IOLoop.time`)</span>
+
+<span class="sd">    If the wrapped `.Future` fails after it has timed out, the exception</span>
+<span class="sd">    will be logged unless it is of a type contained in ``quiet_exceptions``</span>
+<span class="sd">    (which may be an exception type or a sequence of types).</span>
+
+<span class="sd">    The wrapped `.Future` is not canceled when the timeout expires,</span>
+<span class="sd">    permitting it to be reused. `asyncio.wait_for` is similar to this</span>
+<span class="sd">    function but it does cancel the wrapped `.Future` on timeout.</span>
+
+<span class="sd">    .. versionadded:: 4.0</span>
+
+<span class="sd">    .. versionchanged:: 4.1</span>
+<span class="sd">       Added the ``quiet_exceptions`` argument and the logging of unhandled</span>
+<span class="sd">       exceptions.</span>
+
+<span class="sd">    .. versionchanged:: 4.4</span>
+<span class="sd">       Added support for yieldable objects other than `.Future`.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># It&#39;s tempting to optimize this by cancelling the input future on timeout</span>
+    <span class="c1"># instead of creating a new one, but A) we can&#39;t know if we are the only</span>
+    <span class="c1"># one waiting on the input future, so cancelling it might disrupt other</span>
+    <span class="c1"># callers and B) concurrent futures can only be cancelled while they are</span>
+    <span class="c1"># in the queue, so cancellation cannot reliably bound our waiting time.</span>
+    <span class="n">future_converted</span> <span class="o">=</span> <span class="n">convert_yielded</span><span class="p">(</span><span class="n">future</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">_create_future</span><span class="p">()</span>
+    <span class="n">chain_future</span><span class="p">(</span><span class="n">future_converted</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+    <span class="n">io_loop</span> <span class="o">=</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">error_callback</span><span class="p">(</span><span class="n">future</span><span class="p">:</span> <span class="n">Future</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">quiet_exceptions</span><span class="p">):</span>
+                <span class="n">app_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s2">&quot;Exception in Future </span><span class="si">%r</span><span class="s2"> after timeout&quot;</span><span class="p">,</span> <span class="n">future</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">timeout_callback</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">set_exception</span><span class="p">(</span><span class="ne">TimeoutError</span><span class="p">(</span><span class="s2">&quot;Timeout&quot;</span><span class="p">))</span>
+        <span class="c1"># In case the wrapped future goes on to fail, log it.</span>
+        <span class="n">future_add_done_callback</span><span class="p">(</span><span class="n">future_converted</span><span class="p">,</span> <span class="n">error_callback</span><span class="p">)</span>
+
+    <span class="n">timeout_handle</span> <span class="o">=</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">add_timeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">,</span> <span class="n">timeout_callback</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">future_converted</span><span class="p">,</span> <span class="n">Future</span><span class="p">):</span>
+        <span class="c1"># We know this future will resolve on the IOLoop, so we don&#39;t</span>
+        <span class="c1"># need the extra thread-safety of IOLoop.add_future (and we also</span>
+        <span class="c1"># don&#39;t care about StackContext here.</span>
+        <span class="n">future_add_done_callback</span><span class="p">(</span>
+            <span class="n">future_converted</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">future</span><span class="p">:</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">remove_timeout</span><span class="p">(</span><span class="n">timeout_handle</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># concurrent.futures.Futures may resolve on any thread, so we</span>
+        <span class="c1"># need to route them back to the IOLoop.</span>
+        <span class="n">io_loop</span><span class="o">.</span><span class="n">add_future</span><span class="p">(</span>
+            <span class="n">future_converted</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">future</span><span class="p">:</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">remove_timeout</span><span class="p">(</span><span class="n">timeout_handle</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="sleep"><a class="viewcode-back" href="../../gen.html#tornado.gen.sleep">[docs]</a><span class="k">def</span> <span class="nf">sleep</span><span class="p">(</span><span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Future[None]&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a `.Future` that resolves after the given number of seconds.</span>
+
+<span class="sd">    When used with ``yield`` in a coroutine, this is a non-blocking</span>
+<span class="sd">    analogue to `time.sleep` (which should not be used in coroutines</span>
+<span class="sd">    because it is blocking)::</span>
+
+<span class="sd">        yield gen.sleep(0.5)</span>
+
+<span class="sd">    Note that calling this function on its own does nothing; you must</span>
+<span class="sd">    wait on the `.Future` it returns (usually by yielding it).</span>
+
+<span class="sd">    .. versionadded:: 4.1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">_create_future</span><span class="p">()</span>
+    <span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">.</span><span class="n">call_later</span><span class="p">(</span>
+        <span class="n">duration</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">f</span></div>
+
+
+<span class="k">class</span> <span class="nc">_NullFuture</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;_NullFuture resembles a Future that finished with a result of None.</span>
+
+<span class="sd">    It&#39;s not actually a `Future` to avoid depending on a particular event loop.</span>
+<span class="sd">    Handled as a special case in the coroutine runner.</span>
+
+<span class="sd">    We lie and tell the type checker that a _NullFuture is a Future so</span>
+<span class="sd">    we don&#39;t have to leak _NullFuture into lots of public APIs. But</span>
+<span class="sd">    this means that the type checker can&#39;t warn us when we&#39;re passing</span>
+<span class="sd">    a _NullFuture into a code path that doesn&#39;t understand what to do</span>
+<span class="sd">    with it.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">done</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="c1"># _null_future is used as a dummy value in the coroutine runner. It differs</span>
+<span class="c1"># from moment in that moment always adds a delay of one IOLoop iteration</span>
+<span class="c1"># while _null_future is processed as soon as possible.</span>
+<span class="n">_null_future</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Future</span><span class="p">,</span> <span class="n">_NullFuture</span><span class="p">())</span>
+
+<span class="n">moment</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Future</span><span class="p">,</span> <span class="n">_NullFuture</span><span class="p">())</span>
+<span class="n">moment</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;A special object which may be yielded to allow the IOLoop to run for</span>
+<span class="s2">one iteration.</span>
+
+<span class="s2">This is not needed in normal use but it can be helpful in long-running</span>
+<span class="s2">coroutines that are likely to yield Futures that are ready instantly.</span>
+
+<span class="s2">Usage: ``yield gen.moment``</span>
+
+<span class="s2">In native coroutines, the equivalent of ``yield gen.moment`` is</span>
+<span class="s2">``await asyncio.sleep(0)``.</span>
+
+<span class="s2">.. versionadded:: 4.0</span>
+
+<span class="s2">.. deprecated:: 4.5</span>
+<span class="s2">   ``yield None`` (or ``yield`` with no argument) is now equivalent to</span>
+<span class="s2">    ``yield gen.moment``.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">Runner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Internal implementation of `tornado.gen.coroutine`.</span>
+
+<span class="sd">    Maintains information about pending callbacks and their results.</span>
+
+<span class="sd">    The results of the generator are stored in ``result_future`` (a</span>
+<span class="sd">    `.Future`)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">gen</span><span class="p">:</span> <span class="s2">&quot;Generator[_Yieldable, Any, _T]&quot;</span><span class="p">,</span>
+        <span class="n">result_future</span><span class="p">:</span> <span class="s2">&quot;Future[_T]&quot;</span><span class="p">,</span>
+        <span class="n">first_yielded</span><span class="p">:</span> <span class="n">_Yieldable</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gen</span> <span class="o">=</span> <span class="n">gen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">result_future</span> <span class="o">=</span> <span class="n">result_future</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">future</span> <span class="o">=</span> <span class="n">_null_future</span>  <span class="c1"># type: Union[None, Future]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span> <span class="o">=</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_yield</span><span class="p">(</span><span class="n">first_yielded</span><span class="p">):</span>
+            <span class="n">gen</span> <span class="o">=</span> <span class="n">result_future</span> <span class="o">=</span> <span class="n">first_yielded</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Starts or resumes the generator, running until it reaches a</span>
+<span class="sd">        yield point that is not ready.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">future</span>
+                <span class="k">if</span> <span class="n">future</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No pending future&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">future</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+                    <span class="k">return</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">future</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">exc_info</span> <span class="o">=</span> <span class="kc">None</span>
+
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="n">exc_info</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+                    <span class="n">future</span> <span class="o">=</span> <span class="kc">None</span>
+
+                    <span class="k">if</span> <span class="n">exc_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">yielded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gen</span><span class="o">.</span><span class="n">throw</span><span class="p">(</span><span class="o">*</span><span class="n">exc_info</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+                        <span class="k">finally</span><span class="p">:</span>
+                            <span class="c1"># Break up a reference to itself</span>
+                            <span class="c1"># for faster GC on CPython.</span>
+                            <span class="n">exc_info</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">yielded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gen</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+                <span class="k">except</span> <span class="p">(</span><span class="ne">StopIteration</span><span class="p">,</span> <span class="n">Return</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">future</span> <span class="o">=</span> <span class="n">_null_future</span>
+                    <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">result_future</span><span class="p">,</span> <span class="n">_value_from_stopiteration</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">result_future</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+                    <span class="k">return</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">future</span> <span class="o">=</span> <span class="n">_null_future</span>
+                    <span class="n">future_set_exc_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">result_future</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">())</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">result_future</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+                    <span class="k">return</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_yield</span><span class="p">(</span><span class="n">yielded</span><span class="p">):</span>
+                    <span class="k">return</span>
+                <span class="n">yielded</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">handle_yield</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">yielded</span><span class="p">:</span> <span class="n">_Yieldable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">future</span> <span class="o">=</span> <span class="n">convert_yielded</span><span class="p">(</span><span class="n">yielded</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">BadYieldError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">future</span> <span class="o">=</span> <span class="n">Future</span><span class="p">()</span>
+            <span class="n">future_set_exc_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">future</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">future</span> <span class="ow">is</span> <span class="n">moment</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">future</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;no pending future&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">future</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+
+            <span class="k">def</span> <span class="nf">inner</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Break a reference cycle to speed GC.</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># noqa: F841</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_future</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">future</span><span class="p">,</span> <span class="n">inner</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">handle_exception</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">typ</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="ne">Exception</span><span class="p">],</span> <span class="n">value</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">tb</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">TracebackType</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">future</span> <span class="o">=</span> <span class="n">Future</span><span class="p">()</span>
+            <span class="n">future_set_exc_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">future</span><span class="p">,</span> <span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tb</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="c1"># Convert Awaitables into Futures.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">_wrap_awaitable</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">ensure_future</span>
+<span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+    <span class="c1"># asyncio.ensure_future was introduced in Python 3.4.4, but</span>
+    <span class="c1"># Debian jessie still ships with 3.4.2 so try the old name.</span>
+    <span class="n">_wrap_awaitable</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">asyncio</span><span class="p">,</span> <span class="s2">&quot;async&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="convert_yielded"><a class="viewcode-back" href="../../gen.html#tornado.gen.convert_yielded">[docs]</a><span class="k">def</span> <span class="nf">convert_yielded</span><span class="p">(</span><span class="n">yielded</span><span class="p">:</span> <span class="n">_Yieldable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Future</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert a yielded object into a `.Future`.</span>
+
+<span class="sd">    The default implementation accepts lists, dictionaries, and</span>
+<span class="sd">    Futures. This has the side effect of starting any coroutines that</span>
+<span class="sd">    did not start themselves, similar to `asyncio.ensure_future`.</span>
+
+<span class="sd">    If the `~functools.singledispatch` library is available, this function</span>
+<span class="sd">    may be extended to support additional types. For example::</span>
+
+<span class="sd">        @convert_yielded.register(asyncio.Future)</span>
+<span class="sd">        def _(asyncio_future):</span>
+<span class="sd">            return tornado.platform.asyncio.to_tornado_future(asyncio_future)</span>
+
+<span class="sd">    .. versionadded:: 4.1</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">yielded</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">yielded</span> <span class="ow">is</span> <span class="n">moment</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">moment</span>
+    <span class="k">elif</span> <span class="n">yielded</span> <span class="ow">is</span> <span class="n">_null_future</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_null_future</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">yielded</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">multi</span><span class="p">(</span><span class="n">yielded</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+    <span class="k">elif</span> <span class="n">is_future</span><span class="p">(</span><span class="n">yielded</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">typing</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Future</span><span class="p">,</span> <span class="n">yielded</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">isawaitable</span><span class="p">(</span><span class="n">yielded</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_wrap_awaitable</span><span class="p">(</span><span class="n">yielded</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">BadYieldError</span><span class="p">(</span><span class="s2">&quot;yielded unknown object </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">yielded</span><span class="p">,))</span></div>
+
+
+<span class="n">convert_yielded</span> <span class="o">=</span> <span class="n">singledispatch</span><span class="p">(</span><span class="n">convert_yielded</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

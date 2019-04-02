@@ -1,0 +1,599 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.httpserver &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tornado.httpserver</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tornado.httpserver</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2009 Facebook</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may</span>
+<span class="c1"># not use this file except in compliance with the License. You may obtain</span>
+<span class="c1"># a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT</span>
+<span class="c1"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c1"># License for the specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
+
+<span class="sd">&quot;&quot;&quot;A non-blocking, single-threaded HTTP server.</span>
+
+<span class="sd">Typical applications have little direct interaction with the `HTTPServer`</span>
+<span class="sd">class except to start a server at the beginning of the process</span>
+<span class="sd">(and even that is often done indirectly via `tornado.web.Application.listen`).</span>
+
+<span class="sd">.. versionchanged:: 4.0</span>
+
+<span class="sd">   The ``HTTPRequest`` class that used to live in this module has been moved</span>
+<span class="sd">   to `tornado.httputil.HTTPServerRequest`.  The old name remains as an alias.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">ssl</span>
+
+<span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="k">import</span> <span class="n">native_str</span>
+<span class="kn">from</span> <span class="nn">tornado.http1connection</span> <span class="k">import</span> <span class="n">HTTP1ServerConnection</span><span class="p">,</span> <span class="n">HTTP1ConnectionParameters</span>
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">httputil</span>
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">iostream</span>
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">netutil</span>
+<span class="kn">from</span> <span class="nn">tornado.tcpserver</span> <span class="k">import</span> <span class="n">TCPServer</span>
+<span class="kn">from</span> <span class="nn">tornado.util</span> <span class="k">import</span> <span class="n">Configurable</span>
+
+<span class="kn">import</span> <span class="nn">typing</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Awaitable</span>
+
+<span class="k">if</span> <span class="n">typing</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Set</span>  <span class="c1"># noqa: F401</span>
+
+
+<div class="viewcode-block" id="HTTPServer"><a class="viewcode-back" href="../../httpserver.html#tornado.httpserver.HTTPServer">[docs]</a><span class="k">class</span> <span class="nc">HTTPServer</span><span class="p">(</span><span class="n">TCPServer</span><span class="p">,</span> <span class="n">Configurable</span><span class="p">,</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerConnectionDelegate</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A non-blocking, single-threaded HTTP server.</span>
+
+<span class="sd">    A server is defined by a subclass of `.HTTPServerConnectionDelegate`,</span>
+<span class="sd">    or, for backwards compatibility, a callback that takes an</span>
+<span class="sd">    `.HTTPServerRequest` as an argument. The delegate is usually a</span>
+<span class="sd">    `tornado.web.Application`.</span>
+
+<span class="sd">    `HTTPServer` supports keep-alive connections by default</span>
+<span class="sd">    (automatically for HTTP/1.1, or for HTTP/1.0 when the client</span>
+<span class="sd">    requests ``Connection: keep-alive``).</span>
+
+<span class="sd">    If ``xheaders`` is ``True``, we support the</span>
+<span class="sd">    ``X-Real-Ip``/``X-Forwarded-For`` and</span>
+<span class="sd">    ``X-Scheme``/``X-Forwarded-Proto`` headers, which override the</span>
+<span class="sd">    remote IP and URI scheme/protocol for all requests.  These headers</span>
+<span class="sd">    are useful when running Tornado behind a reverse proxy or load</span>
+<span class="sd">    balancer.  The ``protocol`` argument can also be set to ``https``</span>
+<span class="sd">    if Tornado is run behind an SSL-decoding proxy that does not set one of</span>
+<span class="sd">    the supported ``xheaders``.</span>
+
+<span class="sd">    By default, when parsing the ``X-Forwarded-For`` header, Tornado will</span>
+<span class="sd">    select the last (i.e., the closest) address on the list of hosts as the</span>
+<span class="sd">    remote host IP address.  To select the next server in the chain, a list of</span>
+<span class="sd">    trusted downstream hosts may be passed as the ``trusted_downstream``</span>
+<span class="sd">    argument.  These hosts will be skipped when parsing the ``X-Forwarded-For``</span>
+<span class="sd">    header.</span>
+
+<span class="sd">    To make this server serve SSL traffic, send the ``ssl_options`` keyword</span>
+<span class="sd">    argument with an `ssl.SSLContext` object. For compatibility with older</span>
+<span class="sd">    versions of Python ``ssl_options`` may also be a dictionary of keyword</span>
+<span class="sd">    arguments for the `ssl.wrap_socket` method.::</span>
+
+<span class="sd">       ssl_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)</span>
+<span class="sd">       ssl_ctx.load_cert_chain(os.path.join(data_dir, &quot;mydomain.crt&quot;),</span>
+<span class="sd">                               os.path.join(data_dir, &quot;mydomain.key&quot;))</span>
+<span class="sd">       HTTPServer(application, ssl_options=ssl_ctx)</span>
+
+<span class="sd">    `HTTPServer` initialization follows one of three patterns (the</span>
+<span class="sd">    initialization methods are defined on `tornado.tcpserver.TCPServer`):</span>
+
+<span class="sd">    1. `~tornado.tcpserver.TCPServer.listen`: simple single-process::</span>
+
+<span class="sd">            server = HTTPServer(app)</span>
+<span class="sd">            server.listen(8888)</span>
+<span class="sd">            IOLoop.current().start()</span>
+
+<span class="sd">       In many cases, `tornado.web.Application.listen` can be used to avoid</span>
+<span class="sd">       the need to explicitly create the `HTTPServer`.</span>
+
+<span class="sd">    2. `~tornado.tcpserver.TCPServer.bind`/`~tornado.tcpserver.TCPServer.start`:</span>
+<span class="sd">       simple multi-process::</span>
+
+<span class="sd">            server = HTTPServer(app)</span>
+<span class="sd">            server.bind(8888)</span>
+<span class="sd">            server.start(0)  # Forks multiple sub-processes</span>
+<span class="sd">            IOLoop.current().start()</span>
+
+<span class="sd">       When using this interface, an `.IOLoop` must *not* be passed</span>
+<span class="sd">       to the `HTTPServer` constructor.  `~.TCPServer.start` will always start</span>
+<span class="sd">       the server on the default singleton `.IOLoop`.</span>
+
+<span class="sd">    3. `~tornado.tcpserver.TCPServer.add_sockets`: advanced multi-process::</span>
+
+<span class="sd">            sockets = tornado.netutil.bind_sockets(8888)</span>
+<span class="sd">            tornado.process.fork_processes(0)</span>
+<span class="sd">            server = HTTPServer(app)</span>
+<span class="sd">            server.add_sockets(sockets)</span>
+<span class="sd">            IOLoop.current().start()</span>
+
+<span class="sd">       The `~.TCPServer.add_sockets` interface is more complicated,</span>
+<span class="sd">       but it can be used with `tornado.process.fork_processes` to</span>
+<span class="sd">       give you more flexibility in when the fork happens.</span>
+<span class="sd">       `~.TCPServer.add_sockets` can also be used in single-process</span>
+<span class="sd">       servers if you want to create your listening sockets in some</span>
+<span class="sd">       way other than `tornado.netutil.bind_sockets`.</span>
+
+<span class="sd">    .. versionchanged:: 4.0</span>
+<span class="sd">       Added ``decompress_request``, ``chunk_size``, ``max_header_size``,</span>
+<span class="sd">       ``idle_connection_timeout``, ``body_timeout``, ``max_body_size``</span>
+<span class="sd">       arguments.  Added support for `.HTTPServerConnectionDelegate`</span>
+<span class="sd">       instances as ``request_callback``.</span>
+
+<span class="sd">    .. versionchanged:: 4.1</span>
+<span class="sd">       `.HTTPServerConnectionDelegate.start_request` is now called with</span>
+<span class="sd">       two arguments ``(server_conn, request_conn)`` (in accordance with the</span>
+<span class="sd">       documentation) instead of one ``(request_conn)``.</span>
+
+<span class="sd">    .. versionchanged:: 4.2</span>
+<span class="sd">       `HTTPServer` is now a subclass of `tornado.util.Configurable`.</span>
+
+<span class="sd">    .. versionchanged:: 4.5</span>
+<span class="sd">       Added the ``trusted_downstream`` argument.</span>
+
+<span class="sd">    .. versionchanged:: 5.0</span>
+<span class="sd">       The ``io_loop`` argument has been removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Ignore args to __init__; real initialization belongs in</span>
+        <span class="c1"># initialize since we&#39;re Configurable. (there&#39;s something</span>
+        <span class="c1"># weird in initialization order between this class,</span>
+        <span class="c1"># Configurable, and TCPServer so we can&#39;t leave __init__ out</span>
+        <span class="c1"># completely)</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">request_callback</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+            <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerConnectionDelegate</span><span class="p">,</span>
+            <span class="n">Callable</span><span class="p">[[</span><span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">],</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="p">],</span>
+        <span class="n">no_keep_alive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">xheaders</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">ssl_options</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">ssl</span><span class="o">.</span><span class="n">SSLContext</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">protocol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">decompress_request</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_header_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">idle_connection_timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">body_timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_body_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_buffer_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">trusted_downstream</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># This method&#39;s signature is not extracted with autodoc</span>
+        <span class="c1"># because we want its arguments to appear on the class</span>
+        <span class="c1"># constructor. When changing this signature, also update the</span>
+        <span class="c1"># copy in httpserver.rst.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span> <span class="o">=</span> <span class="n">request_callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xheaders</span> <span class="o">=</span> <span class="n">xheaders</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="n">protocol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn_params</span> <span class="o">=</span> <span class="n">HTTP1ConnectionParameters</span><span class="p">(</span>
+            <span class="n">decompress</span><span class="o">=</span><span class="n">decompress_request</span><span class="p">,</span>
+            <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+            <span class="n">max_header_size</span><span class="o">=</span><span class="n">max_header_size</span><span class="p">,</span>
+            <span class="n">header_timeout</span><span class="o">=</span><span class="n">idle_connection_timeout</span> <span class="ow">or</span> <span class="mi">3600</span><span class="p">,</span>
+            <span class="n">max_body_size</span><span class="o">=</span><span class="n">max_body_size</span><span class="p">,</span>
+            <span class="n">body_timeout</span><span class="o">=</span><span class="n">body_timeout</span><span class="p">,</span>
+            <span class="n">no_keep_alive</span><span class="o">=</span><span class="n">no_keep_alive</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">TCPServer</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">ssl_options</span><span class="o">=</span><span class="n">ssl_options</span><span class="p">,</span>
+            <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">,</span>
+            <span class="n">read_chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_connections</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># type: Set[HTTP1ServerConnection]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trusted_downstream</span> <span class="o">=</span> <span class="n">trusted_downstream</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">configurable_base</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">Configurable</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">HTTPServer</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">configurable_default</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">Configurable</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">HTTPServer</span>
+
+<div class="viewcode-block" id="HTTPServer.close_all_connections"><a class="viewcode-back" href="../../httpserver.html#tornado.httpserver.HTTPServer.close_all_connections">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">close_all_connections</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Close all open connections and asynchronously wait for them to finish.</span>
+
+<span class="sd">        This method is used in combination with `~.TCPServer.stop` to</span>
+<span class="sd">        support clean shutdowns (especially for unittests). Typical</span>
+<span class="sd">        usage would call ``stop()`` first to stop accepting new</span>
+<span class="sd">        connections, then ``await close_all_connections()`` to wait for</span>
+<span class="sd">        existing connections to finish.</span>
+
+<span class="sd">        This method does not currently close open websocket connections.</span>
+
+<span class="sd">        Note that this method is a coroutine and must be caled with ``await``.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connections</span><span class="p">:</span>
+            <span class="c1"># Peek at an arbitrary element of the set</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_connections</span><span class="p">))</span>
+            <span class="k">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">handle_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">:</span> <span class="n">iostream</span><span class="o">.</span><span class="n">IOStream</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">_HTTPRequestContext</span><span class="p">(</span>
+            <span class="n">stream</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">trusted_downstream</span>
+        <span class="p">)</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">HTTP1ServerConnection</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_params</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_connections</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">start_serving</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">start_request</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">server_conn</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">request_conn</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPConnection</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span><span class="p">,</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerConnectionDelegate</span><span class="p">):</span>
+            <span class="n">delegate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span><span class="o">.</span><span class="n">start_request</span><span class="p">(</span><span class="n">server_conn</span><span class="p">,</span> <span class="n">request_conn</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">delegate</span> <span class="o">=</span> <span class="n">_CallableAdapter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span><span class="p">,</span> <span class="n">request_conn</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xheaders</span><span class="p">:</span>
+            <span class="n">delegate</span> <span class="o">=</span> <span class="n">_ProxyAdapter</span><span class="p">(</span><span class="n">delegate</span><span class="p">,</span> <span class="n">request_conn</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">delegate</span>
+
+    <span class="k">def</span> <span class="nf">on_close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server_conn</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_connections</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">typing</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">HTTP1ServerConnection</span><span class="p">,</span> <span class="n">server_conn</span><span class="p">))</span></div>
+
+
+<span class="k">class</span> <span class="nc">_CallableAdapter</span><span class="p">(</span><span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">request_callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">],</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="n">request_conn</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPConnection</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">request_conn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span> <span class="o">=</span> <span class="n">request_callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[httputil.HTTPServerRequest]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chunks</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[bytes]</span>
+
+    <span class="k">def</span> <span class="nf">headers_received</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">start_line</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">httputil</span><span class="o">.</span><span class="n">RequestStartLine</span><span class="p">,</span> <span class="n">httputil</span><span class="o">.</span><span class="n">ResponseStartLine</span><span class="p">],</span>
+        <span class="n">headers</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span><span class="p">(</span>
+            <span class="n">connection</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="p">,</span>
+            <span class="n">start_line</span><span class="o">=</span><span class="n">typing</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">httputil</span><span class="o">.</span><span class="n">RequestStartLine</span><span class="p">,</span> <span class="n">start_line</span><span class="p">),</span>
+            <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">data_received</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chunks</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">_parse_body</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_connection_close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chunks</span>
+
+
+<span class="k">class</span> <span class="nc">_HTTPRequestContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">stream</span><span class="p">:</span> <span class="n">iostream</span><span class="o">.</span><span class="n">IOStream</span><span class="p">,</span>
+        <span class="n">address</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">,</span>
+        <span class="n">protocol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">trusted_downstream</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">address</span>
+        <span class="c1"># Save the socket&#39;s address family now so we know how to</span>
+        <span class="c1"># interpret self.address even after the stream is closed</span>
+        <span class="c1"># and its socket attribute replaced with None.</span>
+        <span class="k">if</span> <span class="n">stream</span><span class="o">.</span><span class="n">socket</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">address_family</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">family</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">address_family</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># In HTTPServerRequest we want an IP, not a full socket address.</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">address_family</span> <span class="ow">in</span> <span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">AF_INET6</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">address</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remote_ip</span> <span class="o">=</span> <span class="n">address</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Unix (or other) socket; fake the remote address.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remote_ip</span> <span class="o">=</span> <span class="s2">&quot;0.0.0.0&quot;</span>
+        <span class="k">if</span> <span class="n">protocol</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="n">protocol</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">iostream</span><span class="o">.</span><span class="n">SSLIOStream</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;https&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;http&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_orig_remote_ip</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remote_ip</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_orig_protocol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trusted_downstream</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">trusted_downstream</span> <span class="ow">or</span> <span class="p">[])</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">address_family</span> <span class="ow">in</span> <span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">AF_INET6</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">remote_ip</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="c1"># Python 3 with the -bb option warns about str(bytes),</span>
+            <span class="c1"># so convert it explicitly.</span>
+            <span class="c1"># Unix socket addresses are str on mac but bytes on linux.</span>
+            <span class="k">return</span> <span class="n">native_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_apply_xheaders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Rewrite the ``remote_ip`` and ``protocol`` fields.&quot;&quot;&quot;</span>
+        <span class="c1"># Squid uses X-Forwarded-For, others use X-Real-Ip</span>
+        <span class="n">ip</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-Forwarded-For&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">remote_ip</span><span class="p">)</span>
+        <span class="c1"># Skip trusted downstream hosts in X-Forwarded-For list</span>
+        <span class="k">for</span> <span class="n">ip</span> <span class="ow">in</span> <span class="p">(</span><span class="n">cand</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">cand</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">ip</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">))):</span>
+            <span class="k">if</span> <span class="n">ip</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">trusted_downstream</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="n">ip</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-Real-Ip&quot;</span><span class="p">,</span> <span class="n">ip</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">netutil</span><span class="o">.</span><span class="n">is_valid_ip</span><span class="p">(</span><span class="n">ip</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remote_ip</span> <span class="o">=</span> <span class="n">ip</span>
+        <span class="c1"># AWS uses X-Forwarded-Proto</span>
+        <span class="n">proto_header</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s2">&quot;X-Scheme&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-Forwarded-Proto&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">proto_header</span><span class="p">:</span>
+            <span class="c1"># use only the last proto entry if there is more than one</span>
+            <span class="c1"># TODO: support trusting mutiple layers of proxied protocol</span>
+            <span class="n">proto_header</span> <span class="o">=</span> <span class="n">proto_header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">proto_header</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">,</span> <span class="s2">&quot;https&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="n">proto_header</span>
+
+    <span class="k">def</span> <span class="nf">_unapply_xheaders</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Undo changes from `_apply_xheaders`.</span>
+
+<span class="sd">        Xheaders are per-request so they should not leak to the next</span>
+<span class="sd">        request on the same connection.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote_ip</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_orig_remote_ip</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_orig_protocol</span>
+
+
+<span class="k">class</span> <span class="nc">_ProxyAdapter</span><span class="p">(</span><span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">delegate</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPMessageDelegate</span><span class="p">,</span>
+        <span class="n">request_conn</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPConnection</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">request_conn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="n">delegate</span>
+
+    <span class="k">def</span> <span class="nf">headers_received</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">start_line</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">httputil</span><span class="o">.</span><span class="n">RequestStartLine</span><span class="p">,</span> <span class="n">httputil</span><span class="o">.</span><span class="n">ResponseStartLine</span><span class="p">],</span>
+        <span class="n">headers</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]:</span>
+        <span class="c1"># TODO: either make context an official part of the</span>
+        <span class="c1"># HTTPConnection interface or figure out some other way to do this.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">_apply_xheaders</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="o">.</span><span class="n">headers_received</span><span class="p">(</span><span class="n">start_line</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">data_received</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="o">.</span><span class="n">data_received</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cleanup</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">on_connection_close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delegate</span><span class="o">.</span><span class="n">on_connection_close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cleanup</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">_unapply_xheaders</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+
+
+<span class="n">HTTPRequest</span> <span class="o">=</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPServerRequest</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

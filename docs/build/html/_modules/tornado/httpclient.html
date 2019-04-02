@@ -1,0 +1,982 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.httpclient &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../networking.html">Asynchronous networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>tornado.httpclient</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tornado.httpclient</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Blocking and non-blocking HTTP client interfaces.</span>
+
+<span class="sd">This module defines a common interface shared by two implementations,</span>
+<span class="sd">``simple_httpclient`` and ``curl_httpclient``.  Applications may either</span>
+<span class="sd">instantiate their chosen implementation class directly or use the</span>
+<span class="sd">`AsyncHTTPClient` class from this module, which selects an implementation</span>
+<span class="sd">that can be overridden with the `AsyncHTTPClient.configure` method.</span>
+
+<span class="sd">The default implementation is ``simple_httpclient``, and this is expected</span>
+<span class="sd">to be suitable for most users&#39; needs.  However, some applications may wish</span>
+<span class="sd">to switch to ``curl_httpclient`` for reasons such as the following:</span>
+
+<span class="sd">* ``curl_httpclient`` has some features not found in ``simple_httpclient``,</span>
+<span class="sd">  including support for HTTP proxies and the ability to use a specified</span>
+<span class="sd">  network interface.</span>
+
+<span class="sd">* ``curl_httpclient`` is more likely to be compatible with sites that are</span>
+<span class="sd">  not-quite-compliant with the HTTP spec, or sites that use little-exercised</span>
+<span class="sd">  features of HTTP.</span>
+
+<span class="sd">* ``curl_httpclient`` is faster.</span>
+
+<span class="sd">Note that if you are using ``curl_httpclient``, it is highly</span>
+<span class="sd">recommended that you use a recent version of ``libcurl`` and</span>
+<span class="sd">``pycurl``.  Currently the minimum supported version of libcurl is</span>
+<span class="sd">7.22.0, and the minimum version of pycurl is 7.18.2.  It is highly</span>
+<span class="sd">recommended that your ``libcurl`` installation is built with</span>
+<span class="sd">asynchronous DNS resolver (threaded or c-ares), otherwise you may</span>
+<span class="sd">encounter various problems with request timeouts (for more</span>
+<span class="sd">information, see</span>
+<span class="sd">http://curl.haxx.se/libcurl/c/curl_easy_setopt.html#CURLOPTCONNECTTIMEOUTMS</span>
+<span class="sd">and comments in curl_httpclient.py).</span>
+
+<span class="sd">To select ``curl_httpclient``, call `AsyncHTTPClient.configure` at startup::</span>
+
+<span class="sd">    AsyncHTTPClient.configure(&quot;tornado.curl_httpclient.CurlAsyncHTTPClient&quot;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">BytesIO</span>
+<span class="kn">import</span> <span class="nn">ssl</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">weakref</span>
+
+<span class="kn">from</span> <span class="nn">tornado.concurrent</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">Future</span><span class="p">,</span>
+    <span class="n">future_set_result_unless_cancelled</span><span class="p">,</span>
+    <span class="n">future_set_exception_unless_cancelled</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="k">import</span> <span class="n">utf8</span><span class="p">,</span> <span class="n">native_str</span>
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="k">import</span> <span class="n">gen</span><span class="p">,</span> <span class="n">httputil</span>
+<span class="kn">from</span> <span class="nn">tornado.ioloop</span> <span class="k">import</span> <span class="n">IOLoop</span>
+<span class="kn">from</span> <span class="nn">tornado.util</span> <span class="k">import</span> <span class="n">Configurable</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Awaitable</span>
+
+
+<div class="viewcode-block" id="HTTPClient"><a class="viewcode-back" href="../../httpclient.html#tornado.httpclient.HTTPClient">[docs]</a><span class="k">class</span> <span class="nc">HTTPClient</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A blocking HTTP client.</span>
+
+<span class="sd">    This interface is provided to make it easier to share code between</span>
+<span class="sd">    synchronous and asynchronous applications. Applications that are</span>
+<span class="sd">    running an `.IOLoop` must use `AsyncHTTPClient` instead.</span>
+
+<span class="sd">    Typical usage looks like this::</span>
+
+<span class="sd">        http_client = httpclient.HTTPClient()</span>
+<span class="sd">        try:</span>
+<span class="sd">            response = http_client.fetch(&quot;http://www.google.com/&quot;)</span>
+<span class="sd">            print(response.body)</span>
+<span class="sd">        except httpclient.HTTPError as e:</span>
+<span class="sd">            # HTTPError is raised for non-200 responses; the response</span>
+<span class="sd">            # can be found in e.response.</span>
+<span class="sd">            print(&quot;Error: &quot; + str(e))</span>
+<span class="sd">        except Exception as e:</span>
+<span class="sd">            # Other errors are possible, such as IOError.</span>
+<span class="sd">            print(&quot;Error: &quot; + str(e))</span>
+<span class="sd">        http_client.close()</span>
+
+<span class="sd">    .. versionchanged:: 5.0</span>
+
+<span class="sd">       Due to limitations in `asyncio`, it is no longer possible to</span>
+<span class="sd">       use the synchronous ``HTTPClient`` while an `.IOLoop` is running.</span>
+<span class="sd">       Use `AsyncHTTPClient` instead.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">async_client_class</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="s2">&quot;AsyncHTTPClient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Initialize self._closed at the beginning of the constructor</span>
+        <span class="c1"># so that an exception raised here doesn&#39;t lead to confusing</span>
+        <span class="c1"># failures in __del__.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_io_loop</span> <span class="o">=</span> <span class="n">IOLoop</span><span class="p">(</span><span class="n">make_current</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">async_client_class</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">async_client_class</span> <span class="o">=</span> <span class="n">AsyncHTTPClient</span>
+
+        <span class="c1"># Create the client while our IOLoop is &quot;current&quot;, without</span>
+        <span class="c1"># clobbering the thread&#39;s real current IOLoop (if any).</span>
+        <span class="k">async</span> <span class="k">def</span> <span class="nf">make_client</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="s2">&quot;AsyncHTTPClient&quot;</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">gen</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">async_client_class</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="n">async_client_class</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_async_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_loop</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="n">make_client</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<div class="viewcode-block" id="HTTPClient.close"><a class="viewcode-back" href="../../httpclient.html#tornado.httpclient.HTTPClient.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Closes the HTTPClient, freeing any resources used.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_async_client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_io_loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="HTTPClient.fetch"><a class="viewcode-back" href="../../httpclient.html#tornado.httpclient.HTTPClient.fetch">[docs]</a>    <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;HTTPRequest&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;HTTPResponse&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Executes a request, returning an `HTTPResponse`.</span>
+
+<span class="sd">        The request may be either a string URL or an `HTTPRequest` object.</span>
+<span class="sd">        If it is a string, we construct an `HTTPRequest` using any additional</span>
+<span class="sd">        kwargs: ``HTTPRequest(request, **kwargs)``</span>
+
+<span class="sd">        If an error occurs during the fetch, we raise an `HTTPError` unless</span>
+<span class="sd">        the ``raise_error`` keyword argument is set to False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_loop</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span>
+            <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_async_client</span><span class="o">.</span><span class="n">fetch</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span></div></div>
+
+
+<div class="viewcode-block" id="AsyncHTTPClient"><a class="viewcode-back" href="../../httpclient.html#tornado.httpclient.AsyncHTTPClient">[docs]</a><span class="k">class</span> <span class="nc">AsyncHTTPClient</span><span class="p">(</span><span class="n">Configurable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An non-blocking HTTP client.</span>
+
+<span class="sd">    Example usage::</span>
+
+<span class="sd">        async def f():</span>
+<span class="sd">            http_client = AsyncHTTPClient()</span>
+<span class="sd">            try:</span>
+<span class="sd">                response = await http_client.fetch(&quot;http://www.google.com&quot;)</span>
+<span class="sd">            except Exception as e:</span>
+<span class="sd">                print(&quot;Error: %s&quot; % e)</span>
+<span class="sd">            else:</span>
+<span class="sd">                print(response.body)</span>
+
+<span class="sd">    The constructor for this class is magic in several respects: It</span>
+<span class="sd">    actually creates an instance of an implementation-specific</span>
+<span class="sd">    subclass, and instances are reused as a kind of pseudo-singleton</span>
+<span class="sd">    (one per `.IOLoop`). The keyword argument ``force_instance=True``</span>
+<span class="sd">    can be used to suppress this singleton behavior. Unless</span>
+<span class="sd">    ``force_instance=True`` is used, no arguments should be passed to</span>
+<span class="sd">    the `AsyncHTTPClient` constructor. The implementation subclass as</span>
+<span class="sd">    well as arguments to its constructor can be set with the static</span>
+<span class="sd">    method `configure()`</span>
+
+<span class="sd">    All `AsyncHTTPClient` implementations support a ``defaults``</span>
+<span class="sd">    keyword argument, which can be used to set default values for</span>
+<span class="sd">    `HTTPRequest` attributes.  For example::</span>
+
+<span class="sd">        AsyncHTTPClient.configure(</span>
+<span class="sd">            None, defaults=dict(user_agent=&quot;MyUserAgent&quot;))</span>
+<span class="sd">        # or with force_instance:</span>
+<span class="sd">        client = AsyncHTTPClient(force_instance=True,</span>
+<span class="sd">            defaults=dict(user_agent=&quot;MyUserAgent&quot;))</span>
+
+<span class="sd">    .. versionchanged:: 5.0</span>
+<span class="sd">       The ``io_loop`` argument (deprecated since version 4.1) has been removed.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_instance_cache</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Dict[IOLoop, AsyncHTTPClient]</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">configurable_base</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">Configurable</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">AsyncHTTPClient</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">configurable_default</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">Configurable</span><span class="p">]:</span>
+        <span class="kn">from</span> <span class="nn">tornado.simple_httpclient</span> <span class="k">import</span> <span class="n">SimpleAsyncHTTPClient</span>
+
+        <span class="k">return</span> <span class="n">SimpleAsyncHTTPClient</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_async_clients</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">IOLoop</span><span class="p">,</span> <span class="s2">&quot;AsyncHTTPClient&quot;</span><span class="p">]:</span>
+        <span class="n">attr_name</span> <span class="o">=</span> <span class="s2">&quot;_async_client_dict_&quot;</span> <span class="o">+</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">):</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">weakref</span><span class="o">.</span><span class="n">WeakKeyDictionary</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">force_instance</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;AsyncHTTPClient&quot;</span><span class="p">:</span>
+        <span class="n">io_loop</span> <span class="o">=</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">force_instance</span><span class="p">:</span>
+            <span class="n">instance_cache</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">instance_cache</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_async_clients</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">instance_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">io_loop</span> <span class="ow">in</span> <span class="n">instance_cache</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">instance_cache</span><span class="p">[</span><span class="n">io_loop</span><span class="p">]</span>
+        <span class="n">instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">AsyncHTTPClient</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="c1"># Make sure the instance knows which cache to remove itself from.</span>
+        <span class="c1"># It can&#39;t simply call _async_clients() because we may be in</span>
+        <span class="c1"># __new__(AsyncHTTPClient) but instance.__class__ may be</span>
+        <span class="c1"># SimpleAsyncHTTPClient.</span>
+        <span class="n">instance</span><span class="o">.</span><span class="n">_instance_cache</span> <span class="o">=</span> <span class="n">instance_cache</span>
+        <span class="k">if</span> <span class="n">instance_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">instance_cache</span><span class="p">[</span><span class="n">instance</span><span class="o">.</span><span class="n">io_loop</span><span class="p">]</span> <span class="o">=</span> <span class="n">instance</span>
+        <span class="k">return</span> <span class="n">instance</span>
+
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span> <span class="o">=</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">HTTPRequest</span><span class="o">.</span><span class="n">_DEFAULTS</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">defaults</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">defaults</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="AsyncHTTPClient.close"><a class="viewcode-back" href="../../httpclient.html#tornado.httpclient.AsyncHTTPClient.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Destroys this HTTP client, freeing any file descriptors used.</span>
+
+<span class="sd">        This method is **not needed in normal use** due to the way</span>
+<span class="sd">        that `AsyncHTTPClient` objects are transparently reused.</span>
+<span class="sd">        ``close()`` is generally only necessary when either the</span>
+<span class="sd">        `.IOLoop` is also being closed, or the ``force_instance=True``</span>
+<span class="sd">        argument was used when creating the `AsyncHTTPClient`.</span>
+
+<span class="sd">        No other methods may be called on the `AsyncHTTPClient` after</span>
+<span class="sd">        ``close()``.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cached_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_cache</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="c1"># If there&#39;s an object other than self in the instance</span>
+            <span class="c1"># cache for our IOLoop, something has gotten mixed up. A</span>
+            <span class="c1"># value of None appears to be possible when this is called</span>
+            <span class="c1"># from a destructor (HTTPClient.__del__) as the weakref</span>
+            <span class="c1"># gets cleared before the destructor runs.</span>
+            <span class="k">if</span> <span class="n">cached_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cached_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;inconsistent AsyncHTTPClient cache&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AsyncHTTPClient.fetch"><a class="viewcode-back" href="../../httpclient.html#tornado.httpclient.AsyncHTTPClient.fetch">[docs]</a>    <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">request</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;HTTPRequest&quot;</span><span class="p">],</span>
+        <span class="n">raise_error</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Awaitable</span><span class="p">[</span><span class="s2">&quot;HTTPResponse&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Executes a request, asynchronously returning an `HTTPResponse`.</span>
+
+<span class="sd">        The request may be either a string URL or an `HTTPRequest` object.</span>
+<span class="sd">        If it is a string, we construct an `HTTPRequest` using any additional</span>
+<span class="sd">        kwargs: ``HTTPRequest(request, **kwargs)``</span>
+
+<span class="sd">        This method returns a `.Future` whose result is an</span>
+<span class="sd">        `HTTPResponse`. By default, the ``Future`` will raise an</span>
+<span class="sd">        `HTTPError` if the request returned a non-200 response code</span>
+<span class="sd">        (other errors may also be raised if the server could not be</span>
+<span class="sd">        contacted). Instead, if ``raise_error`` is set to False, the</span>
+<span class="sd">        response will always be returned regardless of the response</span>
+<span class="sd">        code.</span>
+
+<span class="sd">        If a ``callback`` is given, it will be invoked with the `HTTPResponse`.</span>
+<span class="sd">        In the callback interface, `HTTPError` is not automatically raised.</span>
+<span class="sd">        Instead, you must check the response&#39;s ``error`` attribute or</span>
+<span class="sd">        call its `~HTTPResponse.rethrow` method.</span>
+
+<span class="sd">        .. versionchanged:: 6.0</span>
+
+<span class="sd">           The ``callback`` argument was removed. Use the returned</span>
+<span class="sd">           `.Future` instead.</span>
+
+<span class="sd">           The ``raise_error=False`` argument only affects the</span>
+<span class="sd">           `HTTPError` raised when a non-200 response code is used,</span>
+<span class="sd">           instead of suppressing all errors.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;fetch() called on closed AsyncHTTPClient&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">HTTPRequest</span><span class="p">):</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="n">HTTPRequest</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;kwargs can&#39;t be used if request is an HTTPRequest object&quot;</span>
+                <span class="p">)</span>
+        <span class="c1"># We may modify this (to add Host, Accept-Encoding, etc),</span>
+        <span class="c1"># so make sure we don&#39;t modify the caller&#39;s object.  This is also</span>
+        <span class="c1"># where normal dicts get converted to HTTPHeaders objects.</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
+        <span class="n">request_proxy</span> <span class="o">=</span> <span class="n">_RequestProxy</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">)</span>
+        <span class="n">future</span> <span class="o">=</span> <span class="n">Future</span><span class="p">()</span>  <span class="c1"># type: Future[HTTPResponse]</span>
+
+        <span class="k">def</span> <span class="nf">handle_response</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="s2">&quot;HTTPResponse&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">raise_error</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">response</span><span class="o">.</span><span class="n">_error_is_response_code</span><span class="p">:</span>
+                    <span class="n">future_set_exception_unless_cancelled</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
+                    <span class="k">return</span>
+            <span class="n">future_set_result_unless_cancelled</span><span class="p">(</span><span class="n">future</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fetch_impl</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="n">HTTPRequest</span><span class="p">,</span> <span class="n">request_proxy</span><span class="p">),</span> <span class="n">handle_response</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">future</span></div>
+
+    <span class="k">def</span> <span class="nf">fetch_impl</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="s2">&quot;HTTPRequest&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="s2">&quot;HTTPResponse&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+<div class="viewcode-block" id="AsyncHTTPClient.configure"><a class="viewcode-back" href="../../httpclient.html#tornado.httpclient.AsyncHTTPClient.configure">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">impl</span><span class="p">:</span> <span class="s2">&quot;Union[None, str, Type[Configurable]]&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Configures the `AsyncHTTPClient` subclass to use.</span>
+
+<span class="sd">        ``AsyncHTTPClient()`` actually creates an instance of a subclass.</span>
+<span class="sd">        This method may be called with either a class object or the</span>
+<span class="sd">        fully-qualified name of such a class (or ``None`` to use the default,</span>
+<span class="sd">        ``SimpleAsyncHTTPClient``)</span>
+
+<span class="sd">        If additional keyword arguments are given, they will be passed</span>
+<span class="sd">        to the constructor of each subclass instance created.  The</span>
+<span class="sd">        keyword argument ``max_clients`` determines the maximum number</span>
+<span class="sd">        of simultaneous `~AsyncHTTPClient.fetch()` operations that can</span>
+<span class="sd">        execute in parallel on each `.IOLoop`.  Additional arguments</span>
+<span class="sd">        may be supported depending on the implementation class in use.</span>
+
+<span class="sd">        Example::</span>
+
+<span class="sd">           AsyncHTTPClient.configure(&quot;tornado.curl_httpclient.CurlAsyncHTTPClient&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AsyncHTTPClient</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">impl</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="HTTPRequest"><a class="viewcode-back" href="../../httpclient.html#tornado.httpclient.HTTPRequest">[docs]</a><span class="k">class</span> <span class="nc">HTTPRequest</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;HTTP client request object.&quot;&quot;&quot;</span>
+
+    <span class="n">_headers</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Union[Dict[str, str], httputil.HTTPHeaders]</span>
+
+    <span class="c1"># Default values for HTTPRequest parameters.</span>
+    <span class="c1"># Merged with the values on the request object by AsyncHTTPClient</span>
+    <span class="c1"># implementations.</span>
+    <span class="n">_DEFAULTS</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">connect_timeout</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
+        <span class="n">request_timeout</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
+        <span class="n">follow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">max_redirects</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">decompress_response</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">proxy_password</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">allow_nonstandard_methods</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">validate_cert</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;GET&quot;</span><span class="p">,</span>
+        <span class="n">headers</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">body</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">auth_username</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">auth_password</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">auth_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">connect_timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">request_timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">if_modified_since</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">follow_redirects</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_redirects</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">user_agent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">use_gzip</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">network_interface</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">streaming_callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">bytes</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">header_callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">prepare_curl_callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">proxy_host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">proxy_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">proxy_username</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">proxy_password</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">proxy_auth_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">allow_nonstandard_methods</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">validate_cert</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">ca_certs</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">allow_ipv6</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">client_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">client_cert</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">body_producer</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">bytes</span><span class="p">],</span> <span class="kc">None</span><span class="p">]],</span> <span class="s2">&quot;Future[None]&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">expect_100_continue</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">decompress_response</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">ssl_options</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">ssl</span><span class="o">.</span><span class="n">SSLContext</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;All parameters except ``url`` are optional.</span>
+
+<span class="sd">        :arg str url: URL to fetch</span>
+<span class="sd">        :arg str method: HTTP method, e.g. &quot;GET&quot; or &quot;POST&quot;</span>
+<span class="sd">        :arg headers: Additional HTTP headers to pass on the request</span>
+<span class="sd">        :type headers: `~tornado.httputil.HTTPHeaders` or `dict`</span>
+<span class="sd">        :arg body: HTTP request body as a string (byte or unicode; if unicode</span>
+<span class="sd">           the utf-8 encoding will be used)</span>
+<span class="sd">        :arg body_producer: Callable used for lazy/asynchronous request bodies.</span>
+<span class="sd">           It is called with one argument, a ``write`` function, and should</span>
+<span class="sd">           return a `.Future`.  It should call the write function with new</span>
+<span class="sd">           data as it becomes available.  The write function returns a</span>
+<span class="sd">           `.Future` which can be used for flow control.</span>
+<span class="sd">           Only one of ``body`` and ``body_producer`` may</span>
+<span class="sd">           be specified.  ``body_producer`` is not supported on</span>
+<span class="sd">           ``curl_httpclient``.  When using ``body_producer`` it is recommended</span>
+<span class="sd">           to pass a ``Content-Length`` in the headers as otherwise chunked</span>
+<span class="sd">           encoding will be used, and many servers do not support chunked</span>
+<span class="sd">           encoding on requests.  New in Tornado 4.0</span>
+<span class="sd">        :arg str auth_username: Username for HTTP authentication</span>
+<span class="sd">        :arg str auth_password: Password for HTTP authentication</span>
+<span class="sd">        :arg str auth_mode: Authentication mode; default is &quot;basic&quot;.</span>
+<span class="sd">           Allowed values are implementation-defined; ``curl_httpclient``</span>
+<span class="sd">           supports &quot;basic&quot; and &quot;digest&quot;; ``simple_httpclient`` only supports</span>
+<span class="sd">           &quot;basic&quot;</span>
+<span class="sd">        :arg float connect_timeout: Timeout for initial connection in seconds,</span>
+<span class="sd">           default 20 seconds</span>
+<span class="sd">        :arg float request_timeout: Timeout for entire request in seconds,</span>
+<span class="sd">           default 20 seconds</span>
+<span class="sd">        :arg if_modified_since: Timestamp for ``If-Modified-Since`` header</span>
+<span class="sd">        :type if_modified_since: `datetime` or `float`</span>
+<span class="sd">        :arg bool follow_redirects: Should redirects be followed automatically</span>
+<span class="sd">           or return the 3xx response? Default True.</span>
+<span class="sd">        :arg int max_redirects: Limit for ``follow_redirects``, default 5.</span>
+<span class="sd">        :arg str user_agent: String to send as ``User-Agent`` header</span>
+<span class="sd">        :arg bool decompress_response: Request a compressed response from</span>
+<span class="sd">           the server and decompress it after downloading.  Default is True.</span>
+<span class="sd">           New in Tornado 4.0.</span>
+<span class="sd">        :arg bool use_gzip: Deprecated alias for ``decompress_response``</span>
+<span class="sd">           since Tornado 4.0.</span>
+<span class="sd">        :arg str network_interface: Network interface or source IP to use for request.</span>
+<span class="sd">           See ``curl_httpclient`` note below.</span>
+<span class="sd">        :arg collections.abc.Callable streaming_callback: If set, ``streaming_callback`` will</span>
+<span class="sd">           be run with each chunk of data as it is received, and</span>
+<span class="sd">           ``HTTPResponse.body`` and ``HTTPResponse.buffer`` will be empty in</span>
+<span class="sd">           the final response.</span>
+<span class="sd">        :arg collections.abc.Callable header_callback: If set, ``header_callback`` will</span>
+<span class="sd">           be run with each header line as it is received (including the</span>
+<span class="sd">           first line, e.g. ``HTTP/1.0 200 OK\r\n``, and a final line</span>
+<span class="sd">           containing only ``\r\n``.  All lines include the trailing newline</span>
+<span class="sd">           characters).  ``HTTPResponse.headers`` will be empty in the final</span>
+<span class="sd">           response.  This is most useful in conjunction with</span>
+<span class="sd">           ``streaming_callback``, because it&#39;s the only way to get access to</span>
+<span class="sd">           header data while the request is in progress.</span>
+<span class="sd">        :arg collections.abc.Callable prepare_curl_callback: If set, will be called with</span>
+<span class="sd">           a ``pycurl.Curl`` object to allow the application to make additional</span>
+<span class="sd">           ``setopt`` calls.</span>
+<span class="sd">        :arg str proxy_host: HTTP proxy hostname.  To use proxies,</span>
+<span class="sd">           ``proxy_host`` and ``proxy_port`` must be set; ``proxy_username``,</span>
+<span class="sd">           ``proxy_pass`` and ``proxy_auth_mode`` are optional.  Proxies are</span>
+<span class="sd">           currently only supported with ``curl_httpclient``.</span>
+<span class="sd">        :arg int proxy_port: HTTP proxy port</span>
+<span class="sd">        :arg str proxy_username: HTTP proxy username</span>
+<span class="sd">        :arg str proxy_password: HTTP proxy password</span>
+<span class="sd">        :arg str proxy_auth_mode: HTTP proxy Authentication mode;</span>
+<span class="sd">           default is &quot;basic&quot;. supports &quot;basic&quot; and &quot;digest&quot;</span>
+<span class="sd">        :arg bool allow_nonstandard_methods: Allow unknown values for ``method``</span>
+<span class="sd">           argument? Default is False.</span>
+<span class="sd">        :arg bool validate_cert: For HTTPS requests, validate the server&#39;s</span>
+<span class="sd">           certificate? Default is True.</span>
+<span class="sd">        :arg str ca_certs: filename of CA certificates in PEM format,</span>
+<span class="sd">           or None to use defaults.  See note below when used with</span>
+<span class="sd">           ``curl_httpclient``.</span>
+<span class="sd">        :arg str client_key: Filename for client SSL key, if any.  See</span>
+<span class="sd">           note below when used with ``curl_httpclient``.</span>
+<span class="sd">        :arg str client_cert: Filename for client SSL certificate, if any.</span>
+<span class="sd">           See note below when used with ``curl_httpclient``.</span>
+<span class="sd">        :arg ssl.SSLContext ssl_options: `ssl.SSLContext` object for use in</span>
+<span class="sd">           ``simple_httpclient`` (unsupported by ``curl_httpclient``).</span>
+<span class="sd">           Overrides ``validate_cert``, ``ca_certs``, ``client_key``,</span>
+<span class="sd">           and ``client_cert``.</span>
+<span class="sd">        :arg bool allow_ipv6: Use IPv6 when available?  Default is True.</span>
+<span class="sd">        :arg bool expect_100_continue: If true, send the</span>
+<span class="sd">           ``Expect: 100-continue`` header and wait for a continue response</span>
+<span class="sd">           before sending the request body.  Only supported with</span>
+<span class="sd">           ``simple_httpclient``.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            When using ``curl_httpclient`` certain options may be</span>
+<span class="sd">            inherited by subsequent fetches because ``pycurl`` does</span>
+<span class="sd">            not allow them to be cleanly reset.  This applies to the</span>
+<span class="sd">            ``ca_certs``, ``client_key``, ``client_cert``, and</span>
+<span class="sd">            ``network_interface`` arguments.  If you use these</span>
+<span class="sd">            options, you should pass them on every request (you don&#39;t</span>
+<span class="sd">            have to always use the same values, but it&#39;s not possible</span>
+<span class="sd">            to mix requests that specify these options with ones that</span>
+<span class="sd">            use the defaults).</span>
+
+<span class="sd">        .. versionadded:: 3.1</span>
+<span class="sd">           The ``auth_mode`` argument.</span>
+
+<span class="sd">        .. versionadded:: 4.0</span>
+<span class="sd">           The ``body_producer`` and ``expect_100_continue`` arguments.</span>
+
+<span class="sd">        .. versionadded:: 4.2</span>
+<span class="sd">           The ``ssl_options`` argument.</span>
+
+<span class="sd">        .. versionadded:: 4.5</span>
+<span class="sd">           The ``proxy_auth_mode`` argument.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Note that some of these attributes go through property setters</span>
+        <span class="c1"># defined below.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span>
+        <span class="k">if</span> <span class="n">if_modified_since</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;If-Modified-Since&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">httputil</span><span class="o">.</span><span class="n">format_timestamp</span><span class="p">(</span>
+                <span class="n">if_modified_since</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proxy_host</span> <span class="o">=</span> <span class="n">proxy_host</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proxy_port</span> <span class="o">=</span> <span class="n">proxy_port</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proxy_username</span> <span class="o">=</span> <span class="n">proxy_username</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proxy_password</span> <span class="o">=</span> <span class="n">proxy_password</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proxy_auth_mode</span> <span class="o">=</span> <span class="n">proxy_auth_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">body</span> <span class="o">=</span> <span class="n">body</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">body_producer</span> <span class="o">=</span> <span class="n">body_producer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auth_username</span> <span class="o">=</span> <span class="n">auth_username</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auth_password</span> <span class="o">=</span> <span class="n">auth_password</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auth_mode</span> <span class="o">=</span> <span class="n">auth_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_timeout</span> <span class="o">=</span> <span class="n">connect_timeout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_timeout</span> <span class="o">=</span> <span class="n">request_timeout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">follow_redirects</span> <span class="o">=</span> <span class="n">follow_redirects</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_redirects</span> <span class="o">=</span> <span class="n">max_redirects</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_agent</span> <span class="o">=</span> <span class="n">user_agent</span>
+        <span class="k">if</span> <span class="n">decompress_response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">decompress_response</span> <span class="o">=</span> <span class="n">decompress_response</span>  <span class="c1"># type: Optional[bool]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">decompress_response</span> <span class="o">=</span> <span class="n">use_gzip</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">network_interface</span> <span class="o">=</span> <span class="n">network_interface</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">streaming_callback</span> <span class="o">=</span> <span class="n">streaming_callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">header_callback</span> <span class="o">=</span> <span class="n">header_callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prepare_curl_callback</span> <span class="o">=</span> <span class="n">prepare_curl_callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_nonstandard_methods</span> <span class="o">=</span> <span class="n">allow_nonstandard_methods</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_cert</span> <span class="o">=</span> <span class="n">validate_cert</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ca_certs</span> <span class="o">=</span> <span class="n">ca_certs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_ipv6</span> <span class="o">=</span> <span class="n">allow_ipv6</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_key</span> <span class="o">=</span> <span class="n">client_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_cert</span> <span class="o">=</span> <span class="n">client_cert</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ssl_options</span> <span class="o">=</span> <span class="n">ssl_options</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expect_100_continue</span> <span class="o">=</span> <span class="n">expect_100_continue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">headers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">:</span>
+        <span class="c1"># TODO: headers may actually be a plain dict until fairly late in</span>
+        <span class="c1"># the process (AsyncHTTPClient.fetch), but practically speaking,</span>
+        <span class="c1"># whenever the property is used they&#39;re already HTTPHeaders.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_headers</span>  <span class="c1"># type: ignore</span>
+
+    <span class="nd">@headers</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">headers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_headers</span> <span class="o">=</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_headers</span> <span class="o">=</span> <span class="n">value</span>  <span class="c1"># type: ignore</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">body</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_body</span>
+
+    <span class="nd">@body</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">body</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_body</span> <span class="o">=</span> <span class="n">utf8</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="HTTPResponse"><a class="viewcode-back" href="../../httpclient.html#tornado.httpclient.HTTPResponse">[docs]</a><span class="k">class</span> <span class="nc">HTTPResponse</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;HTTP Response object.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">    * ``request``: HTTPRequest object</span>
+
+<span class="sd">    * ``code``: numeric HTTP status code, e.g. 200 or 404</span>
+
+<span class="sd">    * ``reason``: human-readable reason phrase describing the status code</span>
+
+<span class="sd">    * ``headers``: `tornado.httputil.HTTPHeaders` object</span>
+
+<span class="sd">    * ``effective_url``: final location of the resource after following any</span>
+<span class="sd">      redirects</span>
+
+<span class="sd">    * ``buffer``: ``cStringIO`` object for response body</span>
+
+<span class="sd">    * ``body``: response body as bytes (created on demand from ``self.buffer``)</span>
+
+<span class="sd">    * ``error``: Exception object, if any</span>
+
+<span class="sd">    * ``request_time``: seconds from request start to finish. Includes all</span>
+<span class="sd">      network operations from DNS resolution to receiving the last byte of</span>
+<span class="sd">      data. Does not include time spent in the queue (due to the</span>
+<span class="sd">      ``max_clients`` option). If redirects were followed, only includes</span>
+<span class="sd">      the final request.</span>
+
+<span class="sd">    * ``start_time``: Time at which the HTTP operation started, based on</span>
+<span class="sd">      `time.time` (not the monotonic clock used by `.IOLoop.time`). May</span>
+<span class="sd">      be ``None`` if the request timed out while in the queue.</span>
+
+<span class="sd">    * ``time_info``: dictionary of diagnostic timing information from the</span>
+<span class="sd">      request. Available data are subject to change, but currently uses timings</span>
+<span class="sd">      available from http://curl.haxx.se/libcurl/c/curl_easy_getinfo.html,</span>
+<span class="sd">      plus ``queue``, which is the delay (if any) introduced by waiting for</span>
+<span class="sd">      a slot under `AsyncHTTPClient`&#39;s ``max_clients`` setting.</span>
+
+<span class="sd">    .. versionadded:: 5.1</span>
+
+<span class="sd">       Added the ``start_time`` attribute.</span>
+
+<span class="sd">    .. versionchanged:: 5.1</span>
+
+<span class="sd">       The ``request_time`` attribute previously included time spent in the queue</span>
+<span class="sd">       for ``simple_httpclient``, but not in ``curl_httpclient``. Now queueing time</span>
+<span class="sd">       is excluded in both implementations. ``request_time`` is now more accurate for</span>
+<span class="sd">       ``curl_httpclient`` because it uses a monotonic clock when available.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># I&#39;m not sure why these don&#39;t get type-inferred from the references in __init__.</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[BaseException]</span>
+    <span class="n">_error_is_response_code</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: HTTPRequest</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">request</span><span class="p">:</span> <span class="n">HTTPRequest</span><span class="p">,</span>
+        <span class="n">code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">headers</span><span class="p">:</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">buffer</span><span class="p">:</span> <span class="n">BytesIO</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">effective_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">error</span><span class="p">:</span> <span class="ne">BaseException</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">request_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">time_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">start_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">_RequestProxy</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">request</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">request</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reason</span> <span class="o">=</span> <span class="n">reason</span> <span class="ow">or</span> <span class="n">httputil</span><span class="o">.</span><span class="n">responses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">headers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="n">httputil</span><span class="o">.</span><span class="n">HTTPHeaders</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buffer</span> <span class="o">=</span> <span class="n">buffer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_body</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[bytes]</span>
+        <span class="k">if</span> <span class="n">effective_url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">effective_url</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">url</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">effective_url</span> <span class="o">=</span> <span class="n">effective_url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_error_is_response_code</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">error</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">&lt;</span> <span class="mi">200</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">&gt;=</span> <span class="mi">300</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_error_is_response_code</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="n">HTTPError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reason</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="n">error</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">start_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request_time</span> <span class="o">=</span> <span class="n">request_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_info</span> <span class="o">=</span> <span class="n">time_info</span> <span class="ow">or</span> <span class="p">{}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">body</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">buffer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;body not set&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_body</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_body</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buffer</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_body</span>
+
+<div class="viewcode-block" id="HTTPResponse.rethrow"><a class="viewcode-back" href="../../httpclient.html#tornado.httpclient.HTTPResponse.rethrow">[docs]</a>    <span class="k">def</span> <span class="nf">rethrow</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;If there was an error on the request, raise an `HTTPError`.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span></div>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="HTTPClientError"><a class="viewcode-back" href="../../httpclient.html#tornado.httpclient.HTTPClientError">[docs]</a><span class="k">class</span> <span class="nc">HTTPClientError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exception thrown for an unsuccessful HTTP request.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">    * ``code`` - HTTP error integer error code, e.g. 404.  Error code 599 is</span>
+<span class="sd">      used when no HTTP response was received, e.g. for a timeout.</span>
+
+<span class="sd">    * ``response`` - `HTTPResponse` object, if any.</span>
+
+<span class="sd">    Note that if ``follow_redirects`` is False, redirects become HTTPErrors,</span>
+<span class="sd">    and you can look at ``error.response.headers[&#39;Location&#39;]`` to see the</span>
+<span class="sd">    destination of the redirect.</span>
+
+<span class="sd">    .. versionchanged:: 5.1</span>
+
+<span class="sd">       Renamed from ``HTTPError`` to ``HTTPClientError`` to avoid collisions with</span>
+<span class="sd">       `tornado.web.HTTPError`. The name ``tornado.httpclient.HTTPError`` remains</span>
+<span class="sd">       as an alias.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">HTTPResponse</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">message</span> <span class="ow">or</span> <span class="n">httputil</span><span class="o">.</span><span class="n">responses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="n">response</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">HTTPClientError</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;HTTP </span><span class="si">%d</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+
+    <span class="c1"># There is a cyclic reference between self and self.response,</span>
+    <span class="c1"># which breaks the default __repr__ implementation.</span>
+    <span class="c1"># (especially on pypy, which doesn&#39;t have the same recursion</span>
+    <span class="c1"># detection as cpython).</span>
+    <span class="fm">__repr__</span> <span class="o">=</span> <span class="fm">__str__</span></div>
+
+
+<span class="n">HTTPError</span> <span class="o">=</span> <span class="n">HTTPClientError</span>
+
+
+<span class="k">class</span> <span class="nc">_RequestProxy</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Combines an object with a dictionary of defaults.</span>
+
+<span class="sd">    Used internally by AsyncHTTPClient implementations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HTTPRequest</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">request</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span> <span class="o">=</span> <span class="n">defaults</span>
+
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">request_attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">request_attr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">request_attr</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">tornado.options</span> <span class="k">import</span> <span class="n">define</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">parse_command_line</span>
+
+    <span class="n">define</span><span class="p">(</span><span class="s2">&quot;print_headers&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span><span class="s2">&quot;print_body&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span><span class="s2">&quot;follow_redirects&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span><span class="s2">&quot;validate_cert&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span><span class="s2">&quot;proxy_host&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span><span class="s2">&quot;proxy_port&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parse_command_line</span><span class="p">()</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">HTTPClient</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span>
+                <span class="n">arg</span><span class="p">,</span>
+                <span class="n">follow_redirects</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">follow_redirects</span><span class="p">,</span>
+                <span class="n">validate_cert</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">validate_cert</span><span class="p">,</span>
+                <span class="n">proxy_host</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">proxy_host</span><span class="p">,</span>
+                <span class="n">proxy_port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">proxy_port</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">HTTPError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">response</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span>
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">print_headers</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">print_body</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">native_str</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">))</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

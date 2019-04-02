@@ -1,0 +1,717 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tornado.ioloop — Main event loop &mdash; Tornado 6.1.dev1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tornado.iostream — Convenient wrappers for non-blocking sockets" href="iostream.html" />
+    <link rel="prev" title="Asynchronous networking" href="networking.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Tornado
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                6.1.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="guide.html">User’s guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webframework.html">Web framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="http.html">HTTP servers and clients</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="networking.html">Asynchronous networking</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">tornado.ioloop</span></code> — Main event loop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iostream.html"><code class="docutils literal notranslate"><span class="pre">tornado.iostream</span></code> — Convenient wrappers for non-blocking sockets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="netutil.html"><code class="docutils literal notranslate"><span class="pre">tornado.netutil</span></code> — Miscellaneous network utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tcpclient.html"><code class="docutils literal notranslate"><span class="pre">tornado.tcpclient</span></code> — <code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code> connection factory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tcpserver.html"><code class="docutils literal notranslate"><span class="pre">tornado.tcpserver</span></code> — Basic <code class="xref py py-obj docutils literal notranslate"><span class="pre">IOStream</span></code>-based TCP server</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="coroutine.html">Coroutines and concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">Integration with other services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release notes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Tornado</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="networking.html">Asynchronous networking</a> &raquo;</li>
+        
+      <li><code class="docutils literal notranslate"><span class="pre">tornado.ioloop</span></code> — Main event loop</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ioloop.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-tornado.ioloop">
+<span id="tornado-ioloop-main-event-loop"></span><h1><code class="docutils literal notranslate"><span class="pre">tornado.ioloop</span></code> — Main event loop<a class="headerlink" href="#module-tornado.ioloop" title="Permalink to this headline">¶</a></h1>
+<p>An I/O event loop for non-blocking sockets.</p>
+<p>In Tornado 6.0, <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> is a wrapper around the <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> event
+loop, with a slightly different interface for historical reasons.
+Applications can use either the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> interface or the underlying
+<a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> event loop directly (unless compatibility with older
+versions of Tornado is desired, in which case <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> must be used).</p>
+<p>Typical applications will use a single <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> object, accessed via
+<a class="reference internal" href="#tornado.ioloop.IOLoop.current" title="tornado.ioloop.IOLoop.current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.current</span></code></a> class method. The <a class="reference internal" href="#tornado.ioloop.IOLoop.start" title="tornado.ioloop.IOLoop.start"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.start</span></code></a> method (or
+equivalently, <a class="reference external" href="https://docs.python.org/3.6/library/asyncio-eventloop.html#asyncio.AbstractEventLoop.run_forever" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio.AbstractEventLoop.run_forever</span></code></a>) should usually
+be called at the end of the <code class="docutils literal notranslate"><span class="pre">main()</span></code> function. Atypical applications
+may use more than one <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>, such as one <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> per thread, or
+per <a class="reference external" href="https://docs.python.org/3.6/library/unittest.html#module-unittest" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unittest</span></code></a> case.</p>
+<div class="section" id="ioloop-objects">
+<h2>IOLoop objects<a class="headerlink" href="#ioloop-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tornado.ioloop.IOLoop">
+<em class="property">class </em><code class="descclassname">tornado.ioloop.</code><code class="descname">IOLoop</code><a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop" title="Permalink to this definition">¶</a></dt>
+<dd><p>An I/O event loop.</p>
+<p>As of Tornado 6.0, <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> is a wrapper around the <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> event
+loop.</p>
+<p>Example usage for a simple TCP server:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">errno</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+
+<span class="kn">import</span> <span class="nn">tornado.ioloop</span>
+<span class="kn">from</span> <span class="nn">tornado.iostream</span> <span class="k">import</span> <span class="n">IOStream</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">handle_connection</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">address</span><span class="p">):</span>
+    <span class="n">stream</span> <span class="o">=</span> <span class="n">IOStream</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">stream</span><span class="o">.</span><span class="n">read_until_close</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;message from client:&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+<span class="k">def</span> <span class="nf">connection_ready</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">events</span><span class="p">):</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">connection</span><span class="p">,</span> <span class="n">address</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">errno</span><span class="o">.</span><span class="n">EWOULDBLOCK</span><span class="p">,</span> <span class="n">errno</span><span class="o">.</span><span class="n">EAGAIN</span><span class="p">):</span>
+                <span class="k">raise</span>
+            <span class="k">return</span>
+        <span class="n">connection</span><span class="o">.</span><span class="n">setblocking</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+        <span class="n">io_loop</span><span class="o">.</span><span class="n">spawn_callback</span><span class="p">(</span><span class="n">handle_connection</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">address</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">sock</span><span class="o">.</span><span class="n">setsockopt</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">SOL_SOCKET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SO_REUSEADDR</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">sock</span><span class="o">.</span><span class="n">setblocking</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">sock</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">8888</span><span class="p">))</span>
+    <span class="n">sock</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
+
+    <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+    <span class="n">callback</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">connection_ready</span><span class="p">,</span> <span class="n">sock</span><span class="p">)</span>
+    <span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="n">sock</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="n">callback</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
+    <span class="n">io_loop</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>By default, a newly-constructed <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> becomes the thread’s current
+<a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>, unless there already is a current <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>. This behavior
+can be controlled with the <code class="docutils literal notranslate"><span class="pre">make_current</span></code> argument to the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>
+constructor: if <code class="docutils literal notranslate"><span class="pre">make_current=True</span></code>, the new <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> will always
+try to become current and it raises an error if there is already a
+current instance. If <code class="docutils literal notranslate"><span class="pre">make_current=False</span></code>, the new <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> will
+not try to become current.</p>
+<p>In general, an <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> cannot survive a fork or be shared across
+processes in any way. When multiple processes are being used, each
+process should create its own <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>, which also implies that
+any objects which depend on the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> (such as
+<a class="reference internal" href="httpclient.html#tornado.httpclient.AsyncHTTPClient" title="tornado.httpclient.AsyncHTTPClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsyncHTTPClient</span></code></a>) must also be created in the child processes.
+As a guideline, anything that starts processes (including the
+<a class="reference internal" href="process.html#module-tornado.process" title="tornado.process"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.process</span></code></a> and <a class="reference external" href="https://docs.python.org/3.6/library/multiprocessing.html#module-multiprocessing" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">multiprocessing</span></code></a> modules) should do so as
+early as possible, ideally the first thing the application does
+after loading its configuration in <code class="docutils literal notranslate"><span class="pre">main()</span></code>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.2: </span>Added the <code class="docutils literal notranslate"><span class="pre">make_current</span></code> keyword argument to the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>
+constructor.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Uses the <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> event loop by default. The
+<code class="docutils literal notranslate"><span class="pre">IOLoop.configure</span></code> method cannot be used on Python 3 except
+to redundantly specify the <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> event loop.</p>
+</div>
+</dd></dl>
+
+<div class="section" id="running-an-ioloop">
+<h3>Running an IOLoop<a class="headerlink" href="#running-an-ioloop" title="Permalink to this headline">¶</a></h3>
+<dl class="staticmethod">
+<dt id="tornado.ioloop.IOLoop.current">
+<em class="property">static </em><code class="descclassname">IOLoop.</code><code class="descname">current</code><span class="sig-paren">(</span><em>instance: bool = True</em><span class="sig-paren">)</span> &#x2192; Optional[tornado.ioloop.IOLoop]<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.current" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current thread’s <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>.</p>
+<p>If an <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> is currently running or has been marked as
+current by <a class="reference internal" href="#tornado.ioloop.IOLoop.make_current" title="tornado.ioloop.IOLoop.make_current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_current</span></code></a>, returns that instance.  If there is
+no current <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> and <code class="docutils literal notranslate"><span class="pre">instance</span></code> is true, creates one.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.1: </span>Added <code class="docutils literal notranslate"><span class="pre">instance</span></code> argument to control the fallback to
+<a class="reference internal" href="#tornado.ioloop.IOLoop.instance" title="tornado.ioloop.IOLoop.instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.instance()</span></code></a>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>On Python 3, control of the current <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> is delegated
+to <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a>, with this and other methods as pass-through accessors.
+The <code class="docutils literal notranslate"><span class="pre">instance</span></code> argument now controls whether an <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>
+is created automatically when there is none, instead of
+whether we fall back to <a class="reference internal" href="#tornado.ioloop.IOLoop.instance" title="tornado.ioloop.IOLoop.instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.instance()</span></code></a> (which is now
+an alias for this method). <code class="docutils literal notranslate"><span class="pre">instance=False</span></code> is deprecated,
+since even if we do not create an <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>, this method
+may initialize the asyncio loop.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.make_current">
+<code class="descclassname">IOLoop.</code><code class="descname">make_current</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.make_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.make_current" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes this the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> for the current thread.</p>
+<p>An <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> automatically becomes current for its thread
+when it is started, but it is sometimes useful to call
+<a class="reference internal" href="#tornado.ioloop.IOLoop.make_current" title="tornado.ioloop.IOLoop.make_current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_current</span></code></a> explicitly before starting the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>,
+so that code run at startup time can find the right
+instance.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.1: </span>An <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> created while there is no current <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>
+will automatically become current.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>This method also sets the current <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> event loop.</p>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="tornado.ioloop.IOLoop.clear_current">
+<em class="property">static </em><code class="descclassname">IOLoop.</code><code class="descname">clear_current</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.clear_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.clear_current" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> for the current thread.</p>
+<p>Intended primarily for use by test frameworks in between tests.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>This method also clears the current <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> event loop.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.start">
+<code class="descclassname">IOLoop.</code><code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the I/O loop.</p>
+<p>The loop will run until one of the callbacks calls <a class="reference internal" href="#tornado.ioloop.IOLoop.stop" title="tornado.ioloop.IOLoop.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stop()</span></code></a>, which
+will make the loop stop after the current event iteration completes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.stop">
+<code class="descclassname">IOLoop.</code><code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.stop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop the I/O loop.</p>
+<p>If the event loop is not currently running, the next call to <a class="reference internal" href="#tornado.ioloop.IOLoop.start" title="tornado.ioloop.IOLoop.start"><code class="xref py py-obj docutils literal notranslate"><span class="pre">start()</span></code></a>
+will return immediately.</p>
+<p>Note that even after <a class="reference internal" href="#tornado.ioloop.IOLoop.stop" title="tornado.ioloop.IOLoop.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stop</span></code></a> has been called, the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> is not
+completely stopped until <a class="reference internal" href="#tornado.ioloop.IOLoop.start" title="tornado.ioloop.IOLoop.start"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.start</span></code></a> has also returned.
+Some work that was scheduled before the call to <a class="reference internal" href="#tornado.ioloop.IOLoop.stop" title="tornado.ioloop.IOLoop.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stop</span></code></a> may still
+be run before the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> shuts down.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.run_sync">
+<code class="descclassname">IOLoop.</code><code class="descname">run_sync</code><span class="sig-paren">(</span><em>func: Callable</em>, <em>timeout: float = None</em><span class="sig-paren">)</span> &#x2192; Any<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.run_sync"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.run_sync" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>, runs the given function, and stops the loop.</p>
+<p>The function must return either an awaitable object or
+<code class="docutils literal notranslate"><span class="pre">None</span></code>. If the function returns an awaitable object, the
+<a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> will run until the awaitable is resolved (and
+<a class="reference internal" href="#tornado.ioloop.IOLoop.run_sync" title="tornado.ioloop.IOLoop.run_sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_sync()</span></code></a> will return the awaitable’s result). If it raises
+an exception, the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> will stop and the exception will be
+re-raised to the caller.</p>
+<p>The keyword-only argument <code class="docutils literal notranslate"><span class="pre">timeout</span></code> may be used to set
+a maximum duration for the function.  If the timeout expires,
+a <a class="reference internal" href="util.html#tornado.util.TimeoutError" title="tornado.util.TimeoutError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tornado.util.TimeoutError</span></code></a> is raised.</p>
+<p>This method is useful to allow asynchronous calls in a
+<code class="docutils literal notranslate"><span class="pre">main()</span></code> function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># do stuff...</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">IOLoop</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="n">main</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.3: </span>Returning a non-<code class="docutils literal notranslate"><span class="pre">None</span></code>, non-awaitable value is now an error.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>If a timeout occurs, the <code class="docutils literal notranslate"><span class="pre">func</span></code> coroutine will be cancelled.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.close">
+<code class="descclassname">IOLoop.</code><code class="descname">close</code><span class="sig-paren">(</span><em>all_fds: bool = False</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>, freeing any resources used.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">all_fds</span></code> is true, all file descriptors registered on the
+IOLoop will be closed (not just the ones created by the
+<a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> itself).</p>
+<p>Many applications will only use a single <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> that runs for the
+entire lifetime of the process.  In that case closing the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>
+is not necessary since everything will be cleaned up when the
+process exits.  <a class="reference internal" href="#tornado.ioloop.IOLoop.close" title="tornado.ioloop.IOLoop.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.close</span></code></a> is provided mainly for scenarios
+such as unit tests, which create and destroy a large number of
+<code class="docutils literal notranslate"><span class="pre">IOLoops</span></code>.</p>
+<p>An <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> must be completely stopped before it can be closed.  This
+means that <a class="reference internal" href="#tornado.ioloop.IOLoop.stop" title="tornado.ioloop.IOLoop.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.stop()</span></code></a> must be called <em>and</em> <a class="reference internal" href="#tornado.ioloop.IOLoop.start" title="tornado.ioloop.IOLoop.start"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.start()</span></code></a> must
+be allowed to return before attempting to call <a class="reference internal" href="#tornado.ioloop.IOLoop.close" title="tornado.ioloop.IOLoop.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.close()</span></code></a>.
+Therefore the call to <a class="reference internal" href="#tornado.ioloop.IOLoop.close" title="tornado.ioloop.IOLoop.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close</span></code></a> will usually appear just after
+the call to <a class="reference internal" href="#tornado.ioloop.IOLoop.start" title="tornado.ioloop.IOLoop.start"><code class="xref py py-obj docutils literal notranslate"><span class="pre">start</span></code></a> rather than near the call to <a class="reference internal" href="#tornado.ioloop.IOLoop.stop" title="tornado.ioloop.IOLoop.stop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stop</span></code></a>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 3.1: </span>If the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> implementation supports non-integer objects
+for “file descriptors”, those objects will have their
+<code class="docutils literal notranslate"><span class="pre">close</span></code> method when <code class="docutils literal notranslate"><span class="pre">all_fds</span></code> is true.</p>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="tornado.ioloop.IOLoop.instance">
+<em class="property">static </em><code class="descclassname">IOLoop.</code><code class="descname">instance</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; tornado.ioloop.IOLoop<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.instance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deprecated alias for <a class="reference internal" href="#tornado.ioloop.IOLoop.current" title="tornado.ioloop.IOLoop.current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.current()</span></code></a>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Previously, this method returned a global singleton
+<a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>, in contrast with the per-thread <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> returned
+by <a class="reference internal" href="#tornado.ioloop.IOLoop.current" title="tornado.ioloop.IOLoop.current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">current()</span></code></a>. In nearly all cases the two were the same
+(when they differed, it was generally used from non-Tornado
+threads to communicate back to the main thread’s <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>).
+This distinction is not present in <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a>, so in order
+to facilitate integration with that package <a class="reference internal" href="#tornado.ioloop.IOLoop.instance" title="tornado.ioloop.IOLoop.instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">instance()</span></code></a>
+was changed to be an alias to <a class="reference internal" href="#tornado.ioloop.IOLoop.current" title="tornado.ioloop.IOLoop.current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">current()</span></code></a>. Applications
+using the cross-thread communications aspect of
+<a class="reference internal" href="#tornado.ioloop.IOLoop.instance" title="tornado.ioloop.IOLoop.instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">instance()</span></code></a> should instead set their own global variable
+to point to the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> they want to use.</p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.install">
+<code class="descclassname">IOLoop.</code><code class="descname">install</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.install"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.install" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deprecated alias for <a class="reference internal" href="#tornado.ioloop.IOLoop.make_current" title="tornado.ioloop.IOLoop.make_current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_current()</span></code></a>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Previously, this method would set this <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> as the
+global singleton used by <a class="reference internal" href="#tornado.ioloop.IOLoop.instance" title="tornado.ioloop.IOLoop.instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.instance()</span></code></a>. Now that
+<a class="reference internal" href="#tornado.ioloop.IOLoop.instance" title="tornado.ioloop.IOLoop.instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">instance()</span></code></a> is an alias for <a class="reference internal" href="#tornado.ioloop.IOLoop.current" title="tornado.ioloop.IOLoop.current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">current()</span></code></a>, <a class="reference internal" href="#tornado.ioloop.IOLoop.install" title="tornado.ioloop.IOLoop.install"><code class="xref py py-obj docutils literal notranslate"><span class="pre">install()</span></code></a>
+is an alias for <a class="reference internal" href="#tornado.ioloop.IOLoop.make_current" title="tornado.ioloop.IOLoop.make_current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_current()</span></code></a>.</p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="tornado.ioloop.IOLoop.clear_instance">
+<em class="property">static </em><code class="descclassname">IOLoop.</code><code class="descname">clear_instance</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.clear_instance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.clear_instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deprecated alias for <a class="reference internal" href="#tornado.ioloop.IOLoop.clear_current" title="tornado.ioloop.IOLoop.clear_current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear_current()</span></code></a>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>Previously, this method would clear the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> used as
+the global singleton by <a class="reference internal" href="#tornado.ioloop.IOLoop.instance" title="tornado.ioloop.IOLoop.instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.instance()</span></code></a>. Now that
+<a class="reference internal" href="#tornado.ioloop.IOLoop.instance" title="tornado.ioloop.IOLoop.instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">instance()</span></code></a> is an alias for <a class="reference internal" href="#tornado.ioloop.IOLoop.current" title="tornado.ioloop.IOLoop.current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">current()</span></code></a>,
+<a class="reference internal" href="#tornado.ioloop.IOLoop.clear_instance" title="tornado.ioloop.IOLoop.clear_instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear_instance()</span></code></a> is an alias for <a class="reference internal" href="#tornado.ioloop.IOLoop.clear_current" title="tornado.ioloop.IOLoop.clear_current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear_current()</span></code></a>.</p>
+</div>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 5.0.</span></p>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="i-o-events">
+<h3>I/O events<a class="headerlink" href="#i-o-events" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.add_handler">
+<code class="descclassname">IOLoop.</code><code class="descname">add_handler</code><span class="sig-paren">(</span><em>fd: Union[int, tornado.ioloop._Selectable], handler: Callable[[...], None], events: int</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.add_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.add_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers the given handler to receive the given events for <code class="docutils literal notranslate"><span class="pre">fd</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">fd</span></code> argument may either be an integer file descriptor or
+a file-like object with a <code class="docutils literal notranslate"><span class="pre">fileno()</span></code> and <code class="docutils literal notranslate"><span class="pre">close()</span></code> method.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">events</span></code> argument is a bitwise or of the constants
+<code class="docutils literal notranslate"><span class="pre">IOLoop.READ</span></code>, <code class="docutils literal notranslate"><span class="pre">IOLoop.WRITE</span></code>, and <code class="docutils literal notranslate"><span class="pre">IOLoop.ERROR</span></code>.</p>
+<p>When an event occurs, <code class="docutils literal notranslate"><span class="pre">handler(fd,</span> <span class="pre">events)</span></code> will be run.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Added the ability to pass file-like objects in addition to
+raw file descriptors.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.update_handler">
+<code class="descclassname">IOLoop.</code><code class="descname">update_handler</code><span class="sig-paren">(</span><em>fd: Union[int, tornado.ioloop._Selectable], events: int</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.update_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.update_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Changes the events we listen for <code class="docutils literal notranslate"><span class="pre">fd</span></code>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Added the ability to pass file-like objects in addition to
+raw file descriptors.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.remove_handler">
+<code class="descclassname">IOLoop.</code><code class="descname">remove_handler</code><span class="sig-paren">(</span><em>fd: Union[int, tornado.ioloop._Selectable]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.remove_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.remove_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop listening for events on <code class="docutils literal notranslate"><span class="pre">fd</span></code>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Added the ability to pass file-like objects in addition to
+raw file descriptors.</p>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="callbacks-and-timeouts">
+<h3>Callbacks and timeouts<a class="headerlink" href="#callbacks-and-timeouts" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.add_callback">
+<code class="descclassname">IOLoop.</code><code class="descname">add_callback</code><span class="sig-paren">(</span><em>callback: Callable</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.add_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.add_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the given callback on the next I/O loop iteration.</p>
+<p>It is safe to call this method from any thread at any time,
+except from a signal handler.  Note that this is the <strong>only</strong>
+method in <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> that makes this thread-safety guarantee; all
+other interaction with the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a> must be done from that
+<a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>’s thread.  <a class="reference internal" href="#tornado.ioloop.IOLoop.add_callback" title="tornado.ioloop.IOLoop.add_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_callback()</span></code></a> may be used to transfer
+control from other threads to the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>’s thread.</p>
+<p>To add a callback from a signal handler, see
+<a class="reference internal" href="#tornado.ioloop.IOLoop.add_callback_from_signal" title="tornado.ioloop.IOLoop.add_callback_from_signal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_callback_from_signal</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.add_callback_from_signal">
+<code class="descclassname">IOLoop.</code><code class="descname">add_callback_from_signal</code><span class="sig-paren">(</span><em>callback: Callable</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.add_callback_from_signal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.add_callback_from_signal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the given callback on the next I/O loop iteration.</p>
+<p>Safe for use from a Python signal handler; should not be used
+otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.add_future">
+<code class="descclassname">IOLoop.</code><code class="descname">add_future</code><span class="sig-paren">(</span><em>future: Union[Future[_T], concurrent.futures.Future[_T]], callback: Callable[[Future[_T]], None]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.add_future"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.add_future" title="Permalink to this definition">¶</a></dt>
+<dd><p>Schedules a callback on the <code class="docutils literal notranslate"><span class="pre">IOLoop</span></code> when the given
+<a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> is finished.</p>
+<p>The callback is invoked with one argument, the
+<a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a>.</p>
+<p>This method only accepts <a class="reference internal" href="concurrent.html#tornado.concurrent.Future" title="tornado.concurrent.Future"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Future</span></code></a> objects and not other
+awaitables (unlike most of Tornado where the two are
+interchangeable).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.add_timeout">
+<code class="descclassname">IOLoop.</code><code class="descname">add_timeout</code><span class="sig-paren">(</span><em>deadline: Union[float, datetime.timedelta], callback: Callable[[...], None], *args, **kwargs</em><span class="sig-paren">)</span> &#x2192; object<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.add_timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.add_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the <code class="docutils literal notranslate"><span class="pre">callback</span></code> at the time <code class="docutils literal notranslate"><span class="pre">deadline</span></code> from the I/O loop.</p>
+<p>Returns an opaque handle that may be passed to
+<a class="reference internal" href="#tornado.ioloop.IOLoop.remove_timeout" title="tornado.ioloop.IOLoop.remove_timeout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_timeout</span></code></a> to cancel.</p>
+<p><code class="docutils literal notranslate"><span class="pre">deadline</span></code> may be a number denoting a time (on the same
+scale as <a class="reference internal" href="#tornado.ioloop.IOLoop.time" title="tornado.ioloop.IOLoop.time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.time</span></code></a>, normally <a class="reference external" href="https://docs.python.org/3.6/library/time.html#time.time" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time.time</span></code></a>), or a
+<a class="reference external" href="https://docs.python.org/3.6/library/datetime.html#datetime.timedelta" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.timedelta</span></code></a> object for a deadline relative to the
+current time.  Since Tornado 4.0, <a class="reference internal" href="#tornado.ioloop.IOLoop.call_later" title="tornado.ioloop.IOLoop.call_later"><code class="xref py py-obj docutils literal notranslate"><span class="pre">call_later</span></code></a> is a more
+convenient alternative for the relative case since it does not
+require a timedelta object.</p>
+<p>Note that it is not safe to call <a class="reference internal" href="#tornado.ioloop.IOLoop.add_timeout" title="tornado.ioloop.IOLoop.add_timeout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_timeout</span></code></a> from other threads.
+Instead, you must use <a class="reference internal" href="#tornado.ioloop.IOLoop.add_callback" title="tornado.ioloop.IOLoop.add_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_callback</span></code></a> to transfer control to the
+<a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>’s thread, and then call <a class="reference internal" href="#tornado.ioloop.IOLoop.add_timeout" title="tornado.ioloop.IOLoop.add_timeout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_timeout</span></code></a> from there.</p>
+<p>Subclasses of IOLoop must implement either <a class="reference internal" href="#tornado.ioloop.IOLoop.add_timeout" title="tornado.ioloop.IOLoop.add_timeout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_timeout</span></code></a> or
+<a class="reference internal" href="#tornado.ioloop.IOLoop.call_at" title="tornado.ioloop.IOLoop.call_at"><code class="xref py py-obj docutils literal notranslate"><span class="pre">call_at</span></code></a>; the default implementations of each will call
+the other.  <a class="reference internal" href="#tornado.ioloop.IOLoop.call_at" title="tornado.ioloop.IOLoop.call_at"><code class="xref py py-obj docutils literal notranslate"><span class="pre">call_at</span></code></a> is usually easier to implement, but
+subclasses that wish to maintain compatibility with Tornado
+versions prior to 4.0 must use <a class="reference internal" href="#tornado.ioloop.IOLoop.add_timeout" title="tornado.ioloop.IOLoop.add_timeout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_timeout</span></code></a> instead.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4.0: </span>Now passes through <code class="docutils literal notranslate"><span class="pre">*args</span></code> and <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> to the callback.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.call_at">
+<code class="descclassname">IOLoop.</code><code class="descname">call_at</code><span class="sig-paren">(</span><em>when: float, callback: Callable[[...], None], *args, **kwargs</em><span class="sig-paren">)</span> &#x2192; object<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.call_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.call_at" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the <code class="docutils literal notranslate"><span class="pre">callback</span></code> at the absolute time designated by <code class="docutils literal notranslate"><span class="pre">when</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">when</span></code> must be a number using the same reference point as
+<a class="reference internal" href="#tornado.ioloop.IOLoop.time" title="tornado.ioloop.IOLoop.time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop.time</span></code></a>.</p>
+<p>Returns an opaque handle that may be passed to <a class="reference internal" href="#tornado.ioloop.IOLoop.remove_timeout" title="tornado.ioloop.IOLoop.remove_timeout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_timeout</span></code></a>
+to cancel.  Note that unlike the <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> method of the same
+name, the returned object does not have a <code class="docutils literal notranslate"><span class="pre">cancel()</span></code> method.</p>
+<p>See <a class="reference internal" href="#tornado.ioloop.IOLoop.add_timeout" title="tornado.ioloop.IOLoop.add_timeout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_timeout</span></code></a> for comments on thread-safety and subclassing.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.call_later">
+<code class="descclassname">IOLoop.</code><code class="descname">call_later</code><span class="sig-paren">(</span><em>delay: float, callback: Callable[[...], None], *args, **kwargs</em><span class="sig-paren">)</span> &#x2192; object<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.call_later"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.call_later" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the <code class="docutils literal notranslate"><span class="pre">callback</span></code> after <code class="docutils literal notranslate"><span class="pre">delay</span></code> seconds have passed.</p>
+<p>Returns an opaque handle that may be passed to <a class="reference internal" href="#tornado.ioloop.IOLoop.remove_timeout" title="tornado.ioloop.IOLoop.remove_timeout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_timeout</span></code></a>
+to cancel.  Note that unlike the <a class="reference external" href="https://docs.python.org/3.6/library/asyncio.html#module-asyncio" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asyncio</span></code></a> method of the same
+name, the returned object does not have a <code class="docutils literal notranslate"><span class="pre">cancel()</span></code> method.</p>
+<p>See <a class="reference internal" href="#tornado.ioloop.IOLoop.add_timeout" title="tornado.ioloop.IOLoop.add_timeout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_timeout</span></code></a> for comments on thread-safety and subclassing.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.remove_timeout">
+<code class="descclassname">IOLoop.</code><code class="descname">remove_timeout</code><span class="sig-paren">(</span><em>timeout: object</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.remove_timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.remove_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cancels a pending timeout.</p>
+<p>The argument is a handle as returned by <a class="reference internal" href="#tornado.ioloop.IOLoop.add_timeout" title="tornado.ioloop.IOLoop.add_timeout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_timeout</span></code></a>.  It is
+safe to call <a class="reference internal" href="#tornado.ioloop.IOLoop.remove_timeout" title="tornado.ioloop.IOLoop.remove_timeout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_timeout</span></code></a> even if the callback has already
+been run.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.spawn_callback">
+<code class="descclassname">IOLoop.</code><code class="descname">spawn_callback</code><span class="sig-paren">(</span><em>callback: Callable</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.spawn_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.spawn_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the given callback on the next IOLoop iteration.</p>
+<p>As of Tornado 6.0, this method is equivalent to <a class="reference internal" href="#tornado.ioloop.IOLoop.add_callback" title="tornado.ioloop.IOLoop.add_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_callback</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.run_in_executor">
+<code class="descclassname">IOLoop.</code><code class="descname">run_in_executor</code><span class="sig-paren">(</span><em>executor: Optional[concurrent.futures._base.Executor], func: Callable[[...], _T], *args</em><span class="sig-paren">)</span> &#x2192; Awaitable[_T]<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.run_in_executor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.run_in_executor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs a function in a <code class="docutils literal notranslate"><span class="pre">concurrent.futures.Executor</span></code>. If
+<code class="docutils literal notranslate"><span class="pre">executor</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, the IO loop’s default executor will be used.</p>
+<p>Use <a class="reference external" href="https://docs.python.org/3.6/library/functools.html#functools.partial" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">functools.partial</span></code></a> to pass keyword arguments to <code class="docutils literal notranslate"><span class="pre">func</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 5.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.set_default_executor">
+<code class="descclassname">IOLoop.</code><code class="descname">set_default_executor</code><span class="sig-paren">(</span><em>executor: concurrent.futures._base.Executor</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.set_default_executor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.set_default_executor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the default executor to use with <a class="reference internal" href="#tornado.ioloop.IOLoop.run_in_executor" title="tornado.ioloop.IOLoop.run_in_executor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run_in_executor()</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 5.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.IOLoop.time">
+<code class="descclassname">IOLoop.</code><code class="descname">time</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; float<a class="reference internal" href="_modules/tornado/ioloop.html#IOLoop.time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.IOLoop.time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current time according to the <a class="reference internal" href="#tornado.ioloop.IOLoop" title="tornado.ioloop.IOLoop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOLoop</span></code></a>’s clock.</p>
+<p>The return value is a floating-point number relative to an
+unspecified time in the past.</p>
+<p>Historically, the IOLoop could be customized to use e.g.
+<a class="reference external" href="https://docs.python.org/3.6/library/time.html#time.monotonic" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time.monotonic</span></code></a> instead of <a class="reference external" href="https://docs.python.org/3.6/library/time.html#time.time" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time.time</span></code></a>, but this is not
+currently supported and so this method is equivalent to
+<a class="reference external" href="https://docs.python.org/3.6/library/time.html#time.time" title="(in Python v3.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time.time</span></code></a>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tornado.ioloop.PeriodicCallback">
+<em class="property">class </em><code class="descclassname">tornado.ioloop.</code><code class="descname">PeriodicCallback</code><span class="sig-paren">(</span><em>callback: Callable[[], None], callback_time: float, jitter: float = 0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tornado/ioloop.html#PeriodicCallback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.PeriodicCallback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Schedules the given callback to be called periodically.</p>
+<p>The callback is called every <code class="docutils literal notranslate"><span class="pre">callback_time</span></code> milliseconds.
+Note that the timeout is given in milliseconds, while most other
+time-related functions in Tornado use seconds.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">jitter</span></code> is specified, each callback time will be randomly selected
+within a window of <code class="docutils literal notranslate"><span class="pre">jitter</span> <span class="pre">*</span> <span class="pre">callback_time</span></code> milliseconds.
+Jitter can be used to reduce alignment of events with similar periods.
+A jitter of 0.1 means allowing a 10% variation in callback time.
+The window is centered on <code class="docutils literal notranslate"><span class="pre">callback_time</span></code> so the total number of calls
+within a given interval should not be significantly affected by adding
+jitter.</p>
+<p>If the callback runs for longer than <code class="docutils literal notranslate"><span class="pre">callback_time</span></code> milliseconds,
+subsequent invocations will be skipped to get back on schedule.</p>
+<p><a class="reference internal" href="#tornado.ioloop.PeriodicCallback.start" title="tornado.ioloop.PeriodicCallback.start"><code class="xref py py-obj docutils literal notranslate"><span class="pre">start</span></code></a> must be called after the <a class="reference internal" href="#tornado.ioloop.PeriodicCallback" title="tornado.ioloop.PeriodicCallback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PeriodicCallback</span></code></a> is created.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.0: </span>The <code class="docutils literal notranslate"><span class="pre">io_loop</span></code> argument (deprecated since version 4.1) has been removed.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 5.1: </span>The <code class="docutils literal notranslate"><span class="pre">jitter</span></code> argument is added.</p>
+</div>
+<dl class="method">
+<dt id="tornado.ioloop.PeriodicCallback.start">
+<code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#PeriodicCallback.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.PeriodicCallback.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the timer.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.PeriodicCallback.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/tornado/ioloop.html#PeriodicCallback.stop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.PeriodicCallback.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops the timer.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tornado.ioloop.PeriodicCallback.is_running">
+<code class="descname">is_running</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/tornado/ioloop.html#PeriodicCallback.is_running"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tornado.ioloop.PeriodicCallback.is_running" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> if this <a class="reference internal" href="#tornado.ioloop.PeriodicCallback" title="tornado.ioloop.PeriodicCallback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PeriodicCallback</span></code></a> has been started.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 4.1.</span></p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="iostream.html" class="btn btn-neutral float-right" title="tornado.iostream — Convenient wrappers for non-blocking sockets" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="networking.html" class="btn btn-neutral float-left" title="Asynchronous networking" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright The Tornado Authors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
